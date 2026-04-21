@@ -1,0 +1,108 @@
+/* Sections */
+"GHOST_MODE_SECTION_HEADER" = "隱身模式";
+"READ_RECEIPT_SECTION_HEADER" = "已讀通知";
+"MISC_SECTION_HEADER" = "其它";
+"FILE_FIXER_SECTION_HEADER" = "檔案選擇器修復";
+"FAKE_LOCATION_SECTION_HEADER" = "虛擬定位";
+"LANGUAGE_SECTION_HEADER" = "語言";
+"CREDITS_SECTION_HEADER" = "鳴謝";
+
+/* Ghost Mode */
+"DISABLE_ONLINE_STATUS_TITLE" = "停用在線狀態";
+"DISABLE_ONLINE_STATUS_SUBTITLE" = "防止他人看到你正在線上";
+
+"DISABLE_TYPING_STATUS_TITLE" = "停用輸入狀態";
+"DISABLE_TYPING_STATUS_SUBTITLE" = "隱藏你正在輸入訊息的狀態";
+
+"DISABLE_RECORDING_VIDEO_STATUS_TITLE" = "停用錄影狀態";
+"DISABLE_RECORDING_VIDEO_STATUS_SUBTITLE" = "隱藏你正在錄製影片的狀態";
+
+"DISABLE_UPLOADING_VIDEO_STATUS_TITLE" = "停用上傳影片狀態";
+"DISABLE_UPLOADING_VIDEO_STATUS_SUBTITLE" = "隱藏你正在上傳影片的狀態";
+
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_TITLE" = "停用語音訊息錄製狀態";
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_SUBTITLE" = "隱藏你正在錄製語音訊息的狀態";
+
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_TITLE" = "停用語音訊息上傳狀態";
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_SUBTITLE" = "隱藏你正在上傳語音訊息的狀態";
+
+"DISABLE_UPLOADING_PHOTO_STATUS_TITLE" = "停用上傳照片狀態";
+"DISABLE_UPLOADING_PHOTO_STATUS_SUBTITLE" = "隱藏你正在上傳照片的狀態";
+
+"DISABLE_UPLOADING_FILE_STATUS_TITLE" = "停用上傳檔案狀態";
+"DISABLE_UPLOADING_FILE_STATUS_SUBTITLE" = "隱藏你正在上傳檔案的狀態";
+
+"DISABLE_CHOOSING_LOCATION_STATUS_TITLE" = "停用選擇位置狀態";
+"DISABLE_CHOOSING_LOCATION_STATUS_SUBTITLE" = "隱藏你正在選擇位置的狀態";
+
+"DISABLE_CHOOSING_CONTACT_TITLE" = "停用選擇聯絡人";
+"DISABLE_CHOOSING_CONTACT_SUBTITLE" = "隱藏你正在選擇聯絡人的狀態";
+
+"DISABLE_PLAYING_GAME_STATUS_TITLE" = "停用遊戲狀態";
+"DISABLE_PLAYING_GAME_STATUS_SUBTITLE" = "隱藏你正在玩遊戲的狀態";
+
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_TITLE" = "停用錄製圓形影片狀態";
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_SUBTITLE" = "隱藏你正在錄製圓形影片的狀態";
+
+"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_TITLE" = "停用上傳圓形影片狀態";
+
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_TITLE" = "停用群組通話說話狀態";
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_SUBTITLE" = "隱藏你正在群組通話中說話的狀態";
+
+"DISABLE_CHOOSING_STICKER_STATUS_TITLE" = "停用選擇貼圖狀態";
+"DISABLE_CHOOSING_STICKER_STATUS_SUBTITLE" = "隱藏你正在挑選貼圖的狀態";
+
+"DISABLE_EMOJI_INTERACTION_STATUS_TITLE" = "停用表情符號互動狀態";
+"DISABLE_EMOJI_INTERACTION_STATUS_SUBTITLE" = "隱藏你與表情符號互動的狀態";
+
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_TITLE" = "停用表情符號回應狀態";
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_SUBTITLE" = "隱藏你使用表情符號回應訊息的狀態";
+
+/* READ_RECEIPTS Section */
+"READ_RECEIPTS" = "已讀通知";
+
+"DISABLE_MESSAGE_READ_RECEIPT_TITLE" = "停用訊息已讀通知";
+"DISABLE_MESSAGE_READ_RECEIPT_SUBTITLE" = "防止他人看到你已閱讀他們的訊息";
+
+"DISABLE_STORY_READ_RECEIPT_TITLE" = "停用限時動態已讀通知";
+"DISABLE_STORY_READ_RECEIPT_SUBTITLE" = "防止他人看到你已查看他們的動態";
+
+/* MISC Section */
+"MISC" = "其它";
+
+"DISABLE_ALL_ADS_TITLE" = "停用所有廣告";
+"DISABLE_ALL_ADS_SUBTITLE" = "移除應用程式中的廣告及促銷內容";
+
+"ENABLE_SAVING_PROTECTED_CONTENT_TITLE" = "允許儲存受保護內容";
+"ENABLE_SAVING_PROTECTED_CONTENT_SUBTITLE" = "繞過儲存受保護內容的限制";
+
+
+"ANTI_REVOKE_TITLE" = "防撤回訊息";
+"ANTI_REVOKE_SUBTITLE" = "即使發送者刪除訊息，也保留在聊天中。";
+
+"ANTI_SCREENSHOT_TITLE" = "隱藏截圖通知";
+"ANTI_SCREENSHOT_SUBTITLE" = "在私密聊天和受保護頻道中截圖時不發送通知。";
+
+/* File Picker */
+"FIX_FILE_PICKER_TITLE" = "修復檔案選擇器";
+"FIX_FILE_PICKER_SUBTITLE" = "修復側載版本無法從檔案應用程式選擇檔案的問題";
+"CLEAR_FILE_PICKER_CACHE_TITLE" = "清除檔案選擇器快取";
+"CLEAR_FILE_PICKER_CACHE_SUBTITLE" = "由於檔案選擇器會將檔案複製到臨時目錄，需手動清除快取";
+"CACHE_CLEAR_WARNING_TITLE" = "確認";
+"CACHE_CLEAR_WARNING_MESSAGE" = "你確定嗎？";
+
+/* Fake Location */
+"ENABLE_FAKE_LOCATION_TITLE" = "啟用虛擬定位";
+"ENABLE_FAKE_LOCATION_SUBTITLE" = "允許你偽裝設備的GPS位置";
+"SELECT_FAKE_LOCATION_TITLE" = "選擇位置";
+
+/* Extras */
+"APPLY" = "套用";
+"APPLY_CHANGES" = "你確定要套用這些變更嗎？";
+
+"OK" = "確定";
+"CANCEL" = "取消";
+
+"DISCLAIMER" = "免責聲明";
+
+"AUTHOR_MESSAGE" = "本Telegram調整工具僅限於個人及教育用途。我們與Telegram無任何關聯。所有商標，包括Telegram名稱及標誌，皆屬其各自所有者所有。請勿使用本工具違反規則、進行不當行為或違反Telegram的服務條款。若因使用本工具而產生任何問題，我們概不負責，使用者須自行承擔風險。\n \n此外，若您對本工具感到滿意，歡迎提供意見或反饋，您的支持對我們至關重要。\n \n如有意透過小額捐款支持我，請透過Telegram與我聯繫。";

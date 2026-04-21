@@ -1,0 +1,107 @@
+/* GHOST_MODE Section */
+"GHOST_MODE_SECTION_HEADER" = "Mode Fantôme";
+"READ_RECEIPT_SECTION_HEADER" = "Accusés de Lecture";
+"MISC_SECTION_HEADER" = "Divers";
+"FILE_FIXER_SECTION_HEADER" = "Correcteur de Sélecteur de Fichiers";
+"FAKE_LOCATION_SECTION_HEADER" = "Fausse Localisation";
+"LANGUAGE_SECTION_HEADER" = "Langue";
+"CREDITS_SECTION_HEADER" = "Crédits";
+
+/* Ghost Mode */
+
+"DISABLE_ONLINE_STATUS_TITLE" = "Désactiver le statut en ligne";
+"DISABLE_ONLINE_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en ligne.";
+
+"DISABLE_TYPING_STATUS_TITLE" = "Désactiver le statut de saisie";
+"DISABLE_TYPING_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train d'écrire.";
+
+"DISABLE_RECORDING_VIDEO_STATUS_TITLE" = "Désactiver le statut d'enregistrement vidéo";
+"DISABLE_RECORDING_VIDEO_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train d'enregistrer une vidéo.";
+
+"DISABLE_UPLOADING_VIDEO_STATUS_TITLE" = "Désactiver le statut de téléchargement de vidéo";
+"DISABLE_UPLOADING_VIDEO_STATUS_SUBTITLE" = "Masquer lors du téléchargement d'une vidéo";
+
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_TITLE" = "Désactiver l'enregistrement de messages vocaux";
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train d'enregistrer un message vocal.";
+
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_TITLE" = "Désactiver le statut de téléchargement de message vocal";
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train de télécharger un message vocal.";
+
+"DISABLE_UPLOADING_PHOTO_STATUS_TITLE" = "Désactiver le statut de téléchargement de photo";
+"DISABLE_UPLOADING_PHOTO_STATUS_SUBTITLE" = "Masquer lors du téléchargement d'une photo";
+
+"DISABLE_UPLOADING_FILE_STATUS_TITLE" = "Désactiver le statut de téléchargement de fichier";
+"DISABLE_UPLOADING_FILE_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train de télécharger un fichier.";
+
+"DISABLE_CHOOSING_LOCATION_STATUS_TITLE" = "Désactiver le choix du lieu";
+"DISABLE_CHOOSING_LOCATION_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train de choisir un lieu.";
+
+"DISABLE_CHOOSING_CONTACT_TITLE" = "Désactiver le choix du contact";
+"DISABLE_CHOOSING_CONTACT_SUBTITLE" = "Ne pas afficher que vous êtes en train de choisir un contact.";
+
+"DISABLE_PLAYING_GAME_STATUS_TITLE" = "Désactiver le statut de jeu";
+"DISABLE_PLAYING_GAME_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train de jouer.";
+
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_TITLE" = "Désactiver l'enregistrement de vidéo ronde";
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train d'enregistrer une vidéo ronde.";
+
+"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_TITLE" = "Désactiver le statut de téléchargement de vidéo ronde";
+
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_TITLE" = "Désactiver le statut de parole dans les appels de groupe";
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_SUBTITLE" = "Ne pas afficher que vous parlez dans un appel de groupe.";
+
+"DISABLE_CHOOSING_STICKER_STATUS_TITLE" = "Désactiver le choix de stickers";
+"DISABLE_CHOOSING_STICKER_STATUS_SUBTITLE" = "Ne pas afficher que vous êtes en train de choisir un sticker.";
+
+"DISABLE_EMOJI_INTERACTION_STATUS_TITLE" = "Désactiver l'interaction avec les émojis";
+"DISABLE_EMOJI_INTERACTION_STATUS_SUBTITLE" = "Ne pas afficher que vous interagissez avec un émoji.";
+
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_TITLE" = "Désactiver la reconnaissance des émojis";
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_SUBTITLE" = "Ne pas afficher que vous avez reconnu un émoji.";
+
+/* READ_RECEIPTS Section */
+"READ_RECEIPTS" = "Accusés de réception";
+
+"DISABLE_MESSAGE_READ_RECEIPT_TITLE" = "Désactiver les accusés de réception de message";
+"DISABLE_MESSAGE_READ_RECEIPT_SUBTITLE" = "Ne pas afficher que vous avez lu le message.";
+
+"DISABLE_STORY_READ_RECEIPT_TITLE" = "Désactiver les accusés de réception des stories";
+"DISABLE_STORY_READ_RECEIPT_SUBTITLE" = "Ne pas afficher que vous avez vu la story.";
+
+/* MISC Section */
+"MISC" = "Divers";
+
+"DISABLE_ALL_ADS_TITLE" = "Désactiver toutes les publicités";
+"DISABLE_ALL_ADS_SUBTITLE" = "Supprimer les publicités et le contenu sponsorisé de l'application.";
+
+"ENABLE_SAVING_PROTECTED_CONTENT_TITLE" = "Activer l'enregistrement de contenu protégé";
+"ENABLE_SAVING_PROTECTED_CONTENT_SUBTITLE" = "Contournement des restrictions pour enregistrer le contenu protégé.";
+
+
+"ANTI_REVOKE_TITLE" = "Anti-Révocation";
+"ANTI_REVOKE_SUBTITLE" = "Conserve les messages dans le chat même après leur suppression par l'expéditeur.";
+
+"ANTI_SCREENSHOT_TITLE" = "Masquer la notif. capture";
+"ANTI_SCREENSHOT_SUBTITLE" = "Empêche l'envoi de notification lors de captures dans les chats secrets et chaînes protégées.";
+
+/* File Picker */
+"FIX_FILE_PICKER_TITLE" = "Corriger le Sélecteur de Fichiers";
+"FIX_FILE_PICKER_SUBTITLE" = "Corrige le problème empêchant la sélection de fichiers depuis l’app Fichiers sur les versions installées manuellement";
+"CLEAR_FILE_PICKER_CACHE_TITLE" = "Vider le Cache du Sélecteur de Fichiers";
+"CLEAR_FILE_PICKER_CACHE_SUBTITLE" = "Comme le sélecteur copie les fichiers dans un dossier temporaire, il faut le vider manuellement";
+"CACHE_CLEAR_WARNING_TITLE" = "Confirmer";
+"CACHE_CLEAR_WARNING_MESSAGE" = "Êtes-vous sûr ?";
+
+/* Fake Location */ 
+"ENABLE_FAKE_LOCATION_TITLE" = "Activer la Fausse Localisation";
+"ENABLE_FAKE_LOCATION_SUBTITLE" = "Permet de simuler la localisation GPS de votre appareil";
+"SELECT_FAKE_LOCATION_TITLE" = "Sélectionner une Localisation";
+
+/* Extras */
+"APPLY" = "Appliquer";
+"APPLY_CHANGES" = "Êtes-vous sûr de vouloir appliquer ces changements ?";
+
+"OK" = "OK";
+"CANCEL" = "Annuler";
+
+"AUTHOR_MESSAGE" = "Ce tweak Telegram est uniquement destiné à un usage personnel et éducatif. Nous ne sommes en aucun cas affiliés à Telegram. Toutes les marques, y compris le nom et le logo de Telegram, appartiennent à leurs propriétaires respectifs. N'utilisez pas ceci pour enfreindre les règles, faire des choses louches ou violer les conditions d'utilisation de Telegram — nous ne sommes pas responsables en cas de problème. Utilisez-le à vos risques et périls.\n\nAussi… si ça vous plaît, dites-le. Sérieusement, je vis pour la validation.\n\nEt… si vous voulez me soutenir avec un ou deux euros, contactez-moi sur Telegram.";

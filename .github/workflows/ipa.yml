@@ -1,0 +1,259 @@
+name: Build and Release IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      decrypted_ipa_url:
+        description: "Direct URL of the decrypted IPA"
+        required: true
+        type: string
+
+jobs:
+  prepareDependencies:
+    name: Prepare Dependencies
+    runs-on: macos-latest
+    outputs:
+      ipa_app_name: ${{ steps.extractIPA.outputs.ipa_app_name }}
+      ipa_bundle_id: ${{ steps.extractIPA.outputs.ipa_bundle_id }}
+      ipa_version: ${{ steps.extractIPA.outputs.ipa_version }}
+      tgextra_version: ${{ steps.extractTGExtra.outputs.tgextra_version }}
+    steps:
+      - name: Fetch TGExtra.bundle
+        uses: actions/checkout@v4
+
+      - name: Download decrypted IPA
+        env:
+          IPA_URL: ${{ inputs.decrypted_ipa_url }}
+        run: |
+          curl -L -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" -o decrypted.ipa "$IPA_URL"
+          unzip -q decrypted.ipa
+
+      - name: Extract Name, Bundle ID, and Version
+        id: extractIPA
+        run: |
+          PLIST=$(ls Payload/*.app/Info.plist | head -n1)
+
+          IPA_APP_NAME=$(grep -A1 '<key>CFBundleDisplayName</key>' "$PLIST" | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p' || grep -A1 '<key>CFBundleExecutable</key>' "$PLIST" | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p' || grep -A1 '<key>CFBundleName</key>' "$PLIST" | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p')
+          IPA_BUNDLE_ID=$(grep -A1 '<key>CFBundleIdentifier</key>' "$PLIST" | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p')
+          IPA_VERSION=$(grep -A1 '<key>CFBundleShortVersionString</key>' "$PLIST" | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p')
+
+          echo "ipa_app_name=$IPA_APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "ipa_bundle_id=$IPA_BUNDLE_ID" >> "$GITHUB_OUTPUT"
+          echo "ipa_version=$IPA_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download latest TGExtra
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download release --repo waruhachi/TGExtra --pattern 'com.choco.tg_*_iphoneos-arm.deb' --dir .
+
+      - name: Extract TGExtra version
+        id: extractTGExtra
+        run: |
+          FIRST=$(ls com.choco.tg_*_iphoneos-arm.deb | head -n1)
+          TGEXTRA_VERSION=$(echo "$FIRST" | sed -E 's/com\.choco\.tg_([0-9\.]+)_.+\.deb/\1/')
+
+          echo "tgextra_version=$TGEXTRA_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download latest SideloadFix.dylib
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download release --repo waruhachi/SideloadFix --pattern 'SideloadFix.dylib' --dir .
+
+      - name: Upload Dependencies
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependencies
+          path: |
+            decrypted.ipa
+            TGExtra.bundle
+            SideloadFix.dylib
+            com.choco.tg_*_iphoneos-arm.deb
+
+  inject:
+    name: Inject TGExtra & SideloadFix
+    needs: prepareDependencies
+    runs-on: macos-latest
+    env:
+      IPA_BUNDLE_ID: ${{ needs.prepareDependencies.outputs.ipa_bundle_id }}
+      IPA_VERSION: ${{ needs.prepareDependencies.outputs.ipa_version }}
+      TGEXTRA_VERSION: ${{ needs.prepareDependencies.outputs.tgextra_version }}
+    steps:
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          path: dependencies
+          name: dependencies
+          merge-multiple: true
+
+      - name: Install Cyan CLI
+        run: |
+          pip install --force-reinstall https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
+
+      - name: Inject TGExtra & SideloadFix into IPA
+        run: |
+          DECRYPTED_IPA="dependencies/decrypted.ipa"
+          TGEXTRA_BUNDLE="dependencies/TGExtra.bundle"
+          TGEXTRA_DEB="dependencies/com.choco.tg_${TGEXTRA_VERSION}_iphoneos-arm.deb"
+
+          OUT_BASE="$IPA_BUNDLE_ID-$IPA_VERSION-TGExtra-$TGEXTRA_VERSION"
+          OUT_IPA="$OUT_BASE.ipa"
+          OUT_TIPA="$OUT_BASE.tipa"
+
+          cyan -i "$DECRYPTED_IPA" -o "$OUT_IPA" -uwsgqf "$TGEXTRA_DEB" "$TGEXTRA_BUNDLE"
+
+          cp "$OUT_IPA" "$OUT_TIPA"
+          mkdir -p artifacts
+          mv "$OUT_IPA" "$OUT_TIPA" artifacts/
+
+      - name: Upload injected IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: injected-artifacts
+          path: |
+            artifacts/*.ipa
+            artifacts/*.tipa
+
+  patch:
+    name: Patch injected IPA
+    needs: [prepareDependencies, inject]
+    runs-on: macos-latest
+    env:
+      IPA_BUNDLE_ID: ${{ needs.prepareDependencies.outputs.ipa_bundle_id }}
+      IPA_VERSION: ${{ needs.prepareDependencies.outputs.ipa_version }}
+      TGEXTRA_VERSION: ${{ needs.prepareDependencies.outputs.tgextra_version }}
+    steps:
+      - name: Download dependencies
+        uses: actions/download-artifact@v4
+        with:
+          path: dependencies
+          name: dependencies
+          merge-multiple: true
+
+      - name: Download injected IPA
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          name: injected-artifacts
+          merge-multiple: true
+
+      - name: Install ipapatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=$(gh api repos/asdfzxcvbn/ipapatch/releases/latest --jq .tag_name)
+          ARCH=$(uname -m)
+          if [[ "$ARCH" == "arm64" ]]; then
+            ASSET="ipapatch.macos-arm64"
+          else
+            ASSET="ipapatch.macos-amd64"
+          fi
+
+          gh release download "$TAG" --repo asdfzxcvbn/ipapatch --pattern "$ASSET" --dir .
+
+          mkdir -p bin
+          mv "$ASSET" bin/ipapatch
+          chmod +x bin/ipapatch
+          echo "PATH=$GITHUB_WORKSPACE/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Patch injected IPA
+        run: |
+          OUT_BASE="$IPA_BUNDLE_ID-$IPA_VERSION-TGExtra-$TGEXTRA_VERSION"
+          SIDELOADFIX_DYLIB="dependencies/SideloadFix.dylib"
+          INJECTED_IPA="artifacts/$OUT_BASE.ipa"
+          INJECTED_TIPA="artifacts/$OUT_BASE.tipa"
+
+          ipapatch --input "$INJECTED_IPA" --inplace --noconfirm
+          ipapatch --input "$INJECTED_TIPA" --inplace --noconfirm
+
+      - name: Upload injected IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: patched-artifacts
+          path: |
+            artifacts/*.ipa
+            artifacts/*.tipa
+
+  updateRelease:
+    name: Update GitHub Release
+    needs: [prepareDependencies, inject, patch]
+    runs-on: macos-latest
+    env:
+      IPA_APP_NAME: ${{ needs.prepareDependencies.outputs.ipa_app_name }}
+    steps:
+      - name: Download injected IPA
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          name: patched-artifacts
+          merge-multiple: true
+
+      - name: Fetch existing release body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view release --repo ${{ github.repository }} --json body --jq .body > release_body.md
+
+      - name: Generate Checksums
+        id: metadata
+        run: |
+          if [ -f release_body.md ]; then
+            awk -v sideload="### $IPA_APP_NAME (Sideload)" -v troll="### $IPA_APP_NAME (TrollStore)" '
+              BEGIN { skip=0 }
+              {
+                if ($0 == sideload || $0 == troll) { skip=1 }
+                if (skip && /^### / && $0 != sideload && $0 != troll) { skip=0 }
+                if (!skip) print $0
+              }
+            ' release_body.md > release_body.tmp && mv release_body.tmp release_body.md
+          fi
+
+          for ipa in artifacts/*.ipa; do
+            if [ -f "$ipa" ]; then
+              echo "### $IPA_APP_NAME (Sideload)" >> release_body.md
+              echo "* MD5: $(md5 -q $ipa)" >> release_body.md
+              echo "* SHA1: $(shasum -a 1 $ipa | awk '{ print $1 }')" >> release_body.md
+              echo "* SHA256: $(shasum -a 256 $ipa | awk '{ print $1 }')" >> release_body.md
+              echo "" >> release_body.md
+              break
+            fi
+          done
+
+          for tipa in artifacts/*.tipa; do
+            if [ -f "$tipa" ]; then
+              echo "### $IPA_APP_NAME (TrollStore)" >> release_body.md
+              echo "* MD5: $(md5 -q $tipa)" >> release_body.md
+              echo "* SHA1: $(shasum -a 1 $tipa | awk '{ print $1 }')" >> release_body.md
+              echo "* SHA256: $(shasum -a 256 $tipa | awk '{ print $1 }')" >> release_body.md
+              echo "" >> release_body.md
+              break
+            fi
+          done
+
+      - name: Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release
+          name: ${{ github.event.repository.name }}
+          body_path: release_body.md
+          files: |
+            artifacts/*.ipa
+            artifacts/*.tipa
+          draft: false
+          prerelease: false
+          make_latest: true
+  cleanup:
+    name: Cleanup
+    needs: updateRelease
+    runs-on: macos-latest
+    steps:
+      - name: Delete build artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            artifacts
+            dependencies
+          failOnError: false

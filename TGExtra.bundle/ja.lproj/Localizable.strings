@@ -1,0 +1,108 @@
+/* Sections */
+"GHOST_MODE_SECTION_HEADER" = "ゴーストモード";
+"READ_RECEIPT_SECTION_HEADER" = "既読通知";
+"MISC_SECTION_HEADER" = "その他";
+"FILE_FIXER_SECTION_HEADER" = "ファイル選択の修正";
+"FAKE_LOCATION_SECTION_HEADER" = "位置情報の偽装";
+"LANGUAGE_SECTION_HEADER" = "言語";
+"CREDITS_SECTION_HEADER" = "クレジット";
+
+/* Ghost Mode */
+"DISABLE_ONLINE_STATUS_TITLE" = "オンライン表示を無効化";
+"DISABLE_ONLINE_STATUS_SUBTITLE" = "他のユーザーにオンライン状態を表示しません。";
+
+"DISABLE_TYPING_STATUS_TITLE" = "入力中表示を無効化";
+"DISABLE_TYPING_STATUS_SUBTITLE" = "メッセージ入力中の表示を隠します。";
+
+"DISABLE_RECORDING_VIDEO_STATUS_TITLE" = "動画録画中表示を無効化";
+"DISABLE_RECORDING_VIDEO_STATUS_SUBTITLE" = "動画を録画中であることを隠します。";
+
+"DISABLE_UPLOADING_VIDEO_STATUS_TITLE" = "動画アップロード中表示を無効化";
+"DISABLE_UPLOADING_VIDEO_STATUS_SUBTITLE" = "動画をアップロード中であることを隠します";
+
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_TITLE" = "ボイスメッセージ録音中表示を無効化";
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_SUBTITLE" = "ボイスメッセージを録音中であることを隠します。";
+
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_TITLE" = "ボイスメッセージアップロード中表示を無効化";
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_SUBTITLE" = "ボイスメッセージをアップロード中であることを隠します。";
+
+"DISABLE_UPLOADING_PHOTO_STATUS_TITLE" = "写真アップロード中表示を無効化";
+"DISABLE_UPLOADING_PHOTO_STATUS_SUBTITLE" = "写真をアップロード中であることを隠します";
+
+"DISABLE_UPLOADING_FILE_STATUS_TITLE" = "ファイルアップロード中表示を無効化";
+"DISABLE_UPLOADING_FILE_STATUS_SUBTITLE" = "ファイルをアップロード中であることを隠します。";
+
+"DISABLE_CHOOSING_LOCATION_STATUS_TITLE" = "位置情報選択中表示を無効化";
+"DISABLE_CHOOSING_LOCATION_STATUS_SUBTITLE" = "位置情報を選択中であることを隠します。";
+
+"DISABLE_CHOOSING_CONTACT_TITLE" = "連絡先選択中表示を無効化";
+"DISABLE_CHOOSING_CONTACT_SUBTITLE" = "連絡先を選択中であることを隠します。";
+
+"DISABLE_PLAYING_GAME_STATUS_TITLE" = "ゲームプレイ中表示を無効化";
+"DISABLE_PLAYING_GAME_STATUS_SUBTITLE" = "ゲームプレイ中であることを隠します。";
+
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_TITLE" = "ラウンド動画録画中表示を無効化";
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_SUBTITLE" = "ラウンド動画を録画中であることを隠します。";
+
+"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_TITLE" = "ラウンド動画アップロード中表示を無効化";
+
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_TITLE" = "グループ通話発言中表示を無効化";
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_SUBTITLE" = "グループ通話で発言中であることを隠します。";
+
+"DISABLE_CHOOSING_STICKER_STATUS_TITLE" = "ステッカー選択中表示を無効化";
+"DISABLE_CHOOSING_STICKER_STATUS_SUBTITLE" = "ステッカーを選択中であることを隠します。";
+
+"DISABLE_EMOJI_INTERACTION_STATUS_TITLE" = "絵文字操作中表示を無効化";
+"DISABLE_EMOJI_INTERACTION_STATUS_SUBTITLE" = "絵文字を操作中であることを隠します。";
+
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_TITLE" = "絵文字リアクション表示を無効化";
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_SUBTITLE" = "メッセージに絵文字でリアクションしたことを隠します。";
+
+/* READ_RECEIPTS Section */
+"READ_RECEIPTS" = "既読通知";
+
+"DISABLE_MESSAGE_READ_RECEIPT_TITLE" = "メッセージ既読通知を無効化";
+"DISABLE_MESSAGE_READ_RECEIPT_SUBTITLE" = "メッセージを読んだことを相手に通知しません。";
+
+"DISABLE_STORY_READ_RECEIPT_TITLE" = "ストーリー既読通知を無効化";
+"DISABLE_STORY_READ_RECEIPT_SUBTITLE" = "ストーリーを見たことを相手に通知しません。";
+
+/* MISC Section */
+"MISC" = "その他";
+
+"DISABLE_ALL_ADS_TITLE" = "全ての広告を無効化";
+"DISABLE_ALL_ADS_SUBTITLE" = "アプリからプロモーションコンテンツと広告を削除します。";
+
+"ENABLE_SAVING_PROTECTED_CONTENT_TITLE" = "保護されたコンテンツの保存を許可";
+"ENABLE_SAVING_PROTECTED_CONTENT_SUBTITLE" = "保存が制限されているコンテンツも保存できるようにします。";
+
+
+"ANTI_REVOKE_TITLE" = "メッセージ削除防止";
+"ANTI_REVOKE_SUBTITLE" = "送信者がメッセージを削除してもチャットに残します。";
+
+"ANTI_SCREENSHOT_TITLE" = "スクリーンショット通知を隠す";
+"ANTI_SCREENSHOT_SUBTITLE" = "シークレットチャットや保護チャンネルでのスクリーンショット通知を送信しません。";
+
+/* File Picker */
+"FIX_FILE_PICKER_TITLE" = "ファイルピッカーを修正";
+"FIX_FILE_PICKER_SUBTITLE" = "サイドロード版でファイルアプリからファイルを選択できない問題を修正します。";
+"CLEAR_FILE_PICKER_CACHE_TITLE" = "ファイルピッカーのキャッシュをクリア";
+"CLEAR_FILE_PICKER_CACHE_SUBTITLE" = "ファイルピッカーはファイルを一時ディレクトリにコピーするため、手動でクリアする必要があります。";
+"CACHE_CLEAR_WARNING_TITLE" = "確認";
+"CACHE_CLEAR_WARNING_MESSAGE" = "本当によろしいですか？";
+
+/* Fake Location */
+"ENABLE_FAKE_LOCATION_TITLE" = "位置情報の偽装を有効化";
+"ENABLE_FAKE_LOCATION_SUBTITLE" = "デバイスのGPS位置情報を偽装することができます";
+"SELECT_FAKE_LOCATION_TITLE" = "位置情報を選択";
+
+/* Extras */
+"APPLY" = "適用";
+"APPLY_CHANGES" = "これらの変更を適用してもよろしいですか";
+
+"OK" = "OK";
+"CANCEL" = "キャンセル";
+
+"DISCLAIMER" = "免責事項";
+
+"AUTHOR_MESSAGE" = "このTweakは個人的かつ教育目的のみで提供されており、Telegram とは一切関係がありません。Telegram の名称やロゴなどの商標はそれぞれの所有者に帰属します。違反行為や規約違反に使わないでください。何か問題が発生しても開発者は責任を負いません。すべて自己責任でご使用ください。\n \nそれと、もし気に入ったら何か感想をください。正直、評価が励みになります。\n \nまた、1～2ドル寄付してサポートしたい場合は、Telegramで連絡してください。";

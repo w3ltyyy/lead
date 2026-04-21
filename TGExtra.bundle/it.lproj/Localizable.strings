@@ -1,0 +1,110 @@
+
+
+/* Sections */
+"GHOST_MODE_SECTION_HEADER" = "Modalità Fantasma";
+"READ_RECEIPT_SECTION_HEADER" = "Conferme di lettura";
+"MISC_SECTION_HEADER" = "Varie";
+"FILE_FIXER_SECTION_HEADER" = "Correzione selezione file";
+"FAKE_LOCATION_SECTION_HEADER" = "Posizione falsa";
+"LANGUAGE_SECTION_HEADER" = "Lingua";
+"CREDITS_SECTION_HEADER" = "Crediti";
+
+/* Ghost Mode */
+"DISABLE_ONLINE_STATUS_TITLE" = "Disattiva stato online";
+"DISABLE_ONLINE_STATUS_SUBTITLE" = "Impedisci agli altri di vederti online.";
+
+"DISABLE_TYPING_STATUS_TITLE" = "Disattiva stato di digitazione";
+"DISABLE_TYPING_STATUS_SUBTITLE" = "Nascondi quando stai scrivendo messaggi.";
+
+"DISABLE_RECORDING_VIDEO_STATUS_TITLE" = "Disattiva stato di registrazione video";
+"DISABLE_RECORDING_VIDEO_STATUS_SUBTITLE" = "Nascondi quando stai registrando un video.";
+
+"DISABLE_UPLOADING_VIDEO_STATUS_TITLE" = "Disattiva stato di caricamento video";
+"DISABLE_UPLOADING_VIDEO_STATUS_SUBTITLE" = "Nascondi quando stai caricando un video";
+
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_TITLE" = "Disattiva stato di registrazione messaggio vocale";
+"DISABLE_VC_MESSAGE_RECORDING_STATUS_SUBTITLE" = "Nascondi quando stai registrando un messaggio vocale.";
+
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_TITLE" = "Disattiva stato di caricamento messaggio vocale";
+"DISABLE_VC_MESSAGE_UPLOADING_STATUS_SUBTITLE" = "Nascondi quando stai caricando un messaggio vocale.";
+
+"DISABLE_UPLOADING_PHOTO_STATUS_TITLE" = "Disattiva stato di caricamento foto";
+"DISABLE_UPLOADING_PHOTO_STATUS_SUBTITLE" = "Nascondi quando stai caricando una foto";
+
+"DISABLE_UPLOADING_FILE_STATUS_TITLE" = "Disattiva stato di caricamento file";
+"DISABLE_UPLOADING_FILE_STATUS_SUBTITLE" = "Nascondi quando stai caricando un file.";
+
+"DISABLE_CHOOSING_LOCATION_STATUS_TITLE" = "Disattiva stato di selezione posizione";
+"DISABLE_CHOOSING_LOCATION_STATUS_SUBTITLE" = "Nascondi quando stai scegliendo una posizione.";
+
+"DISABLE_CHOOSING_CONTACT_TITLE" = "Disattiva selezione contatto";
+"DISABLE_CHOOSING_CONTACT_SUBTITLE" = "Nascondi quando stai scegliendo un contatto.";
+
+"DISABLE_PLAYING_GAME_STATUS_TITLE" = "Disattiva stato di gioco";
+"DISABLE_PLAYING_GAME_STATUS_SUBTITLE" = "Nascondi quando stai giocando.";
+
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_TITLE" = "Disattiva stato di registrazione video rotondo";
+"DISABLE_RECORDING_ROUND_VIDEO_STATUS_SUBTITLE" = "Nascondi quando stai registrando un video rotondo.";
+
+"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_TITLE" = "Disattiva stato di caricamento video rotondo";
+
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_TITLE" = "Disattiva stato di parola in chiamata di gruppo";
+"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_SUBTITLE" = "Nascondi quando stai parlando in una chiamata di gruppo.";
+
+"DISABLE_CHOOSING_STICKER_STATUS_TITLE" = "Disattiva stato di selezione sticker";
+"DISABLE_CHOOSING_STICKER_STATUS_SUBTITLE" = "Nascondi quando stai scegliendo uno sticker.";
+
+"DISABLE_EMOJI_INTERACTION_STATUS_TITLE" = "Disattiva stato di interazione con emoji";
+"DISABLE_EMOJI_INTERACTION_STATUS_SUBTITLE" = "Nascondi quando interagisci con un'emoji.";
+
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_TITLE" = "Disattiva stato di reazione con emoji";
+"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_SUBTITLE" = "Nascondi quando reagisci con un'emoji a un messaggio.";
+
+/* READ_RECEIPT Section */
+"READ_RECEIPTS" = "Conferme di lettura";
+
+"DISABLE_MESSAGE_READ_RECEIPT_TITLE" = "Disattiva conferme di lettura messaggi";
+"DISABLE_MESSAGE_READ_RECEIPT_SUBTITLE" = "Impedisci agli altri di vedere che hai letto i loro messaggi.";
+
+"DISABLE_STORY_READ_RECEIPT_TITLE" = "Disattiva conferme di lettura storie";
+"DISABLE_STORY_READ_RECEIPT_SUBTITLE" = "Impedisci agli altri di vedere che hai visualizzato le loro storie.";
+
+/* MISC Section */
+"MISC" = "Varie";
+
+"DISABLE_ALL_ADS_TITLE" = "Disattiva tutti gli annunci";
+"DISABLE_ALL_ADS_SUBTITLE" = "Rimuove contenuti promozionali e annunci dall'app.";
+
+"ENABLE_SAVING_PROTECTED_CONTENT_TITLE" = "Consenti salvataggio contenuti protetti";
+"ENABLE_SAVING_PROTECTED_CONTENT_SUBTITLE" = "Bypassa le restrizioni sul salvataggio dei contenuti protetti.";
+
+
+"ANTI_REVOKE_TITLE" = "Anti-Revoca";
+"ANTI_REVOKE_SUBTITLE" = "Mantieni i messaggi nella chat anche dopo che il mittente li elimina.";
+
+"ANTI_SCREENSHOT_TITLE" = "Nascondi notifica screenshot";
+"ANTI_SCREENSHOT_SUBTITLE" = "Impedisce l'invio di notifiche di screenshot nelle chat private e nei canali protetti.";
+
+/* File Picker */
+"FIX_FILE_PICKER_TITLE" = "Correggi selezione file";
+"FIX_FILE_PICKER_SUBTITLE" = "Corregge il problema per cui non puoi selezionare file dall'app File nelle versioni sideloaded";
+"CLEAR_FILE_PICKER_CACHE_TITLE" = "Svuota cache selezione file";
+"CLEAR_FILE_PICKER_CACHE_SUBTITLE" = "Poiché il selettore file copia i file in una directory temporanea, dobbiamo svuotarla manualmente";
+"CACHE_CLEAR_WARNING_TITLE" = "Conferma";
+"CACHE_CLEAR_WARNING_MESSAGE" = "Sei sicuro?";
+
+/* Fake Location */
+"ENABLE_FAKE_LOCATION_TITLE" = "Abilita falsificazione posizione";
+"ENABLE_FAKE_LOCATION_SUBTITLE" = "Ti consente di falsificare la posizione GPS del dispositivo";
+"SELECT_FAKE_LOCATION_TITLE" = "Seleziona posizione";
+
+/* Extras */
+"APPLY" = "Applica";
+"APPLY_CHANGES" = "Sei sicuro di voler applicare queste modifiche?";
+
+"OK" = "Ok";
+"CANCEL" = "Annulla";
+
+"DISCLAIMER" = "Avvertenza";
+
+"AUTHOR_MESSAGE" = "Questa modifica per Telegram è solo per uso personale ed educativo. Non siamo in alcun modo affiliati con Telegram. Tutti i marchi, incluso il nome e il logo di Telegram, appartengono ai rispettivi proprietari. Non usare questo tweak per infrangere le regole, fare i furbi o violare i termini di Telegram — non siamo responsabili se qualcosa va storto. Usalo a tuo rischio e pericolo. \n\nInoltre… se ti piace, fammelo sapere. Vivo seriamente di approvazione. \n\nE se vuoi supportarmi con una donazione di uno o due dollari, contattami su Telegram.";
