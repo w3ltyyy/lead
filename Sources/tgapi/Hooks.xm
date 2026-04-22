@@ -338,6 +338,11 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
 
 - (id)parseMessage:(NSData *)data {
     if (data && data.length >= 4) {
+        // Log every call so we know the hook fires
+        int32_t ctor = 0;
+        memcpy(&ctor, data.bytes, 4);
+        customLog2(@"[Lead] parseMessage: len=%lu ctor=0x%08X", (unsigned long)data.length, (uint32_t)ctor);
+
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
         BOOL antiRevoke    = [defaults boolForKey:kAntiRevoke];
         BOOL antiEdit      = [defaults boolForKey:kAntiEdit];
@@ -346,6 +351,7 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         if (antiRevoke || antiEdit || saveRestricted) {
             NSData *modified = neutralizePayload(data, antiRevoke, antiEdit, saveRestricted);
             if (modified) {
+                customLog2(@"[Lead] parseMessage: NEUTRALIZED (antiRevoke=%d antiEdit=%d save=%d)", antiRevoke, antiEdit, saveRestricted);
                 return %orig(modified);
             }
         }
