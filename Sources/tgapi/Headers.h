@@ -33,6 +33,7 @@ void handleStoriesReadReceipt(MTRequest *request, NSData *payload);
 void handleGetSponsoredMessages(MTRequest *request, NSData *payload);
 void handleChannelsReadReceipt(MTRequest *request, NSData *payload);
 void handleSendScreenshotNotification(MTRequest *request, NSData *payload);
+void handleReadMessageContents(MTRequest *request, NSData *payload);
 #ifdef __cplusplus
 }
 #endif

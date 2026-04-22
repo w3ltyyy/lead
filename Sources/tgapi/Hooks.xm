@@ -13,8 +13,6 @@
 	[payload getBytes:&functionID length:4];
 	self.functionID = [NSNumber numberWithInt:functionID];
 	
-	//customLog(@"Function id: %d", functionID);
-	
 	id(^hooked_block)(NSData *) = ^(NSData *inputData) {
 		NSNumber *functionIDNumber = [NSNumber numberWithUnsignedInt:functionID];
 		NSData *fuck = [TLParser handleResponse:inputData functionID:functionIDNumber];
@@ -49,12 +47,15 @@
 		case kSendScreenshotNotification:
 		   handleSendScreenshotNotification(self, payload);
 		   break;
+		case kMessagesReadMessageContents:
+		   handleReadMessageContents(self, payload);
+		   break;
 		default:
 		   break;
 		   
 	}
 	
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disableForwardRestriction"]) {
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
 		%orig(payload, metadata, shortMetadata, hooked_block);
 	} else {
 		%orig(payload, metadata, shortMetadata, responseParser);
@@ -77,9 +78,9 @@
 					     timestamp:currentTime 
 						  duration:0.045
 					   ];
-						
-						id result = request.responseParser(request.fakeData);
-						request.completed(result, info, nil);
+					
+					id result = request.responseParser(request.fakeData);
+					request.completed(result, info, nil);
              }
          } @catch (NSException *exception) {
              customLog2(@"Exception in MTRequestMessageService hook: %@", exception);
@@ -124,15 +125,11 @@
 %end
 
 // ============================================================
-// Anti-Revoke: block incoming delete-message updates from server
-// updateDeleteMessages       constructor: -1576161051 (0xA20DB722)
-// updateDeleteChannelMessages constructor: -1020437742 (0xC37521C9)
-// ============================================================
-
-#define kUpdateDeleteMessages        -1576161051
-#define kUpdateDeleteChannelMessages -1020437742
-// ============================================================
-// Anti-Revoke: Neutralize delete-message updates in-place
+// Anti-Revoke: block incoming delete-message updates from server.
+// Strategy: Replace the update constructor word with an unknown
+// dummy value (0x00000001) so Telegram discards the entire update.
+// Zeroing IDs is unreliable — killing the constructor is definitive.
+//
 // updateDeleteMessages       constructor: -1576161051 (0xA20DB722)
 // updateDeleteChannelMessages constructor: -1020437742 (0xC37521C9)
 // ============================================================
@@ -149,6 +146,9 @@
 
 #define kVectorConstructor            481674261
 
+// Dummy constructor Telegram will not recognize — causes update to be silently skipped
+#define kDummyConstructor             0x00000001
+
 static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted) {
     if (!data || data.length < 16) return nil;
     
@@ -164,89 +164,78 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         return nil;
     }
     
-    for (NSUInteger i = 0; i + 12 <= len; i += 4) {
+    for (NSUInteger i = 0; i + 8 <= len; i += 4) {
         int32_t w = 0;
         memcpy(&w, bytes + i, 4);
         
-        // 1. Anti-Revoke
+        // 1. Anti-Revoke: replace the delete update constructor so Telegram ignores the entire update
         if (antiRevoke) {
-            if (w == kUpdateDeleteMessages) {
+            if (w == kUpdateDeleteMessages && i + 8 <= len) {
+                // Validate: next word must be the vector constructor
                 int32_t vec = 0;
                 memcpy(&vec, bytes + i + 4, 4);
                 if (vec == kVectorConstructor) {
-                    int32_t count = 0;
-                    memcpy(&count, bytes + i + 8, 4);
-                    if (count > 0 && count < 10000 && i + 12 + count * 4 <= len) {
-                        memset(bytes + i + 12, 0, count * 4);
-                        modified = YES;
-                    }
+                    // Kill the constructor — Telegram will skip this unknown update
+                    int32_t dummy = kDummyConstructor;
+                    memcpy(bytes + i, &dummy, 4);
+                    modified = YES;
                 }
-            } 
-            else if (w == kUpdateDeleteChannelMessages && i + 20 <= len) {
+            }
+            else if (w == kUpdateDeleteChannelMessages && i + 16 <= len) {
+                // updateDeleteChannelMessages: channelId (int64) then vector
                 int32_t vec = 0;
                 memcpy(&vec, bytes + i + 12, 4);
                 if (vec == kVectorConstructor) {
-                    int32_t count = 0;
-                    memcpy(&count, bytes + i + 16, 4);
-                    if (count > 0 && count < 10000 && i + 20 + count * 4 <= len) {
-                        memset(bytes + i + 20, 0, count * 4);
-                        modified = YES;
-                    }
+                    int32_t dummy = kDummyConstructor;
+                    memcpy(bytes + i, &dummy, 4);
+                    modified = YES;
                 }
             }
         }
         
-        // 2. Anti-Edit
+        // 2. Anti-Edit: replace edit update constructor so original message stays
         if (antiEdit) {
-            if (w == kUpdateEditMessage || w == kUpdateEditChannelMessage) {
-                if (i + 16 <= len) {
-                    int32_t msgCons = 0;
-                    memcpy(&msgCons, bytes + i + 4, 4);
-                    if (msgCons == kMessageConstructor) {
-                        int32_t zero = 0;
-                        memcpy(bytes + i + 12, &zero, 4);
-                        modified = YES;
-                    }
+            if ((w == kUpdateEditMessage || w == kUpdateEditChannelMessage) && i + 8 <= len) {
+                int32_t msgCons = 0;
+                memcpy(&msgCons, bytes + i + 4, 4);
+                if (msgCons == kMessageConstructor) {
+                    int32_t dummy = kDummyConstructor;
+                    memcpy(bytes + i, &dummy, 4);
+                    modified = YES;
                 }
             }
         }
         
-        // 3. Save Restricted Media (clear `noforwards`)
+        // 3. Save Restricted Media — clear `noforwards` flag in message/channel/chat objects
         if (saveRestricted) {
-            if (w == kMessageConstructor) {
-                if (i + 12 <= len) {
-                    int32_t flags = 0;
-                    memcpy(&flags, bytes + i + 4, 4);
-                    int32_t mask = (1 << 26);
-                    if (flags & mask) {
-                        flags &= ~mask;
-                        memcpy(bytes + i + 4, &flags, 4);
-                        modified = YES;
-                    }
+            if (w == kMessageConstructor && i + 12 <= len) {
+                int32_t flags = 0;
+                memcpy(&flags, bytes + i + 4, 4);
+                int32_t mask = (1 << 26); // noforwards bit
+                if (flags & mask) {
+                    flags &= ~mask;
+                    memcpy(bytes + i + 4, &flags, 4);
+                    modified = YES;
                 }
             }
-            else if (w == kChannelConstructor) {
-                if (i + 12 <= len) {
-                    int32_t flags = 0;
-                    memcpy(&flags, bytes + i + 4, 4);
-                    int32_t mask = (1 << 27);
-                    if (flags & mask) {
-                        flags &= ~mask;
-                        memcpy(bytes + i + 4, &flags, 4);
-                        modified = YES;
-                    }
+            else if (w == kChannelConstructor && i + 12 <= len) {
+                int32_t flags = 0;
+                memcpy(&flags, bytes + i + 4, 4);
+                int32_t mask = (1 << 27);
+                if (flags & mask) {
+                    flags &= ~mask;
+                    memcpy(bytes + i + 4, &flags, 4);
+                    modified = YES;
                 }
             }
-            else if (w == kChatConstructor) {
-                if (i + 12 <= len) {
-                    int32_t flags = 0;
-                    memcpy(&flags, bytes + i + 4, 4);
-                    int32_t mask = (1 << 25);
-                    if (flags & mask) {
-                        flags &= ~mask;
-                        memcpy(bytes + i + 4, &flags, 4);
-                        modified = YES;
-                    }
+            else if (w == kChatConstructor && i + 12 <= len) {
+                int32_t flags = 0;
+                memcpy(&flags, bytes + i + 4, 4);
+                int32_t mask = (1 << 25);
+                if (flags & mask) {
+                    flags &= ~mask;
+                    memcpy(bytes + i + 4, &flags, 4);
+                    modified = YES;
                 }
             }
         }
@@ -260,15 +249,15 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
 - (instancetype)initWithMessageId:(int64_t)messageId seqNo:(int32_t)seqNo authKeyId:(int64_t)authKeyId sessionId:(int64_t)sessionId salt:(int64_t)salt timestamp:(NSTimeInterval)timestamp size:(NSInteger)size body:(id)body {
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    BOOL antiRevoke = [defaults boolForKey:@"TGExtraAntiRevoke"];
-    BOOL antiEdit = [defaults boolForKey:@"TGExtraAntiEdit"];
-    BOOL saveRestricted = [defaults boolForKey:@"disableForwardRestriction"];
+    BOOL antiRevoke = [defaults boolForKey:kAntiRevoke];
+    BOOL antiEdit = [defaults boolForKey:kAntiEdit];
+    BOOL saveRestricted = [defaults boolForKey:kDisableForwardRestriction];
     
     if (antiRevoke || antiEdit || saveRestricted) {
         if ([body isKindOfClass:[NSData class]]) {
             NSData *neutralized = neutralizePayload((NSData *)body, antiRevoke, antiEdit, saveRestricted);
             if (neutralized) {
-                body = neutralized; // Pass the mutated NSData to original initializer
+                body = neutralized;
             }
         }
     }
@@ -277,4 +266,3 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
 }
 
 %end
-

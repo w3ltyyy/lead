@@ -194,3 +194,24 @@ void handleSendScreenshotNotification(MTRequest *request, NSData *payload) {
 		request.fakeData = boolTrue();
 	}
 }
+
+// Anti-Self-Destruct: intercept messages.readMessageContents
+// This call tells the server a TTL/disappearing message was opened.
+// Blocking it prevents the server from starting the deletion timer.
+// The media can be viewed locally without triggering server-side expiry.
+void handleReadMessageContents(MTRequest *request, NSData *payload) {
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:kAntiSelfDestruct]) {
+		// Return a fake messages.affectedMessages with pts=0, pts_count=0
+		// so the client thinks the request succeeded but nothing actually happens
+		uint8_t header[] = {0x85, 0x91, 0xD1, 0x84}; // messages.affectedMessages#84d19185
+		int32_t pts = 0;
+		int32_t pts_count = 0;
+
+		NSMutableData *data = [NSMutableData data];
+		[data appendBytes:&header length:sizeof(header)];
+		[data appendBytes:&pts length:sizeof(pts)];
+		[data appendBytes:&pts_count length:sizeof(pts_count)];
+
+		request.fakeData = data;
+	}
+}

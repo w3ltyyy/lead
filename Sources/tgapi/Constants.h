@@ -7,6 +7,8 @@
 #define kStoriesReadStories -1521034552
 #define kGetSponsoredMessages -1680673735
 #define kSendScreenshotNotification -1589618665
+// messages.readMessageContents#36a73f77 — sent when TTL/disappearing media is opened
+#define kMessagesReadMessageContents 917472119
 
 #define kActionIDTyping                 381645902                       // .sendMessageTypingAction
 #define kActionIDRecordingVideo        -1584933265                     // .sendMessageRecordVideoAction
@@ -45,13 +47,19 @@
 #define kDisableEmojiInteractionStatus @"disableEmojiInteractionStatus"
 #define kDisableEmojiAcknowledgementStatus @"disableEmojiAcknowledgementStatus"
 
-
 #define kDisableMessageReadReceipt @"disableMessageReadReceipt"
 #define kDisableStoriesReadReceipt @"disableStoriesReadReceipt"
 #define kDisableScreenshotNotification @"disableScreenshotNotification"
 
-#define kDisableAllAds @"disableOnlineStatus"
+// FIX: was incorrectly mapped to "disableOnlineStatus" — now has its own key
+#define kDisableAllAds @"disableAllAds"
 #define kDisableForwardRestriction @"disableForwardRestriction"
+
+// Anti-features
+#define kAntiRevoke @"TGExtraAntiRevoke"
+#define kAntiEdit @"TGExtraAntiEdit"
+// Key for preventing disappearing/self-destruct media from being marked as read
+#define kAntiSelfDestruct @"TGExtraAntiSelfDestruct"
 
 #define FAKE_LOCATION_ENABLED_KEY @"TGExtraFakeLocation"
 #define FAKE_LATITUDE_KEY @"TGExtraSavedLatitude"
