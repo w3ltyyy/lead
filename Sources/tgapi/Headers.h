@@ -8,6 +8,7 @@
 + (void)addDeletedId:(int32_t)msgId;
 + (void)loadPersistedIds;
 + (NSNumber *)getMessageId:(id)item;
++ (NSNumber *)getMessageIdFromNode:(id)node;
 + (BOOL)isDeleted:(NSNumber *)msgId;
 @end
 

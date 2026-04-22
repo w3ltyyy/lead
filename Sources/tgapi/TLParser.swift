@@ -88,6 +88,32 @@ class TLParser: NSObject {
         return nil
     }
 
+    /// Dynamically extracts message ID from a ChatMessageBubbleItemNode
+    @objc static func getMessageIdFromNode(_ node: Any) -> NSNumber? {
+        let mirror = Mirror(reflecting: node)
+        for child in mirror.children {
+            if child.label == "item" {
+                if let item = child.value as? Any {
+                    return getMessageId(from: item)
+                }
+            }
+        }
+        
+        // If 'item' is not found, try to dump the node and extract the ID
+        var dumpStr = ""
+        dump(node, to: &dumpStr)
+        if let regex = try? NSRegularExpression(pattern: "MessageId.*?id: (\\d+)", options: [.dotMatchesLineSeparators]) {
+            let nsRange = NSRange(dumpStr.startIndex..<dumpStr.endIndex, in: dumpStr)
+            if let match = regex.firstMatch(in: dumpStr, options: [], range: nsRange) {
+                if let idRange = Range(match.range(at: 1), in: dumpStr), let id = Int32(dumpStr[idRange]) {
+                    return NSNumber(value: id)
+                }
+            }
+        }
+        
+        return nil
+    }
+
     @objc static func isDeleted(_ msgId: NSNumber) -> Bool {
         return deletedIds.contains(msgId.int32Value)
     }

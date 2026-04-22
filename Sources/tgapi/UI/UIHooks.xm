@@ -143,7 +143,7 @@ static void showWelcomeAlertIfNeeded() {
 #import "../Headers.h"
 
 @interface ChatMessageBubbleItemNode : ASDisplayNode
-- (void)setupItem:(id)item synchronousLoad:(BOOL)synchronousLoad;
+- (void)layout;
 @end
 
 // Helper to find a subview by class name substring
@@ -159,13 +159,13 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
 }
 
 %group ChatMessageHooks
-// Hook ChatMessageBubbleItemNode to inject the deleted indicator icon.
+// Hook ChatMessageBubbleItemNode via its ObjC inherited layout method.
 %hook ChatMessageBubbleItemNode
 
-- (void)setupItem:(id)item synchronousLoad:(BOOL)synchronousLoad {
+- (void)layout {
     %orig;
     
-    NSNumber *msgId = [TLParser getMessageId:item];
+    NSNumber *msgId = [TLParser getMessageIdFromNode:self];
     BOOL isDeletedMsg = (msgId && [TLParser isDeleted:msgId]);
     
     ASDisplayNode *node = (ASDisplayNode *)self;
@@ -188,7 +188,7 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
             [node.view addSubview:debugLabel];
         }
         
-        NSString *className = NSStringFromClass([item class]);
+        NSString *className = NSStringFromClass([self class]);
         debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId ? msgId : @"nil", className];
         [node.view bringSubviewToFront:debugLabel];
         debugLabel.hidden = NO;
@@ -253,14 +253,9 @@ static void hook() {
         for (int i = 0; i < numClasses; i++) {
             Class cls = classes[i];
             NSString *className = NSStringFromClass(cls);
-            if ([className containsString:@"ChatMessage"] && class_getInstanceMethod(cls, @selector(setupItem:synchronousLoad:))) {
-                if ([className containsString:@"BubbleItemNode"]) {
-                    bestClass = cls;
-                    break;
-                }
-                if (!bestClass) {
-                    bestClass = cls;
-                }
+            if ([className containsString:@"ChatMessage"] && [className containsString:@"BubbleItemNode"]) {
+                bestClass = cls;
+                break;
             }
         }
         free(classes);
