@@ -1,22 +1,32 @@
-# Lead
-A simple Telegram iOS Tweak.
+# TGExtra (Lead)
 
-To Open Tweak menu : Longpress screen with 3 finger (if no flex injected) of 4 fingers.
+A powerful, native-feeling iOS Tweak for the Telegram app. 
 
-## Screenshots
+To open the Tweak menu: **Long-press the screen with 3 fingers** (or 4 fingers if no flex is injected).
 
-![Screenshot 1](Screenshots/1.png)
-![Screenshot 2](Screenshots/2.png)
+## 🚀 Features
 
-## Features
+### ✅ Stable & Working
+- **Anti-Revoke**: Prevent users from deleting messages. Deleted messages are retained in the chat and seamlessly marked with a native-looking 🗑️ trash icon.
+- **Ghost Mode**: Read messages and view stories without triggering read receipts.
+- **Disable Ads**: Remove sponsored messages and ads from channels.
+- **Allow saving Protected Content**: Save media from restricted channels (Note: Due to frequent API updates, this feature may be limited on newer Telegram builds).
 
-- Disable Ads
-- Ghost Mode
-- No Read Receipt for messages and Stories
-- Allow saving Protected Content ( Due to frequenet Telegram Api updates this feature is only limited for client compiled with 11.8.1 sources)
+### 🚧 Beta / Work in Progress (May contain bugs)
+- **Save without forwarding**: Save media directly in chats without needing to forward it first.
+- **Anti-Edit**: Retain the original version of edited messages.
+- **Infinite disappearing media**: View self-destructing media without limits.
 
+## 📸 Screenshots
 
-## Disclaimer
+<p align="center">
+  <img src="Screenshots/1.png" width="24%">
+  <img src="Screenshots/2.png" width="24%">
+  <img src="Screenshots/3.jpeg" width="24%">
+  <img src="Screenshots/4.jpeg" width="24%">
+</p>
+
+## ⚠️ Disclaimer
 
 This project is an **independent modification (tweak)** for the Telegram app. I am **not affiliated, associated, authorized, endorsed by, or in any way officially connected with Telegram Messenger LLP**, or any of its subsidiaries or affiliates.
 
