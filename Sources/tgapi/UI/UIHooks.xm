@@ -142,10 +142,6 @@ static void showWelcomeAlertIfNeeded() {
 
 #import "../Headers.h"
 
-@interface ChatMessageBubbleItemNode : ASDisplayNode
-- (void)layout;
-@end
-
 // Helper to find a subview by class name substring
 static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
     if ([NSStringFromClass([root class]) containsString:prefix]) {
@@ -158,12 +154,16 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
     return nil;
 }
 
-%group ChatMessageHooks
-// Hook ChatMessageBubbleItemNode via its ObjC inherited layout method.
-%hook ChatMessageBubbleItemNode
+// Hook ASDisplayNode globally to catch lazily loaded message nodes.
+%hook ASDisplayNode
 
 - (void)layout {
     %orig;
+    
+    NSString *className = NSStringFromClass([self class]);
+    if (![className containsString:@"ChatMessage"] || ![className containsString:@"ItemNode"]) {
+        return;
+    }
     
     NSNumber *msgId = [TLParser getMessageIdFromNode:self];
     BOOL isDeletedMsg = (msgId && [TLParser isDeleted:msgId]);
@@ -188,7 +188,6 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
             [node.view addSubview:debugLabel];
         }
         
-        NSString *className = NSStringFromClass([self class]);
         debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId ? msgId : @"nil", className];
         [node.view bringSubviewToFront:debugLabel];
         debugLabel.hidden = NO;
@@ -234,9 +233,6 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
     });
 }
 %end
-%end
-
-#import <objc/runtime.h>
 
 __attribute__((constructor))
 static void hook() {
@@ -244,25 +240,6 @@ static void hook() {
 	 	%init(
             PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode")
 		);
-
-        int numClasses = objc_getClassList(NULL, 0);
-        Class *classes = (Class *)malloc(sizeof(Class) * numClasses);
-        numClasses = objc_getClassList(classes, numClasses);
-        
-        Class bestClass = nil;
-        for (int i = 0; i < numClasses; i++) {
-            Class cls = classes[i];
-            NSString *className = NSStringFromClass(cls);
-            if ([className containsString:@"ChatMessage"] && [className containsString:@"BubbleItemNode"]) {
-                bestClass = cls;
-                break;
-            }
-        }
-        free(classes);
-        
-        if (bestClass) {
-            %init(ChatMessageHooks, ChatMessageBubbleItemNode = bestClass);
-        }
 
         // Show welcome alert after the app UI has fully loaded
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
