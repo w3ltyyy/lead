@@ -200,7 +200,7 @@ static void hook() {
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 	 	%init(
             PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode"),
-            ChatMessageItemView = objc_getClass("TelegramUI.ChatMessageItemView")
+            ChatMessageItemView = objc_getClass("ChatMessageItemView.ChatMessageItemView")
 		);
 
         // Show welcome alert after the app UI has fully loaded
