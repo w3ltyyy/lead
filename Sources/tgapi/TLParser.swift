@@ -46,38 +46,45 @@ class TLParser: NSObject {
         }
     }
 
-    /// Dynamically extracts message.id.id from a ChatMessageItem using Swift reflection.
+    /// Dynamically extracts message.id.id from a ChatMessageItem using string description parsing.
+    /// This is safer than Mirror because it bypasses computed properties and layout differences.
     @objc static func getMessageId(from item: Any) -> NSNumber? {
-        let mirror = Mirror(reflecting: item)
-        // ChatMessageItem concrete type has 'message' property
-        for child in mirror.children {
-            if child.label == "message" || child.label == "firstMessage" || child.label == "content" {
-                if child.label == "content" {
-                    let contentMirror = Mirror(reflecting: child.value)
-                    for cChild in contentMirror.children {
-                        if cChild.label == "firstMessage" || cChild.label == "message" {
-                            if let id = extractId(fromMessage: cChild.value) { return id }
-                        }
-                    }
-                }
-                if let id = extractId(fromMessage: child.value) { return id }
-            }
-        }
-        return nil
-    }
-    
-    private static func extractId(fromMessage msg: Any) -> NSNumber? {
-        let msgMirror = Mirror(reflecting: msg)
-        for msgChild in msgMirror.children {
-            if msgChild.label == "id" {
-                let idMirror = Mirror(reflecting: msgChild.value)
-                for idChild in idMirror.children {
-                    if idChild.label == "id", let idVal = idChild.value as? Int32 {
-                        return NSNumber(value: idVal)
-                    }
+        let description = String(describing: item)
+        // Look for MessageId(peerId: ..., namespace: ..., id: 12345)
+        // Or MessageId(..., id: 12345)
+        let pattern = "MessageId\\(peerId: [^,]+, namespace: [^,]+, id: (\\d+)\\)"
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+            let nsRange = NSRange(description.startIndex..<description.endIndex, in: description)
+            if let match = regex.firstMatch(in: description, options: [], range: nsRange) {
+                if let idRange = Range(match.range(at: 1), in: description), let id = Int32(description[idRange]) {
+                    return NSNumber(value: id)
                 }
             }
         }
+        
+        // Fallback for different description format
+        let fallbackPattern = "messageId: (\\d+)"
+        if let regex = try? NSRegularExpression(pattern: fallbackPattern, options: []) {
+            let nsRange = NSRange(description.startIndex..<description.endIndex, in: description)
+            if let match = regex.firstMatch(in: description, options: [], range: nsRange) {
+                if let idRange = Range(match.range(at: 1), in: description), let id = Int32(description[idRange]) {
+                    return NSNumber(value: id)
+                }
+            }
+        }
+        
+        // Another fallback: using dump
+        var dumpStr = ""
+        dump(item, to: &dumpStr)
+        if let regex = try? NSRegularExpression(pattern: "MessageId.*?id: (\\d+)", options: [.dotMatchesLineSeparators]) {
+            let nsRange = NSRange(dumpStr.startIndex..<dumpStr.endIndex, in: dumpStr)
+            if let match = regex.firstMatch(in: dumpStr, options: [], range: nsRange) {
+                if let idRange = Range(match.range(at: 1), in: dumpStr), let id = Int32(dumpStr[idRange]) {
+                    return NSNumber(value: id)
+                }
+            }
+        }
+        
         return nil
     }
 
