@@ -7,6 +7,8 @@
 + (NSData *)handleResponse:(NSData *)data functionID:(NSNumber *)ios;
 + (void)addDeletedId:(int32_t)msgId;
 + (void)loadPersistedIds;
++ (NSNumber *)getMessageId:(id)item;
++ (BOOL)isDeleted:(NSNumber *)msgId;
 @end
 
 @interface MTRpcError : NSObject

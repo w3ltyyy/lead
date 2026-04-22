@@ -46,6 +46,33 @@ class TLParser: NSObject {
         }
     }
 
+    /// Dynamically extracts message.id.id from a ChatMessageItem using Swift reflection.
+    @objc static func getMessageId(from item: Any) -> NSNumber? {
+        let mirror = Mirror(reflecting: item)
+        // ChatMessageItem concrete type has 'message' property
+        for child in mirror.children {
+            if child.label == "message" || child.label == "firstMessage" {
+                let msgMirror = Mirror(reflecting: child.value)
+                for msgChild in msgMirror.children {
+                    if msgChild.label == "id" {
+                        let idMirror = Mirror(reflecting: msgChild.value)
+                        for idChild in idMirror.children {
+                            // MessageId struct has 'id' property of type Int32
+                            if idChild.label == "id", let idVal = idChild.value as? Int32 {
+                                return NSNumber(value: idVal)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return nil
+    }
+
+    @objc static func isDeleted(_ msgId: NSNumber) -> Bool {
+        return deletedIds.contains(msgId.int32Value)
+    }
+
     // Prepend 🗑️ to each message whose ID is in the deleted set.
     private static func applyDeletedIndicator(to msgs: [Api.Message]) -> (messages: [Api.Message], changed: Bool) {
         let ids = deletedIds

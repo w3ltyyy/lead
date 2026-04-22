@@ -103,7 +103,7 @@ static void showWelcomeAlertIfNeeded() {
 
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:@"Lead ✓"
-        message:@"Lead has been successfully injected into Telegram.\n\nTo open the tweak menu: long-press the \"Telegram Features\" row in the Settings tab."
+        message:@"Lead has been successfully injected into Telegram.\n\nTo open the tweak menu: long-press the \"Ask a Question\" row in the Settings tab."
         preferredStyle:UIAlertControllerStyleAlert];
 
     // Helper block — saves flag so alert never shows again
@@ -118,7 +118,7 @@ static void showWelcomeAlertIfNeeded() {
                   style:UIAlertActionStyleDefault
                 handler:^(UIAlertAction *action) {
         markShown();
-        NSURL *url = [NSURL URLWithString:@"https://t.me/Leedgram"];
+        NSURL *url = [NSURL URLWithString:@"https://t.me/Leadgramm"];
         if ([[UIApplication sharedApplication] canOpenURL:url]) {
             [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
         }
@@ -137,6 +137,55 @@ static void showWelcomeAlertIfNeeded() {
 
     [rootVC presentViewController:alert animated:YES completion:nil];
 }
+
+
+
+#import "../Headers.h"
+
+@interface ChatMessageItemView : ASDisplayNode
+- (void)setupItem:(id)item synchronousLoad:(BOOL)synchronousLoad;
+@end
+
+// Hook ChatMessageItemView to inject the deleted indicator icon.
+%hook ChatMessageItemView
+
+- (void)setupItem:(id)item synchronousLoad:(BOOL)synchronousLoad {
+    %orig;
+    
+    NSNumber *msgId = [TLParser getMessageId:item];
+    if (msgId && [TLParser isDeleted:msgId]) {
+        // Find or create our deleted icon view
+        UIImageView *trashIcon = nil;
+        for (UIView *v in self.view.subviews) {
+            if (v.tag == 8899) {
+                trashIcon = (UIImageView *)v;
+                break;
+            }
+        }
+        
+        if (!trashIcon) {
+            trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
+            trashIcon.tintColor = [UIColor redColor];
+            trashIcon.tag = 8899;
+            trashIcon.alpha = 0.8;
+            [self.view addSubview:trashIcon];
+        }
+        
+        // Position it near the top right of the cell view
+        trashIcon.frame = CGRectMake(self.view.bounds.size.width - 25, 15, 16, 16);
+        trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
+        trashIcon.hidden = NO;
+    } else {
+        // Hide if not deleted (cell recycled)
+        for (UIView *v in self.view.subviews) {
+            if (v.tag == 8899) {
+                v.hidden = YES;
+            }
+        }
+    }
+}
+
+%end
 
 __attribute__((constructor))
 static void hook() {
