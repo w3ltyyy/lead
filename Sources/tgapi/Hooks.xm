@@ -1,4 +1,8 @@
 #import "Headers.h"
+#include <zlib.h>
+
+// Forward declaration — defined later in this file, used inside hooked_block
+static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted);
 
 #define kChannelsReadHistory -871347913
 
@@ -15,14 +19,17 @@
 	
 	id(^hooked_block)(NSData *) = ^(NSData *inputData) {
 		NSNumber *functionIDNumber = [NSNumber numberWithUnsignedInt:functionID];
-		NSData *fuck = [TLParser handleResponse:inputData functionID:functionIDNumber];
-		id result;
-		if (fuck) {
-			result = responseParser(fuck);
-		} else {
-			result = responseParser(inputData);
+		NSData *parsed = [TLParser handleResponse:inputData functionID:functionIDNumber];
+		NSData *toUse = parsed ?: inputData;
+
+		// Strip noforwards from request responses (messages.getHistory, etc.)
+		// so the save/forward button appears for newly fetched restricted messages.
+		if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
+			NSData *cleared = neutralizePayload(toUse, NO, NO, YES);
+			if (cleared) toUse = cleared;
 		}
-		return result;
+
+		return responseParser(toUse);
 	};
 	
 	switch (functionID) {
@@ -149,14 +156,79 @@
 // Dummy constructor Telegram will not recognize — causes update to be silently skipped
 #define kDummyConstructor             0x00000001
 
+// gzip_packed#3072cfa1 — Telegram wraps large updates in gzip to save bandwidth
+#define kGzipPackedCtor               ((int32_t)0x3072CFA1)
+
+// ============================================================
+// decompressGzip — inflate a raw gzip/zlib byte stream.
+// Returns decompressed NSData, or nil on failure.
+// ============================================================
+static NSData *decompressGzip(const void *input, size_t inputLen) {
+    if (!input || inputLen < 2) return nil;
+
+    z_stream strm;
+    memset(&strm, 0, sizeof(strm));
+    strm.next_in  = (Bytef *)input;
+    strm.avail_in = (uInt)inputLen;
+
+    // 47 = 15+32: auto-detect gzip or zlib header
+    if (inflateInit2(&strm, 47) != Z_OK) return nil;
+
+    NSMutableData *result = [NSMutableData dataWithCapacity:inputLen * 4];
+    uint8_t buf[65536];
+    int ret;
+    do {
+        strm.next_out  = buf;
+        strm.avail_out = sizeof(buf);
+        ret = inflate(&strm, Z_NO_FLUSH);
+        if (ret < 0 && ret != Z_BUF_ERROR) { inflateEnd(&strm); return nil; }
+        NSUInteger produced = sizeof(buf) - strm.avail_out;
+        if (produced > 0) [result appendBytes:buf length:produced];
+    } while (ret != Z_STREAM_END && strm.avail_in > 0);
+
+    inflateEnd(&strm);
+    return (result.length > 0) ? result : nil;
+}
+
 static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted) {
-    if (!data || data.length < 16) return nil;
-    
+    if (!data || data.length < 8) return nil;
+
+    // Handle gzip_packed: Telegram compresses large updates to save bandwidth.
+    // Decompress, patch inside, return the raw (uncompressed) data so MtProtoKit
+    // can still parse it — it accepts raw TL objects regardless of prior compression.
+    {
+        int32_t top4 = 0;
+        memcpy(&top4, data.bytes, 4);
+        if (top4 == kGzipPackedCtor && data.length >= 8) {
+            const uint8_t *b   = (const uint8_t *)data.bytes;
+            uint32_t offset    = 4;
+            uint32_t gzipLen   = 0;
+            uint8_t  first     = b[offset];
+            if (first < 0xFE) {
+                gzipLen = first;
+                offset += 1;
+            } else if (first == 0xFE && data.length > offset + 3) {
+                gzipLen = (uint32_t)b[offset+1]
+                        | ((uint32_t)b[offset+2] << 8)
+                        | ((uint32_t)b[offset+3] << 16);
+                offset += 4;
+            }
+            if (gzipLen > 0 && offset + gzipLen <= data.length) {
+                NSData *inner    = decompressGzip(b + offset, gzipLen);
+                NSData *patched  = neutralizePayload(inner, antiRevoke, antiEdit, saveRestricted);
+                // Return the raw decompressed+patched TL — MtProtoKit handles it fine
+                return patched ? patched : nil;
+            }
+        }
+    }
+
+    if (data.length < 16) return nil;
+
     BOOL modified = NO;
     NSMutableData *mData = [NSMutableData dataWithData:data];
     uint8_t *bytes = (uint8_t *)mData.mutableBytes;
     NSUInteger len = mData.length;
-    
+
     int32_t top_w = 0;
     memcpy(&top_w, bytes, 4);
     // DO NOT scan file blobs (upload.file, upload.cdnFile, etc.) to prevent false positives in binary media.

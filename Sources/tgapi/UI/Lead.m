@@ -501,11 +501,16 @@ typedef NS_ENUM(NSInteger, TABLE_VIEW_SECTIONS) {
 			cell.detailTextLabel.text = @"Developer";
 			cell.detailTextLabel.textColor = [UIColor lightGrayColor];
 			NSData *imageData = [[NSData alloc] initWithBase64EncodedString:CHOCOPNG options:NSDataBase64DecodingIgnoreUnknownCharacters];
-			cell.imageView.image = [UIImage imageWithData:imageData scale:2.0];
-			cell.imageView.layer.cornerRadius = 40/8;
+			UIImage *rawImage = [UIImage imageWithData:imageData];
+			// Render a proper 40×40 thumbnail — imageWithData:scale: only sets DPI, not display size
+			UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(40, 40)];
+			UIImage *thumb = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+				[rawImage drawInRect:CGRectMake(0, 0, 40, 40)];
+			}];
+			cell.imageView.image = thumb;
+			cell.imageView.layer.cornerRadius = 8;
 			cell.imageView.layer.masksToBounds = YES;
 			cell.accessoryView = nil;
-
 		}
 		else if (indexPath.row == 1) {
 			cell.textLabel.text = TGLoc(@"DISCLAIMER");
