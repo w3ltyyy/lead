@@ -61,6 +61,17 @@ class TLParser: NSObject {
             }
         }
         
+        // NEW PATTERN: Matches "id: 0:id(rawValue: 8310923053):0_11639"
+        let rawValuePattern = "rawValue: \\d+\\):\\d+_(\\d+)"
+        if let regex = try? NSRegularExpression(pattern: rawValuePattern, options: []) {
+            let nsRange = NSRange(description.startIndex..<description.endIndex, in: description)
+            if let match = regex.firstMatch(in: description, options: [], range: nsRange) {
+                if let idRange = Range(match.range(at: 1), in: description), let id = Int32(description[idRange]) {
+                    return NSNumber(value: id)
+                }
+            }
+        }
+        
         let fallbackPattern = "messageId: (\\d+)"
         if let regex = try? NSRegularExpression(pattern: fallbackPattern, options: []) {
             let nsRange = NSRange(description.startIndex..<description.endIndex, in: description)
@@ -94,6 +105,16 @@ class TLParser: NSObject {
         
         let dumpPattern = "MessageId.*?id: (\\d+)"
         if let regex = try? NSRegularExpression(pattern: dumpPattern, options: [.dotMatchesLineSeparators]) {
+            let nsRange = NSRange(dumpStr.startIndex..<dumpStr.endIndex, in: dumpStr)
+            if let match = regex.firstMatch(in: dumpStr, options: [], range: nsRange) {
+                if let idRange = Range(match.range(at: 1), in: dumpStr), let id = Int32(dumpStr[idRange]) {
+                    return NSNumber(value: id)
+                }
+            }
+        }
+        
+        let dumpRawValuePattern = "rawValue: \\d+\\):\\d+_(\\d+)"
+        if let regex = try? NSRegularExpression(pattern: dumpRawValuePattern, options: []) {
             let nsRange = NSRange(dumpStr.startIndex..<dumpStr.endIndex, in: dumpStr)
             if let match = regex.firstMatch(in: dumpStr, options: [], range: nsRange) {
                 if let idRange = Range(match.range(at: 1), in: dumpStr), let id = Int32(dumpStr[idRange]) {

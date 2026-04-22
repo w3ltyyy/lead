@@ -191,16 +191,19 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
         if (!msgId) {
             NSString *debugDump = [TLParser getDebugDumpFromNode:node];
             debugLabel.text = [NSString stringWithFormat:@"FAIL | %@", debugDump];
+            debugLabel.hidden = NO;
         } else {
             debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId, className];
+            // Hide on success so it doesn't clutter the UI
+            debugLabel.hidden = YES;
         }
         
         [node.view bringSubviewToFront:debugLabel];
-        debugLabel.hidden = NO;
         
         if (isDeletedMsg) {
             debugLabel.backgroundColor = [UIColor redColor];
             debugLabel.text = [debugLabel.text stringByAppendingString:@" (DELETED)"];
+            debugLabel.hidden = NO; // show it if it's deleted!
             
             UIImageView *trashIcon = nil;
             for (UIView *v in node.view.subviews) {
