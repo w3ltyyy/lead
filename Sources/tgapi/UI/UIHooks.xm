@@ -158,6 +158,7 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
     return nil;
 }
 
+%group ChatMessageHooks
 // Hook ChatMessageBubbleItemNode to inject the deleted indicator icon.
 %hook ChatMessageBubbleItemNode
 
@@ -169,10 +170,36 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
     
     ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
+        // DEBUG: Always add a label to see if the hook runs and what the ID is.
+        UILabel *debugLabel = nil;
+        for (UIView *v in node.view.subviews) {
+            if (v.tag == 8899) {
+                debugLabel = (UILabel *)v;
+                break;
+            }
+        }
+        
+        if (!debugLabel) {
+            debugLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 200, 20)];
+            debugLabel.backgroundColor = [UIColor yellowColor];
+            debugLabel.textColor = [UIColor blackColor];
+            debugLabel.font = [UIFont systemFontOfSize:10];
+            debugLabel.tag = 8899;
+            [node.view addSubview:debugLabel];
+        }
+        
+        NSString *className = NSStringFromClass([item class]);
+        debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId ? msgId : @"nil", className];
+        [node.view bringSubviewToFront:debugLabel];
+        debugLabel.hidden = NO;
+        
         if (isDeletedMsg) {
+            debugLabel.backgroundColor = [UIColor redColor];
+            debugLabel.text = [debugLabel.text stringByAppendingString:@" (DELETED)"];
+            
             UIImageView *trashIcon = nil;
             for (UIView *v in node.view.subviews) {
-                if (v.tag == 8899) {
+                if (v.tag == 8898) {
                     trashIcon = (UIImageView *)v;
                     break;
                 }
@@ -181,46 +208,66 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
             if (!trashIcon) {
                 trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
                 trashIcon.tintColor = [UIColor redColor];
-                trashIcon.tag = 8899;
+                trashIcon.tag = 8898;
                 trashIcon.alpha = 0.8;
                 [node.view addSubview:trashIcon];
             }
             
-            // Find the date and status node to position the trash icon near it
             UIView *statusView = findViewByClassNamePrefix(node.view, @"ChatMessageDateAndStatusNode");
             if (statusView) {
-                // Convert coordinates
                 CGRect statusFrame = [node.view convertRect:statusView.bounds fromView:statusView];
-                // Place it immediately to the right of the status view
                 trashIcon.frame = CGRectMake(statusFrame.origin.x + statusFrame.size.width + 2, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
                 trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
             } else {
-                // Fallback: near the top right of the cell, but somewhat centered
-                trashIcon.frame = CGRectMake(node.view.bounds.size.width / 2.0, 10, 14, 14);
+                trashIcon.frame = CGRectMake(node.view.bounds.size.width / 2.0, 30, 14, 14);
             }
             
             trashIcon.hidden = NO;
             [node.view bringSubviewToFront:trashIcon];
         } else {
-            // Hide if not deleted (cell recycled)
             for (UIView *v in node.view.subviews) {
-                if (v.tag == 8899) {
+                if (v.tag == 8898) {
                     v.hidden = YES;
                 }
             }
         }
     });
 }
-
 %end
+%end
+
+#import <objc/runtime.h>
 
 __attribute__((constructor))
 static void hook() {
-	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 	 	%init(
-            PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode"),
-            ChatMessageBubbleItemNode = objc_getClass("ChatMessageBubbleItemNode.ChatMessageBubbleItemNode")
+            PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode")
 		);
+
+        int numClasses = objc_getClassList(NULL, 0);
+        Class *classes = (Class *)malloc(sizeof(Class) * numClasses);
+        numClasses = objc_getClassList(classes, numClasses);
+        
+        Class bestClass = nil;
+        for (int i = 0; i < numClasses; i++) {
+            Class cls = classes[i];
+            NSString *className = NSStringFromClass(cls);
+            if ([className containsString:@"ChatMessage"] && class_getInstanceMethod(cls, @selector(setupItem:synchronousLoad:))) {
+                if ([className containsString:@"BubbleItemNode"]) {
+                    bestClass = cls;
+                    break;
+                }
+                if (!bestClass) {
+                    bestClass = cls;
+                }
+            }
+        }
+        free(classes);
+        
+        if (bestClass) {
+            %init(ChatMessageHooks, ChatMessageBubbleItemNode = bestClass);
+        }
 
         // Show welcome alert after the app UI has fully loaded
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
