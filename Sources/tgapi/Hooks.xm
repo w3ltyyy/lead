@@ -1,5 +1,4 @@
 #import "Headers.h"
-#import <MtProtoKit/MTProto.h>
 #include <zlib.h>
 
 // Forward declaration — defined later in this file, used inside hooked_block
