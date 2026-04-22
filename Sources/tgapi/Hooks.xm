@@ -361,3 +361,8 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
 }
 
 %end
+
+%ctor {
+    // Load persisted deleted-message IDs from UserDefaults into memory on launch.
+    [TLParser loadPersistedIds];
+}

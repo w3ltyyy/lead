@@ -7,15 +7,43 @@ class TLParser: NSObject {
     private static let deletedQueue = DispatchQueue(label: "com.lead.deletedIds",
                                                     attributes: .concurrent)
     private static var _deletedIds = Set<Int32>()
+    private static let udKey = "LeadDeletedMsgIds"
+    private static var _loaded = false
 
     /// Called from ObjC (Hooks.xm) before zeroing message IDs in anti-revoke.
     @objc static func addDeletedId(_ id: Int32) {
         guard id != 0 else { return }
-        deletedQueue.async(flags: .barrier) { _deletedIds.insert(id) }
+        deletedQueue.async(flags: .barrier) {
+            _deletedIds.insert(id)
+            // Persist to UserDefaults for cross-session indicator support
+            var saved = (UserDefaults.standard.array(forKey: udKey) as? [Int32]) ?? []
+            if !saved.contains(id) {
+                saved.append(id)
+                // Keep only last 1000 IDs to avoid unbounded growth
+                if saved.count > 1000 { saved.removeFirst(saved.count - 1000) }
+                UserDefaults.standard.set(saved, forKey: udKey)
+            }
+        }
     }
 
     private static var deletedIds: Set<Int32> {
-        deletedQueue.sync { _deletedIds }
+        deletedQueue.sync {
+            if !_loaded {
+                // First access: load persisted IDs from UserDefaults
+                // (can't call deletedQueue.async inside sync, use flag trick)
+            }
+            return _deletedIds
+        }
+    }
+
+    /// Load persisted deleted IDs from UserDefaults into memory (call once at startup).
+    @objc static func loadPersistedIds() {
+        deletedQueue.async(flags: .barrier) {
+            guard !_loaded else { return }
+            _loaded = true
+            let saved = (UserDefaults.standard.array(forKey: udKey) as? [Int32]) ?? []
+            _deletedIds.formUnion(saved)
+        }
     }
 
     // Prepend 🗑️ to each message whose ID is in the deleted set.
