@@ -1,4 +1,5 @@
 #import "Headers.h"
+#import <MtProtoKit/MTProto.h>
 #include <zlib.h>
 
 // Forward declaration — defined later in this file, used inside hooked_block
@@ -316,25 +317,30 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
     return modified ? mData : nil;
 }
 
-%hook MTIncomingMessage
+// ============================================================
+// MTProto.parseMessage: receives raw TL bytes BEFORE the Swift
+// API layer parses them into objects. This is the correct hook
+// point for push updates (deleteMessages, editMessage, noforwards)
+// because by the time MTIncomingMessage is created the body is
+// already a pre-parsed ObjC/Swift object — not NSData.
+// ============================================================
+%hook MTProto
 
-- (instancetype)initWithMessageId:(int64_t)messageId seqNo:(int32_t)seqNo authKeyId:(int64_t)authKeyId sessionId:(int64_t)sessionId salt:(int64_t)salt timestamp:(NSTimeInterval)timestamp size:(NSInteger)size body:(id)body {
-    
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    BOOL antiRevoke = [defaults boolForKey:kAntiRevoke];
-    BOOL antiEdit = [defaults boolForKey:kAntiEdit];
-    BOOL saveRestricted = [defaults boolForKey:kDisableForwardRestriction];
-    
-    if (antiRevoke || antiEdit || saveRestricted) {
-        if ([body isKindOfClass:[NSData class]]) {
-            NSData *neutralized = neutralizePayload((NSData *)body, antiRevoke, antiEdit, saveRestricted);
-            if (neutralized) {
-                body = neutralized;
+- (id)parseMessage:(NSData *)data {
+    if (data && data.length >= 4) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        BOOL antiRevoke    = [defaults boolForKey:kAntiRevoke];
+        BOOL antiEdit      = [defaults boolForKey:kAntiEdit];
+        BOOL saveRestricted = [defaults boolForKey:kDisableForwardRestriction];
+
+        if (antiRevoke || antiEdit || saveRestricted) {
+            NSData *modified = neutralizePayload(data, antiRevoke, antiEdit, saveRestricted);
+            if (modified) {
+                return %orig(modified);
             }
         }
     }
-    
-    return %orig(messageId, seqNo, authKeyId, sessionId, salt, timestamp, size, body);
+    return %orig;
 }
 
 %end
