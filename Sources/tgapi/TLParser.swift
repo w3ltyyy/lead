@@ -19,10 +19,11 @@ class TLParser: NSObject {
     }
 
     // Prepend 🗑️ to each message whose ID is in the deleted set.
-    private static func applyDeletedIndicator(to msgs: [Api.Message]) -> [Api.Message] {
+    private static func applyDeletedIndicator(to msgs: [Api.Message]) -> (messages: [Api.Message], changed: Bool) {
         let ids = deletedIds
-        guard !ids.isEmpty else { return msgs }
-        return msgs.map { apiMsg -> Api.Message in
+        guard !ids.isEmpty else { return (msgs, false) }
+        var changed = false
+        let result = msgs.map { apiMsg -> Api.Message in
             guard case let .message(flags, flags2, id, fromId, fromBoostsApplied,
                                     peerId, savedPeerId, fwdFrom, viaBotId, viaBusinessBotId,
                                     replyTo, date, message, media, replyMarkup, entities,
@@ -34,6 +35,7 @@ class TLParser: NSObject {
                   !message.hasPrefix("🗑️") else {
                 return apiMsg
             }
+            changed = true
             return .message(
                 flags: flags, flags2: flags2, id: id, fromId: fromId,
                 fromBoostsApplied: fromBoostsApplied, peerId: peerId,
@@ -51,34 +53,30 @@ class TLParser: NSObject {
                 paidMessageStars: paidMessageStars
             )
         }
+        return (result, changed)
     }
 
-    // Try to apply indicator to a parsed Messages result; returns nil if nothing changed.
-    private static func withIndicator(_ obj: AnyObject) -> AnyObject? {
+    // Returns a modified Messages value if any IDs were marked; nil otherwise.
+    private static func withIndicator(_ obj: Any) -> Api.messages.Messages? {
         guard !deletedIds.isEmpty, let m = obj as? Api.messages.Messages else { return nil }
         switch m {
         case let .messages(messages, chats, users):
-            let modified = applyDeletedIndicator(to: messages)
-            guard modified.count == messages.count else { return nil }
-            // Check any change by comparing IDs with prefix
-            let changed = zip(modified, messages).contains { "\($0.0)" != "\($0.1)" }
+            let (modified, changed) = applyDeletedIndicator(to: messages)
             guard changed else { return nil }
-            return Api.messages.Messages.messages(messages: modified, chats: chats, users: users)
+            return .messages(messages: modified, chats: chats, users: users)
 
         case let .messagesSlice(flags, count, nextRate, offsetIdOffset, messages, chats, users):
-            let modified = applyDeletedIndicator(to: messages)
-            let changed = zip(modified, messages).contains { "\($0.0)" != "\($0.1)" }
+            let (modified, changed) = applyDeletedIndicator(to: messages)
             guard changed else { return nil }
-            return Api.messages.Messages.messagesSlice(
+            return .messagesSlice(
                 flags: flags, count: count, nextRate: nextRate,
                 offsetIdOffset: offsetIdOffset, messages: modified,
                 chats: chats, users: users)
 
         case let .channelMessages(flags, pts, count, offsetIdOffset, messages, topics, chats, users):
-            let modified = applyDeletedIndicator(to: messages)
-            let changed = zip(modified, messages).contains { "\($0.0)" != "\($0.1)" }
+            let (modified, changed) = applyDeletedIndicator(to: messages)
             guard changed else { return nil }
-            return Api.messages.Messages.channelMessages(
+            return .channelMessages(
                 flags: flags, pts: pts, count: count,
                 offsetIdOffset: offsetIdOffset, messages: modified,
                 topics: topics, chats: chats, users: users)
