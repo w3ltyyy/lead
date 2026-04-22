@@ -153,36 +153,43 @@ static void showWelcomeAlertIfNeeded() {
     %orig;
     
     NSNumber *msgId = [TLParser getMessageId:item];
-    if (msgId && [TLParser isDeleted:msgId]) {
-        // Find or create our deleted icon view
-        UIImageView *trashIcon = nil;
-        for (UIView *v in self.view.subviews) {
-            if (v.tag == 8899) {
-                trashIcon = (UIImageView *)v;
-                break;
+    BOOL isDeletedMsg = (msgId && [TLParser isDeleted:msgId]);
+    
+    // ASDisplayNode setupItem is often called on a background thread.
+    // Modifying self.view must happen on the main thread.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (isDeletedMsg) {
+            UIImageView *trashIcon = nil;
+            for (UIView *v in self.view.subviews) {
+                if (v.tag == 8899) {
+                    trashIcon = (UIImageView *)v;
+                    break;
+                }
+            }
+            
+            if (!trashIcon) {
+                trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
+                trashIcon.tintColor = [UIColor redColor];
+                trashIcon.tag = 8899;
+                trashIcon.alpha = 0.8;
+                [self.view addSubview:trashIcon];
+            }
+            
+            // Try to position it somewhat visibly near the bottom right of the bubble
+            // self.view.bounds is the full screen width.
+            trashIcon.frame = CGRectMake(self.view.bounds.size.width - 40, self.view.bounds.size.height - 25, 14, 14);
+            trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+            trashIcon.hidden = NO;
+            [self.view bringSubviewToFront:trashIcon];
+        } else {
+            // Hide if not deleted (cell recycled)
+            for (UIView *v in self.view.subviews) {
+                if (v.tag == 8899) {
+                    v.hidden = YES;
+                }
             }
         }
-        
-        if (!trashIcon) {
-            trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
-            trashIcon.tintColor = [UIColor redColor];
-            trashIcon.tag = 8899;
-            trashIcon.alpha = 0.8;
-            [self.view addSubview:trashIcon];
-        }
-        
-        // Position it near the top right of the cell view
-        trashIcon.frame = CGRectMake(self.view.bounds.size.width - 25, 15, 16, 16);
-        trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleBottomMargin;
-        trashIcon.hidden = NO;
-    } else {
-        // Hide if not deleted (cell recycled)
-        for (UIView *v in self.view.subviews) {
-            if (v.tag == 8899) {
-                v.hidden = YES;
-            }
-        }
-    }
+    });
 }
 
 %end

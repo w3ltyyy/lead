@@ -51,17 +51,29 @@ class TLParser: NSObject {
         let mirror = Mirror(reflecting: item)
         // ChatMessageItem concrete type has 'message' property
         for child in mirror.children {
-            if child.label == "message" || child.label == "firstMessage" {
-                let msgMirror = Mirror(reflecting: child.value)
-                for msgChild in msgMirror.children {
-                    if msgChild.label == "id" {
-                        let idMirror = Mirror(reflecting: msgChild.value)
-                        for idChild in idMirror.children {
-                            // MessageId struct has 'id' property of type Int32
-                            if idChild.label == "id", let idVal = idChild.value as? Int32 {
-                                return NSNumber(value: idVal)
-                            }
+            if child.label == "message" || child.label == "firstMessage" || child.label == "content" {
+                if child.label == "content" {
+                    let contentMirror = Mirror(reflecting: child.value)
+                    for cChild in contentMirror.children {
+                        if cChild.label == "firstMessage" || cChild.label == "message" {
+                            if let id = extractId(fromMessage: cChild.value) { return id }
                         }
+                    }
+                }
+                if let id = extractId(fromMessage: child.value) { return id }
+            }
+        }
+        return nil
+    }
+    
+    private static func extractId(fromMessage msg: Any) -> NSNumber? {
+        let msgMirror = Mirror(reflecting: msg)
+        for msgChild in msgMirror.children {
+            if msgChild.label == "id" {
+                let idMirror = Mirror(reflecting: msgChild.value)
+                for idChild in idMirror.children {
+                    if idChild.label == "id", let idVal = idChild.value as? Int32 {
+                        return NSNumber(value: idVal)
                     }
                 }
             }
