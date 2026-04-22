@@ -142,12 +142,24 @@ static void showWelcomeAlertIfNeeded() {
 
 #import "../Headers.h"
 
-@interface ChatMessageItemView : ASDisplayNode
+@interface ChatMessageBubbleItemNode : ASDisplayNode
 - (void)setupItem:(id)item synchronousLoad:(BOOL)synchronousLoad;
 @end
 
-// Hook ChatMessageItemView to inject the deleted indicator icon.
-%hook ChatMessageItemView
+// Helper to find a subview by class name substring
+static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
+    if ([NSStringFromClass([root class]) containsString:prefix]) {
+        return root;
+    }
+    for (UIView *subview in root.subviews) {
+        UIView *found = findViewByClassNamePrefix(subview, prefix);
+        if (found) return found;
+    }
+    return nil;
+}
+
+// Hook ChatMessageBubbleItemNode to inject the deleted indicator icon.
+%hook ChatMessageBubbleItemNode
 
 - (void)setupItem:(id)item synchronousLoad:(BOOL)synchronousLoad {
     %orig;
@@ -155,8 +167,6 @@ static void showWelcomeAlertIfNeeded() {
     NSNumber *msgId = [TLParser getMessageId:item];
     BOOL isDeletedMsg = (msgId && [TLParser isDeleted:msgId]);
     
-    // ASDisplayNode setupItem is often called on a background thread.
-    // Modifying self.view must happen on the main thread.
     ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
         if (isDeletedMsg) {
@@ -176,10 +186,19 @@ static void showWelcomeAlertIfNeeded() {
                 [node.view addSubview:trashIcon];
             }
             
-            // Try to position it somewhat visibly near the bottom right of the bubble
-            // node.view.bounds is the full screen width.
-            trashIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 25, 14, 14);
-            trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+            // Find the date and status node to position the trash icon near it
+            UIView *statusView = findViewByClassNamePrefix(node.view, @"ChatMessageDateAndStatusNode");
+            if (statusView) {
+                // Convert coordinates
+                CGRect statusFrame = [node.view convertRect:statusView.bounds fromView:statusView];
+                // Place it immediately to the right of the status view
+                trashIcon.frame = CGRectMake(statusFrame.origin.x + statusFrame.size.width + 2, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
+                trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+            } else {
+                // Fallback: near the top right of the cell, but somewhat centered
+                trashIcon.frame = CGRectMake(node.view.bounds.size.width / 2.0, 10, 14, 14);
+            }
+            
             trashIcon.hidden = NO;
             [node.view bringSubviewToFront:trashIcon];
         } else {
@@ -200,7 +219,7 @@ static void hook() {
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 	 	%init(
             PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode"),
-            ChatMessageItemView = objc_getClass("ChatMessageItemView.ChatMessageItemView")
+            ChatMessageBubbleItemNode = objc_getClass("ChatMessageBubbleItemNode.ChatMessageBubbleItemNode")
 		);
 
         // Show welcome alert after the app UI has fully loaded
