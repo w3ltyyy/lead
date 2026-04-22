@@ -6,7 +6,7 @@
 #import <roothide.h>
 #import "../Constants.h"
 
-@interface TGExtra : UIViewController <UITableViewDataSource, UITableViewDelegate>
+@interface Lead : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @end
 
 @interface TGLocalization : NSObject
@@ -14,7 +14,7 @@
 - (id)initWithVersion:(int)a code:(id)b dict:(id)c isActive:(BOOL)d;
 @end
 
-@interface TGExtraLocalization  : NSObject
+@interface LeadLocalization  : NSObject
 @property (nonatomic, strong ) TGLocalization *localization;
 + (instancetype)shared;
 + (NSString *)localizedStringForKey:(NSString *)key;

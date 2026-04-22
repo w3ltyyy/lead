@@ -8,13 +8,13 @@ bool shouldFakeLocation() {
 	return [defaults boolForKey:FAKE_LOCATION_ENABLED_KEY];
 }
 
-@interface TGExtraFakeLocationManager : NSObject
+@interface LeadFakeLocationManager : NSObject
 @property (nonatomic, strong) NSHashTable<CLLocationManager *> *locationManagers;
 @property (nonatomic, strong) NSTimer *lieToDelegateTimer;
 + (instancetype)shared;
 @end
 
-@implementation TGExtraFakeLocationManager
+@implementation LeadFakeLocationManager
 
 - (instancetype)init {
 	self = [super init];
@@ -38,9 +38,9 @@ bool shouldFakeLocation() {
 
 + (instancetype)shared {
 	static dispatch_once_t token;
-	static TGExtraFakeLocationManager *instance;
+	static LeadFakeLocationManager *instance;
 	dispatch_once(&token, ^{
-		instance = [[TGExtraFakeLocationManager alloc] init];
+		instance = [[LeadFakeLocationManager alloc] init];
 	});
 	return instance;
 }
@@ -144,7 +144,7 @@ bool shouldFakeLocation() {
 - (id)init {
     self = %orig;
     if (self) {
-        [[TGExtraFakeLocationManager shared].locationManagers addObject:self];
+        [[LeadFakeLocationManager shared].locationManagers addObject:self];
     }
     return self;
 }
@@ -153,7 +153,7 @@ bool shouldFakeLocation() {
 	//customLog(@"Set Delegate :%@", delegate);
     %orig;
 	
-    [[TGExtraFakeLocationManager shared].locationManagers addObject:self];
+    [[LeadFakeLocationManager shared].locationManagers addObject:self];
 }
 
 %end
@@ -166,12 +166,12 @@ bool shouldFakeLocation() {
 
 - (id)initWithCLLocationManager:(id)locationManager {
     if ([locationManager isKindOfClass:[CLLocationManager class]]) {
-        [[TGExtraFakeLocationManager shared].locationManagers addObject:(CLLocationManager *)locationManager];
+        [[LeadFakeLocationManager shared].locationManagers addObject:(CLLocationManager *)locationManager];
     }
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         CLLocationManager *innerLocationManager = [self _clLocationManager];
-		[[TGExtraFakeLocationManager shared].locationManagers addObject:innerLocationManager];
+		[[LeadFakeLocationManager shared].locationManagers addObject:innerLocationManager];
     });
 
     return %orig;
@@ -186,5 +186,5 @@ static void initLocationHooks() {
 	    DeviceLocationManager = objc_getClass("DeviceLocationManager.DeviceLocationManager")
 	);
 	
-	[TGExtraFakeLocationManager shared];
+	[LeadFakeLocationManager shared];
 }

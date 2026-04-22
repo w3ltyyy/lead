@@ -16,9 +16,9 @@ jobs:
       ipa_app_name: ${{ steps.extractIPA.outputs.ipa_app_name }}
       ipa_bundle_id: ${{ steps.extractIPA.outputs.ipa_bundle_id }}
       ipa_version: ${{ steps.extractIPA.outputs.ipa_version }}
-      tgextra_version: ${{ steps.extractTGExtra.outputs.tgextra_version }}
+      tgextra_version: ${{ steps.extractLead.outputs.tgextra_version }}
     steps:
-      - name: Fetch TGExtra.bundle
+      - name: Fetch Lead.bundle
         uses: actions/checkout@v4
 
       - name: Download decrypted IPA
@@ -41,14 +41,14 @@ jobs:
           echo "ipa_bundle_id=$IPA_BUNDLE_ID" >> "$GITHUB_OUTPUT"
           echo "ipa_version=$IPA_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Download latest TGExtra
+      - name: Download latest Lead
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download release --repo waruhachi/TGExtra --pattern 'com.choco.tg_*_iphoneos-arm.deb' --dir .
+          gh release download release --repo waruhachi/Lead --pattern 'com.choco.tg_*_iphoneos-arm.deb' --dir .
 
-      - name: Extract TGExtra version
-        id: extractTGExtra
+      - name: Extract Lead version
+        id: extractLead
         run: |
           FIRST=$(ls com.choco.tg_*_iphoneos-arm.deb | head -n1)
           TGEXTRA_VERSION=$(echo "$FIRST" | sed -E 's/com\.choco\.tg_([0-9\.]+)_.+\.deb/\1/')
@@ -67,12 +67,12 @@ jobs:
           name: dependencies
           path: |
             decrypted.ipa
-            TGExtra.bundle
+            Lead.bundle
             SideloadFix.dylib
             com.choco.tg_*_iphoneos-arm.deb
 
   inject:
-    name: Inject TGExtra & SideloadFix
+    name: Inject Lead & SideloadFix
     needs: prepareDependencies
     runs-on: macos-latest
     env:
@@ -91,13 +91,13 @@ jobs:
         run: |
           pip install --force-reinstall https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
 
-      - name: Inject TGExtra & SideloadFix into IPA
+      - name: Inject Lead & SideloadFix into IPA
         run: |
           DECRYPTED_IPA="dependencies/decrypted.ipa"
-          TGEXTRA_BUNDLE="dependencies/TGExtra.bundle"
+          TGEXTRA_BUNDLE="dependencies/Lead.bundle"
           TGEXTRA_DEB="dependencies/com.choco.tg_${TGEXTRA_VERSION}_iphoneos-arm.deb"
 
-          OUT_BASE="$IPA_BUNDLE_ID-$IPA_VERSION-TGExtra-$TGEXTRA_VERSION"
+          OUT_BASE="$IPA_BUNDLE_ID-$IPA_VERSION-Lead-$TGEXTRA_VERSION"
           OUT_IPA="$OUT_BASE.ipa"
           OUT_TIPA="$OUT_BASE.tipa"
 
@@ -159,7 +159,7 @@ jobs:
 
       - name: Patch injected IPA
         run: |
-          OUT_BASE="$IPA_BUNDLE_ID-$IPA_VERSION-TGExtra-$TGEXTRA_VERSION"
+          OUT_BASE="$IPA_BUNDLE_ID-$IPA_VERSION-Lead-$TGEXTRA_VERSION"
           SIDELOADFIX_DYLIB="dependencies/SideloadFix.dylib"
           INJECTED_IPA="artifacts/$OUT_BASE.ipa"
           INJECTED_TIPA="artifacts/$OUT_BASE.tipa"

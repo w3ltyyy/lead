@@ -11,9 +11,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    NSString *filePath = jbroot(@"/Library/Application Support/TGExtra/TGExtra.bundle/langs.json");
+    NSString *filePath = jbroot(@"/Library/Application Support/Lead/Lead.bundle/langs.json");
     if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-		filePath = [NSString stringWithFormat:@"%@/TGExtra.bundle/langs.json", [[NSBundle mainBundle] resourcePath]];
+		filePath = [NSString stringWithFormat:@"%@/Lead.bundle/langs.json", [[NSBundle mainBundle] resourcePath]];
     }
 
     NSError *jsonDecodeError = nil;
@@ -61,11 +61,11 @@
     NSMutableArray *languages = [NSMutableArray array];
 
     for (NSDictionary *language in self.languages) {
-        NSString *localizationFilePath = [NSString stringWithFormat:@"%@/TGExtra.bundle/%@.lproj/Localizable.strings", jbroot(@"/Library/Application Support/TGExtra"), language[@"code"]];
+        NSString *localizationFilePath = [NSString stringWithFormat:@"%@/Lead.bundle/%@.lproj/Localizable.strings", jbroot(@"/Library/Application Support/Lead"), language[@"code"]];
         BOOL hasFile = [[NSFileManager defaultManager] fileExistsAtPath:localizationFilePath];
 
         if (!hasFile) {
-            localizationFilePath = [NSString stringWithFormat:@"%@/TGExtra.bundle/%@.lproj/Localizable.strings", [[NSBundle mainBundle] resourcePath], language[@"code"]];
+            localizationFilePath = [NSString stringWithFormat:@"%@/Lead.bundle/%@.lproj/Localizable.strings", [[NSBundle mainBundle] resourcePath], language[@"code"]];
             hasFile = (localizationFilePath != nil);
         }
 
@@ -112,7 +112,7 @@
         cell.alpha = 0.6;
         cell.userInteractionEnabled = NO;
     }
-    NSString *selectedLanguageCode = [[NSUserDefaults standardUserDefaults] stringForKey:@"TGExtraLanguage"];
+    NSString *selectedLanguageCode = [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadLanguage"];
 
     if ([selectedLanguageCode isEqualToString:languageData[@"code"]]) {
         cell.accessoryType = UITableViewCellAccessoryCheckmark;
@@ -137,9 +137,9 @@
                                                               isActive:YES];
 
     if (localization) {
-        [TGExtraLocalization shared].localization = localization;
+        [LeadLocalization shared].localization = localization;
 
-        [[NSUserDefaults standardUserDefaults] setObject:languageData[@"code"] forKey:@"TGExtraLanguage"];
+        [[NSUserDefaults standardUserDefaults] setObject:languageData[@"code"] forKey:@"LeadLanguage"];
         [[NSUserDefaults standardUserDefaults] synchronize];
 
         [[NSNotificationCenter defaultCenter] postNotificationName:@"LanguageChangedNotification" object:nil];

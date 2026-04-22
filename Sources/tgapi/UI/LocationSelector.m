@@ -106,7 +106,7 @@
     [[NSUserDefaults standardUserDefaults] setFloat:coordinate.latitude forKey:FAKE_LATITUDE_KEY];
     [[NSUserDefaults standardUserDefaults] synchronize];
 	
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"TGExtraLocationChanged" object:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"LeadLocationChanged" object:nil];
 }
 
 - (void)addPinAtCoordinate:(CLLocationCoordinate2D)coordinate withTitle:(NSString *)title {

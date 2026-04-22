@@ -56,14 +56,14 @@
 #define kDisableForwardRestriction @"disableForwardRestriction"
 
 // Anti-features
-#define kAntiRevoke @"TGExtraAntiRevoke"
-#define kAntiEdit @"TGExtraAntiEdit"
+#define kAntiRevoke @"LeadAntiRevoke"
+#define kAntiEdit @"LeadAntiEdit"
 // Key for preventing disappearing/self-destruct media from being marked as read
-#define kAntiSelfDestruct @"TGExtraAntiSelfDestruct"
+#define kAntiSelfDestruct @"LeadAntiSelfDestruct"
 
-#define FAKE_LOCATION_ENABLED_KEY @"TGExtraFakeLocation"
-#define FAKE_LATITUDE_KEY @"TGExtraSavedLatitude"
-#define FAKE_LONGITUDE_KEY @"TGExtraSavedLongitude"
+#define FAKE_LOCATION_ENABLED_KEY @"LeadFakeLocation"
+#define FAKE_LATITUDE_KEY @"LeadSavedLatitude"
+#define FAKE_LONGITUDE_KEY @"LeadSavedLongitude"
 
-#define FILE_PICKER_FIX_KEY @"TGExtraFixFilePicker"
-#define FILE_PICKER_PATH @"TGExtraFileFixUsingSomeUglyHacks"
+#define FILE_PICKER_FIX_KEY @"LeadFixFilePicker"
+#define FILE_PICKER_PATH @"LeadFileFixUsingSomeUglyHacks"

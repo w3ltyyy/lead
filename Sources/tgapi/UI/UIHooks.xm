@@ -28,7 +28,7 @@ static __weak TGLocalization *TGLocalizationShared = nil;
 %end
 
 void showUI() {
-	TGExtra *ui = [TGExtra new];
+	Lead *ui = [Lead new];
 	UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:ui];
 
 	UIWindow *window = UIApplication.sharedApplication.keyWindow;

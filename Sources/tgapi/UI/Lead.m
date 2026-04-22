@@ -3,21 +3,21 @@
 #import "Icons.h"
 #import "Headers.h"
 
-#define TGLoc(key) [TGExtraLocalization localizedStringForKey:(key)]
+#define TGLoc(key) [LeadLocalization localizedStringForKey:(key)]
 
-@interface TGExtra ()
+@interface Lead ()
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSString *cacheSize;
 @end
 
-@implementation TGExtra
+@implementation Lead
 
 - (void)viewDidLoad {
 
 	[self setupTableView];
 	[self setupIconAsHeader];
 	[self setupApplyButton];
-	self.title = @"TGExtra";
+	self.title = @"Lead";
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(didChangeLanguage)
@@ -26,7 +26,7 @@
 
 	[[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(didChangeFakeLocation)
-                                                 name:@"TGExtraLocationChanged"
+                                                 name:@"LeadLocationChanged"
                                                object:nil];
 }
 
@@ -693,7 +693,7 @@ typedef NS_ENUM(NSInteger, TABLE_VIEW_SECTIONS) {
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:TGLoc(@"OK")
                                                        style:UIAlertActionStyleDestructive
                                                      handler:^(UIAlertAction *action) {
-        NSString *uglyFixDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:@"TGExtraFileFixUsingSomeUglyHacks"];
+        NSString *uglyFixDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:@"LeadFileFixUsingSomeUglyHacks"];
 
         NSError *error = nil;
         [[NSFileManager defaultManager] removeItemAtPath:uglyFixDirectory error:&error];
@@ -726,7 +726,7 @@ typedef NS_ENUM(NSInteger, TABLE_VIEW_SECTIONS) {
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"LanguageChangedNotification" object:nil];
 
-	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"TGExtralocationChanged" object:nil];
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"LeadlocationChanged" object:nil];
 
 }
 
