@@ -7,7 +7,8 @@ To open the Tweak menu: **Long-press the screen with 3 fingers** (or 4 fingers i
 ## 🚀 Features
 
 ### ✅ Stable & Working
-- **Anti-Revoke**: Prevent users from deleting messages. Deleted messages are retained in the chat and seamlessly marked with a native-looking 🗑️ trash icon.
+- **Anti-Revoke**: Prevent users from deleting messages. Deleted messages are retained in the chat and seamlessly marked with a native-looking 🗑️ trash icon. 
+  *(Note: If a message is deleted while you are in the chat, simply scroll up and down to refresh the UI and show the indicator).*
 - **Ghost Mode**: Read messages and view stories without triggering read receipts.
 - **Disable Ads**: Remove sponsored messages and ads from channels.
 - **Allow saving Protected Content**: Save media from restricted channels (Note: Due to frequent API updates, this feature may be limited on newer Telegram builds).
@@ -20,8 +21,9 @@ To open the Tweak menu: **Long-press the screen with 3 fingers** (or 4 fingers i
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="Screenshots/3.jpeg" width="49%">
-  <img src="Screenshots/4.jpeg" width="49%">
+  <img src="Screenshots/3.jpeg" width="32%">
+  <img src="Screenshots/4.jpeg" width="32%">
+  <img src="Screenshots/5.jpeg" width="32%">
 </p>
 
 ## ⚠️ Disclaimer
