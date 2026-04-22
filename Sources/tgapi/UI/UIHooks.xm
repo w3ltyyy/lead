@@ -142,6 +142,24 @@ static void showWelcomeAlertIfNeeded() {
 
 #import "../Headers.h"
 
+@interface ASDisplayNode (TGExtra)
+@property (nonatomic, readonly) UIView *view;
+@property (nonatomic, copy, readonly) NSArray *subnodes;
+@end
+
+static ASDisplayNode *findNodeByClassNamePrefix(ASDisplayNode *root, NSString *prefix) {
+    if ([NSStringFromClass([root class]) containsString:prefix]) {
+        return root;
+    }
+    if ([root respondsToSelector:@selector(subnodes)]) {
+        for (ASDisplayNode *child in root.subnodes) {
+            ASDisplayNode *found = findNodeByClassNamePrefix(child, prefix);
+            if (found) return found;
+        }
+    }
+    return nil;
+}
+
 
 
 // Hook ASDisplayNode globally to catch lazily loaded message nodes.
@@ -178,9 +196,18 @@ static void showWelcomeAlertIfNeeded() {
                 [node.view addSubview:trashIcon];
             }
             
-            // Put the trash icon at the bottom right corner of the message cell bounds.
-            trashIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 35, 20, 20);
-            trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+            ASDisplayNode *statusNode = findNodeByClassNamePrefix(node, @"ChatMessageDateAndStatusNode");
+            if (statusNode && statusNode.view) {
+                CGRect statusFrame = [node.view convertRect:statusNode.view.bounds fromView:statusNode.view];
+                // Place to the left of the time
+                trashIcon.frame = CGRectMake(statusFrame.origin.x - 18, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
+                trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+            } else {
+                // Fallback to bottom right if status node isn't found
+                trashIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 35, 20, 20);
+                trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+            }
+            
             trashIcon.hidden = NO;
             [node.view bringSubviewToFront:trashIcon];
         } else {
