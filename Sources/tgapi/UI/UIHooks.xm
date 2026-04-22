@@ -87,8 +87,11 @@ void showUI() {
 // ============================================================
 // First-launch welcome alert.
 // Shows once when Lead is injected for the first time.
-// • "Join Channel" → opens https://t.me/Leedgram
-// • "OK"           → dismisses and never shows again
+// On iPhone, UIAlertControllerStyleAlert CANNOT be dismissed by
+// tapping outside — iOS prevents it natively. The alert stays
+// visible until the user taps one of the buttons.
+// • "Join Channel →" → opens https://t.me/Leedgram, saves flag, closes alert
+// • "OK"             → closes alert, saves flag — never shows again
 // ============================================================
 static void showWelcomeAlertIfNeeded() {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -103,24 +106,30 @@ static void showWelcomeAlertIfNeeded() {
         message:@"Lead has been successfully injected into Telegram.\n\nTo open the tweak menu: long-press the \"Telegram Features\" row in the Settings tab."
         preferredStyle:UIAlertControllerStyleAlert];
 
-    // "Join Channel" — top action, opens the developer's Telegram channel
+    // Helper block — saves flag so alert never shows again
+    void (^markShown)(void) = ^{
+        [defaults setBool:YES forKey:@"LeadWelcomeShown"];
+        [defaults synchronize];
+    };
+
+    // "Join Channel" — opens the developer's Telegram channel and dismisses alert
     UIAlertAction *channelAction = [UIAlertAction
         actionWithTitle:@"Join Channel →"
                   style:UIAlertActionStyleDefault
                 handler:^(UIAlertAction *action) {
+        markShown();
         NSURL *url = [NSURL URLWithString:@"https://t.me/Leedgram"];
         if ([[UIApplication sharedApplication] canOpenURL:url]) {
             [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
         }
     }];
 
-    // "OK" — closes the alert and marks it as shown so it never appears again
+    // "OK" — closes the alert, never shows again
     UIAlertAction *okAction = [UIAlertAction
         actionWithTitle:@"OK"
                   style:UIAlertActionStyleCancel
                 handler:^(UIAlertAction *action) {
-        [defaults setBool:YES forKey:@"LeadWelcomeShown"];
-        [defaults synchronize];
+        markShown();
     }];
 
     [alert addAction:channelAction];
