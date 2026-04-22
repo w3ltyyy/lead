@@ -90,13 +90,16 @@ class TLParser: NSObject {
 
     /// Dynamically extracts message ID from a ChatMessageBubbleItemNode
     @objc static func getMessageIdFromNode(_ node: Any) -> NSNumber? {
-        let mirror = Mirror(reflecting: node)
-        for child in mirror.children {
-            if child.label == "item" {
-                if let item = child.value as? Any {
-                    return getMessageId(from: item)
+        var currentMirror: Mirror? = Mirror(reflecting: node)
+        while let mirror = currentMirror {
+            for child in mirror.children {
+                if child.label == "item" {
+                    if let item = child.value as? Any {
+                        return getMessageId(from: item)
+                    }
                 }
             }
+            currentMirror = mirror.superclassMirror
         }
         return nil
     }
