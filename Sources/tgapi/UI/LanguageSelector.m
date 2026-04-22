@@ -11,9 +11,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    NSString *filePath = jbroot(@"/Library/Application Support/Lead/Lead.bundle/langs.json");
+    NSString *filePath = [NSString stringWithFormat:@"%@/langs.json", LeadBundlePath()];
     if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-		filePath = [NSString stringWithFormat:@"%@/Lead.bundle/langs.json", [[NSBundle mainBundle] resourcePath]];
+        filePath = nil;
     }
 
     NSError *jsonDecodeError = nil;
@@ -61,13 +61,10 @@
     NSMutableArray *languages = [NSMutableArray array];
 
     for (NSDictionary *language in self.languages) {
-        NSString *localizationFilePath = [NSString stringWithFormat:@"%@/Lead.bundle/%@.lproj/Localizable.strings", jbroot(@"/Library/Application Support/Lead"), language[@"code"]];
+        // Build the path to this language's Localizable.strings using LeadBundlePath()
+        NSString *localizationFilePath = [NSString stringWithFormat:@"%@/%@.lproj/Localizable.strings",
+                                          LeadBundlePath(), language[@"code"]];
         BOOL hasFile = [[NSFileManager defaultManager] fileExistsAtPath:localizationFilePath];
-
-        if (!hasFile) {
-            localizationFilePath = [NSString stringWithFormat:@"%@/Lead.bundle/%@.lproj/Localizable.strings", [[NSBundle mainBundle] resourcePath], language[@"code"]];
-            hasFile = (localizationFilePath != nil);
-        }
 
         [languages addObject:@{
             @"code": language[@"code"],

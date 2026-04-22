@@ -20,6 +20,11 @@
 + (NSString *)localizedStringForKey:(NSString *)key;
 @end
 
+// Returns the path to Lead.bundle regardless of installation method.
+// Works on jailbreak, SwiftGram, AltStore, and any sideloaded IPA.
+// Both LeadLocalization and LanguageSelector must use this function.
+NSString *LeadBundlePath(void);
+
 
 @interface LanguageSelector : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @end
@@ -27,6 +32,3 @@
 @interface LocationSelector : UIViewController <MKMapViewDelegate>
 @end
 
-@interface ThreeFingerGestureHandler : NSObject
-- (void)handleThreeFingerLongPress:(UILongPressGestureRecognizer *)gesture;
-@end
