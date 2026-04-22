@@ -142,17 +142,7 @@ static void showWelcomeAlertIfNeeded() {
 
 #import "../Headers.h"
 
-// Helper to find a subview by class name substring
-static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
-    if ([NSStringFromClass([root class]) containsString:prefix]) {
-        return root;
-    }
-    for (UIView *subview in root.subviews) {
-        UIView *found = findViewByClassNamePrefix(subview, prefix);
-        if (found) return found;
-    }
-    return nil;
-}
+
 
 // Hook ASDisplayNode globally to catch lazily loaded message nodes.
 %hook ASDisplayNode
@@ -188,15 +178,9 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
                 [node.view addSubview:trashIcon];
             }
             
-            UIView *statusView = findViewByClassNamePrefix(node.view, @"ChatMessageDateAndStatusNode");
-            if (statusView) {
-                CGRect statusFrame = [node.view convertRect:statusView.bounds fromView:statusView];
-                trashIcon.frame = CGRectMake(statusFrame.origin.x + statusFrame.size.width + 2, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
-                trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
-            } else {
-                trashIcon.frame = CGRectMake(node.view.bounds.size.width / 2.0, 30, 14, 14);
-            }
-            
+            // Put the trash icon at the bottom right corner of the message cell bounds.
+            trashIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 35, 20, 20);
+            trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
             trashIcon.hidden = NO;
             [node.view bringSubviewToFront:trashIcon];
         } else {
