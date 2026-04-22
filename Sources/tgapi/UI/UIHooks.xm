@@ -180,15 +180,21 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
         }
         
         if (!debugLabel) {
-            debugLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 200, 20)];
+            debugLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 300, 300)];
             debugLabel.backgroundColor = [UIColor yellowColor];
             debugLabel.textColor = [UIColor blackColor];
-            debugLabel.font = [UIFont systemFontOfSize:10];
+            debugLabel.font = [UIFont systemFontOfSize:8];
+            debugLabel.numberOfLines = 0;
             debugLabel.tag = 8899;
             [node.view addSubview:debugLabel];
         }
+        if (!msgId) {
+            NSString *debugDump = [TLParser getDebugDumpFromNode:node];
+            debugLabel.text = [NSString stringWithFormat:@"FAIL | %@", debugDump];
+        } else {
+            debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId, className];
+        }
         
-        debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId ? msgId : @"nil", className];
         [node.view bringSubviewToFront:debugLabel];
         debugLabel.hidden = NO;
         

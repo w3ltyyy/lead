@@ -9,6 +9,7 @@
 + (void)loadPersistedIds;
 + (NSNumber *)getMessageId:(id)item;
 + (NSNumber *)getMessageIdFromNode:(id)node;
++ (NSString *)getDebugDumpFromNode:(id)node;
 + (BOOL)isDeleted:(NSNumber *)msgId;
 @end
 

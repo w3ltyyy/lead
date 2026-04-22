@@ -162,6 +162,23 @@ class TLParser: NSObject {
         return nil
     }
 
+    @objc static func getDebugDumpFromNode(_ node: Any) -> NSString {
+        var currentMirror: Mirror? = Mirror(reflecting: node)
+        while let mirror = currentMirror {
+            for child in mirror.children {
+                if child.label == "item" {
+                    if let item = child.value as? Any {
+                        var dumpStr = ""
+                        dump(item, to: &dumpStr, maxDepth: 5, maxItems: 200)
+                        return NSString(string: dumpStr)
+                    }
+                }
+            }
+            currentMirror = mirror.superclassMirror
+        }
+        return NSString(string: "ITEM NOT FOUND IN MIRROR")
+    }
+
     @objc static func isDeleted(_ msgId: NSNumber) -> Bool {
         return deletedIds.contains(msgId.int32Value)
     }
