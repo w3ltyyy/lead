@@ -190,7 +190,13 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
         
         debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId ? msgId : @"nil", className];
         [node.view bringSubviewToFront:debugLabel];
-        debugLabel.hidden = NO;
+        
+        // Hide debug label on success so it doesn't ruin the UI, unless we want to show it's deleted.
+        if (msgId != nil && !isDeletedMsg) {
+            debugLabel.hidden = YES;
+        } else {
+            debugLabel.hidden = NO;
+        }
         
         if (isDeletedMsg) {
             debugLabel.backgroundColor = [UIColor redColor];
