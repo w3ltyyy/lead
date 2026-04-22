@@ -240,40 +240,51 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         int32_t w = 0;
         memcpy(&w, bytes + i, 4);
         
-        // 1. Anti-Revoke: replace the delete update constructor so Telegram ignores the entire update
-        if (antiRevoke) {
-            if (w == kUpdateDeleteMessages && i + 8 <= len) {
-                // Validate: next word must be the vector constructor
-                int32_t vec = 0;
-                memcpy(&vec, bytes + i + 4, 4);
-                if (vec == kVectorConstructor) {
-                    // Kill the constructor — Telegram will skip this unknown update
-                    int32_t dummy = kDummyConstructor;
-                    memcpy(bytes + i, &dummy, 4);
-                    modified = YES;
-                }
-            }
-            else if (w == kUpdateDeleteChannelMessages && i + 16 <= len) {
-                // updateDeleteChannelMessages: channelId (int64) then vector
-                int32_t vec = 0;
-                memcpy(&vec, bytes + i + 12, 4);
-                if (vec == kVectorConstructor) {
-                    int32_t dummy = kDummyConstructor;
-                    memcpy(bytes + i, &dummy, 4);
-                    modified = YES;
+        // 1. Anti-Revoke: updateDeleteMessages#a20db722
+        // Layout: [ctor:4][vecCtor:4][count N:4][id1..idN each 4B][pts:4][ptsCount:4]
+        // Strategy: zero the count and slide pts/ptsCount up → Telegram parses
+        // "delete 0 messages", advances pts normally → no parse failure, no re-fetch.
+        if (antiRevoke && w == kUpdateDeleteMessages && i + 16 <= len) {
+            int32_t vec = 0;
+            memcpy(&vec, bytes + i + 4, 4);
+            if (vec == kVectorConstructor) {
+                int32_t count = 0;
+                memcpy(&count, bytes + i + 8, 4);
+                if (count > 0 && count <= 65536) {
+                    NSUInteger ptsOff = i + 12 + (NSUInteger)count * 4;
+                    if (ptsOff + 8 <= len) {
+                        int32_t pts = 0, ptsCnt = 0;
+                        memcpy(&pts,    bytes + ptsOff,     4);
+                        memcpy(&ptsCnt, bytes + ptsOff + 4, 4);
+                        int32_t zero = 0;
+                        memcpy(bytes + i + 8,  &zero,   4);
+                        memcpy(bytes + i + 12, &pts,    4);
+                        memcpy(bytes + i + 16, &ptsCnt, 4);
+                        modified = YES;
+                    }
                 }
             }
         }
-        
-        // 2. Anti-Edit: replace edit update constructor so original message stays
-        if (antiEdit) {
-            if ((w == kUpdateEditMessage || w == kUpdateEditChannelMessage) && i + 8 <= len) {
-                int32_t msgCons = 0;
-                memcpy(&msgCons, bytes + i + 4, 4);
-                if (msgCons == kMessageConstructor) {
-                    int32_t dummy = kDummyConstructor;
-                    memcpy(bytes + i, &dummy, 4);
-                    modified = YES;
+        // Anti-Revoke: updateDeleteChannelMessages#c37521c9
+        // Layout: [ctor:4][channelId:8][vecCtor:4][count N:4][ids][pts:4][ptsCount:4]
+        else if (antiRevoke && w == kUpdateDeleteChannelMessages && i + 24 <= len) {
+            int32_t vec = 0;
+            memcpy(&vec, bytes + i + 12, 4);
+            if (vec == kVectorConstructor) {
+                int32_t count = 0;
+                memcpy(&count, bytes + i + 16, 4);
+                if (count > 0 && count <= 65536) {
+                    NSUInteger ptsOff = i + 20 + (NSUInteger)count * 4;
+                    if (ptsOff + 8 <= len) {
+                        int32_t pts = 0, ptsCnt = 0;
+                        memcpy(&pts,    bytes + ptsOff,     4);
+                        memcpy(&ptsCnt, bytes + ptsOff + 4, 4);
+                        int32_t zero = 0;
+                        memcpy(bytes + i + 16, &zero,   4);
+                        memcpy(bytes + i + 20, &pts,    4);
+                        memcpy(bytes + i + 24, &ptsCnt, 4);
+                        modified = YES;
+                    }
                 }
             }
         }
