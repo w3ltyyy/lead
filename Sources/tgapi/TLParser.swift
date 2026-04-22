@@ -98,19 +98,6 @@ class TLParser: NSObject {
                 }
             }
         }
-        
-        // If 'item' is not found, try to dump the node and extract the ID
-        var dumpStr = ""
-        dump(node, to: &dumpStr)
-        if let regex = try? NSRegularExpression(pattern: "MessageId.*?id: (\\d+)", options: [.dotMatchesLineSeparators]) {
-            let nsRange = NSRange(dumpStr.startIndex..<dumpStr.endIndex, in: dumpStr)
-            if let match = regex.firstMatch(in: dumpStr, options: [], range: nsRange) {
-                if let idRange = Range(match.range(at: 1), in: dumpStr), let id = Int32(dumpStr[idRange]) {
-                    return NSNumber(value: id)
-                }
-            }
-        }
-        
         return nil
     }
 
