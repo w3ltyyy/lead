@@ -170,40 +170,8 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
     
     ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        // DEBUG: Always add a label to see if the hook runs and what the ID is.
-        UILabel *debugLabel = nil;
-        for (UIView *v in node.view.subviews) {
-            if (v.tag == 8899) {
-                debugLabel = (UILabel *)v;
-                break;
-            }
-        }
-        
-        if (!debugLabel) {
-            debugLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, 300, 300)];
-            debugLabel.backgroundColor = [UIColor yellowColor];
-            debugLabel.textColor = [UIColor blackColor];
-            debugLabel.font = [UIFont systemFontOfSize:8];
-            debugLabel.numberOfLines = 0;
-            debugLabel.tag = 8899;
-            [node.view addSubview:debugLabel];
-        }
-        if (!msgId) {
-            NSString *debugDump = [TLParser getDebugDumpFromNode:node];
-            debugLabel.text = [NSString stringWithFormat:@"FAIL | %@", debugDump];
-            debugLabel.hidden = NO;
-        } else {
-            debugLabel.text = [NSString stringWithFormat:@"ID: %@ | Cls: %@", msgId, className];
-            // Hide on success so it doesn't clutter the UI
-            debugLabel.hidden = YES;
-        }
-        
-        [node.view bringSubviewToFront:debugLabel];
-        
         if (isDeletedMsg) {
-            debugLabel.backgroundColor = [UIColor redColor];
-            debugLabel.text = [debugLabel.text stringByAppendingString:@" (DELETED)"];
-            debugLabel.hidden = NO; // show it if it's deleted!
+            node.view.backgroundColor = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.1];
             
             UIImageView *trashIcon = nil;
             for (UIView *v in node.view.subviews) {
@@ -215,9 +183,8 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
             
             if (!trashIcon) {
                 trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
-                trashIcon.tintColor = [UIColor redColor];
+                trashIcon.tintColor = [UIColor systemRedColor];
                 trashIcon.tag = 8898;
-                trashIcon.alpha = 0.8;
                 [node.view addSubview:trashIcon];
             }
             
@@ -233,6 +200,7 @@ static UIView *findViewByClassNamePrefix(UIView *root, NSString *prefix) {
             trashIcon.hidden = NO;
             [node.view bringSubviewToFront:trashIcon];
         } else {
+            node.view.backgroundColor = [UIColor clearColor];
             for (UIView *v in node.view.subviews) {
                 if (v.tag == 8898) {
                     v.hidden = YES;
