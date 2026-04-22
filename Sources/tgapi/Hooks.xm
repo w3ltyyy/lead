@@ -240,49 +240,38 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         int32_t w = 0;
         memcpy(&w, bytes + i, 4);
         
-        // 1. Anti-Revoke: updateDeleteMessages#a20db722
-        // Layout: [ctor:4][vecCtor:4][count N:4][id1..idN each 4B][pts:4][ptsCount:4]
-        // Strategy: zero the count and slide pts/ptsCount up → Telegram parses
-        // "delete 0 messages", advances pts normally → no parse failure, no re-fetch.
-        if (antiRevoke && w == kUpdateDeleteMessages && i + 16 <= len) {
+        // 1. Anti-Revoke: updateDeleteMessages#A20DB0E5
+        // Layout: [ctor:4][vecCtor:4][count N:4][id1:4]...[idN:4][pts:4][ptsCount:4]
+        // Fix: zero ALL message IDs (keep count=N, pts, ptsCount intact).
+        // Telegram processes "delete messages [0,0,...]" — ID 0 never exists → no-op.
+        // TL structure is completely preserved, no parse failure, no re-fetch.
+        if (antiRevoke && w == kUpdateDeleteMessages && i + 12 <= len) {
             int32_t vec = 0;
             memcpy(&vec, bytes + i + 4, 4);
             if (vec == kVectorConstructor) {
                 int32_t count = 0;
                 memcpy(&count, bytes + i + 8, 4);
                 if (count > 0 && count <= 65536) {
-                    NSUInteger ptsOff = i + 12 + (NSUInteger)count * 4;
-                    if (ptsOff + 8 <= len) {
-                        int32_t pts = 0, ptsCnt = 0;
-                        memcpy(&pts,    bytes + ptsOff,     4);
-                        memcpy(&ptsCnt, bytes + ptsOff + 4, 4);
-                        int32_t zero = 0;
-                        memcpy(bytes + i + 8,  &zero,   4);
-                        memcpy(bytes + i + 12, &pts,    4);
-                        memcpy(bytes + i + 16, &ptsCnt, 4);
+                    NSUInteger idsEnd = i + 12 + (NSUInteger)count * 4;
+                    if (idsEnd <= len) {
+                        memset(bytes + i + 12, 0, (NSUInteger)count * 4);
                         modified = YES;
                     }
                 }
             }
         }
-        // Anti-Revoke: updateDeleteChannelMessages#c37521c9
+        // Anti-Revoke: updateDeleteChannelMessages#C32D5B12
         // Layout: [ctor:4][channelId:8][vecCtor:4][count N:4][ids][pts:4][ptsCount:4]
-        else if (antiRevoke && w == kUpdateDeleteChannelMessages && i + 24 <= len) {
+        else if (antiRevoke && w == kUpdateDeleteChannelMessages && i + 20 <= len) {
             int32_t vec = 0;
             memcpy(&vec, bytes + i + 12, 4);
             if (vec == kVectorConstructor) {
                 int32_t count = 0;
                 memcpy(&count, bytes + i + 16, 4);
                 if (count > 0 && count <= 65536) {
-                    NSUInteger ptsOff = i + 20 + (NSUInteger)count * 4;
-                    if (ptsOff + 8 <= len) {
-                        int32_t pts = 0, ptsCnt = 0;
-                        memcpy(&pts,    bytes + ptsOff,     4);
-                        memcpy(&ptsCnt, bytes + ptsOff + 4, 4);
-                        int32_t zero = 0;
-                        memcpy(bytes + i + 16, &zero,   4);
-                        memcpy(bytes + i + 20, &pts,    4);
-                        memcpy(bytes + i + 24, &ptsCnt, 4);
+                    NSUInteger idsEnd = i + 20 + (NSUInteger)count * 4;
+                    if (idsEnd <= len) {
+                        memset(bytes + i + 20, 0, (NSUInteger)count * 4);
                         modified = YES;
                     }
                 }
