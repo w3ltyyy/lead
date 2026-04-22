@@ -157,10 +157,11 @@ static void showWelcomeAlertIfNeeded() {
     
     // ASDisplayNode setupItem is often called on a background thread.
     // Modifying self.view must happen on the main thread.
+    ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
         if (isDeletedMsg) {
             UIImageView *trashIcon = nil;
-            for (UIView *v in self.view.subviews) {
+            for (UIView *v in node.view.subviews) {
                 if (v.tag == 8899) {
                     trashIcon = (UIImageView *)v;
                     break;
@@ -172,18 +173,18 @@ static void showWelcomeAlertIfNeeded() {
                 trashIcon.tintColor = [UIColor redColor];
                 trashIcon.tag = 8899;
                 trashIcon.alpha = 0.8;
-                [self.view addSubview:trashIcon];
+                [node.view addSubview:trashIcon];
             }
             
             // Try to position it somewhat visibly near the bottom right of the bubble
-            // self.view.bounds is the full screen width.
-            trashIcon.frame = CGRectMake(self.view.bounds.size.width - 40, self.view.bounds.size.height - 25, 14, 14);
+            // node.view.bounds is the full screen width.
+            trashIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 25, 14, 14);
             trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
             trashIcon.hidden = NO;
-            [self.view bringSubviewToFront:trashIcon];
+            [node.view bringSubviewToFront:trashIcon];
         } else {
             // Hide if not deleted (cell recycled)
-            for (UIView *v in self.view.subviews) {
+            for (UIView *v in node.view.subviews) {
                 if (v.tag == 8899) {
                     v.hidden = YES;
                 }
@@ -198,7 +199,8 @@ __attribute__((constructor))
 static void hook() {
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 	 	%init(
-            PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode")
+            PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode"),
+            ChatMessageItemView = objc_getClass("TelegramUI.ChatMessageItemView")
 		);
 
         // Show welcome alert after the app UI has fully loaded
