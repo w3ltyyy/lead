@@ -1,4 +1,4 @@
-# TGExtra (Lead)
+# Lead
 
 A powerful, native-feeling iOS Tweak for the Telegram app. 
 
@@ -20,10 +20,8 @@ To open the Tweak menu: **Long-press the screen with 3 fingers** (or 4 fingers i
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="Screenshots/1.png" width="24%">
-  <img src="Screenshots/2.png" width="24%">
-  <img src="Screenshots/3.jpeg" width="24%">
-  <img src="Screenshots/4.jpeg" width="24%">
+  <img src="Screenshots/3.jpeg" width="49%">
+  <img src="Screenshots/4.jpeg" width="49%">
 </p>
 
 ## ⚠️ Disclaimer
@@ -33,3 +31,9 @@ This project is an **independent modification (tweak)** for the Telegram app. I 
 This tweak is created solely for **personal and educational purposes**. Use it at your own risk.
 
 **I do not take any responsibility for any issues, damages, or consequences** resulting from the use or misuse of this tweak. If something breaks, it's not my problem.
+
+---
+
+### ❤️ Acknowledgements
+- Special thanks to **chocolate fluffy** for providing the core code for this project.
+- This project is a fork of [Aj3radi/TGExtra](https://github.com/Aj3radi/TGExtra).
