@@ -13,6 +13,14 @@
 
     NSString *filePath = [NSString stringWithFormat:@"%@/langs.json", LeadBundlePath()];
     if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
+        // Desperate search: look in all bundles for langs.json
+        for (NSBundle *bundle in [NSBundle allBundles]) {
+            NSString *p = [bundle pathForResource:@"langs" ofType:@"json"];
+            if (p) { filePath = p; break; }
+        }
+    }
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
         filePath = nil;
     }
 

@@ -20,7 +20,28 @@ NSString *LeadBundlePath(void) {
     dispatch_once(&token, ^{
         NSFileManager *fm = [NSFileManager defaultManager];
 
-        // 1–3: Use dladdr to find the dylib, then search near it
+        // 1. Try to find the bundle using NSBundle's built-in methods (most reliable for IPAs)
+        for (NSBundle *bundle in [NSBundle allBundles]) {
+            if ([bundle.bundlePath hasSuffix:@"Lead.bundle"] || [bundle.bundlePath hasSuffix:@"Choco.bundle"]) {
+                cachedPath = bundle.bundlePath;
+                return;
+            }
+            NSString *jsonPath = [bundle pathForResource:@"langs" ofType:@"json"];
+            if (jsonPath) {
+                cachedPath = [jsonPath stringByDeletingLastPathComponent];
+                return;
+            }
+        }
+        
+        for (NSBundle *bundle in [NSBundle allFrameworks]) {
+             NSString *jsonPath = [bundle pathForResource:@"langs" ofType:@"json"];
+             if (jsonPath) {
+                 cachedPath = [jsonPath stringByDeletingLastPathComponent];
+                 return;
+             }
+        }
+
+        // 2. Fallback to dylib-relative path (dladdr)
         Dl_info info;
         memset(&info, 0, sizeof(info));
         IMP imp = class_getMethodImplementation(
@@ -35,7 +56,7 @@ NSString *LeadBundlePath(void) {
                 [dylibDir stringByAppendingPathComponent:@"Lead.bundle"],
                 [[dylibDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Lead.bundle"],
                 [[[dylibDir stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Lead.bundle"],
-                [dylibDir stringByAppendingPathComponent:@"Choco.bundle"], // Fallback if renamed
+                [dylibDir stringByAppendingPathComponent:@"Choco.bundle"],
                 [[dylibDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Choco.bundle"]
             ];
 
@@ -44,26 +65,18 @@ NSString *LeadBundlePath(void) {
             }
         }
 
-        // 4: Classic jailbreak path
+        // 3. Classic jailbreak path
         NSString *jbPath = [NSString stringWithFormat:@"%@/Lead.bundle",
                             jbroot(@"/Library/Application Support/Lead")];
         if ([fm fileExistsAtPath:jbPath]) { cachedPath = jbPath; return; }
 
-        // 5: IPA embed — search app bundle and all its subdirectories
+        // 4. Final desperate scan in the main bundle's subdirectories
         NSString *bundlePath = [NSBundle mainBundle].bundlePath;
-        NSString *appPath = [bundlePath stringByAppendingPathComponent:@"Lead.bundle"];
-        if ([fm fileExistsAtPath:appPath]) { cachedPath = appPath; return; }
-        
-        // Search in Frameworks and other common places
-        NSArray *appSubDirs = @[@"Frameworks", @"PlugIns", @"Dylibs", @"Lead"];
-        for (NSString *sub in appSubDirs) {
-            NSString *path = [[bundlePath stringByAppendingPathComponent:sub] stringByAppendingPathComponent:@"Lead.bundle"];
+        NSArray *subDirs = @[@"Lead.bundle", @"Choco.bundle", @"Frameworks/Lead.bundle", @"Frameworks/Choco.bundle"];
+        for (NSString *sub in subDirs) {
+            NSString *path = [bundlePath stringByAppendingPathComponent:sub];
             if ([fm fileExistsAtPath:path]) { cachedPath = path; return; }
         }
-
-        // 6: resourcePath fallback
-        cachedPath = [[[NSBundle mainBundle] resourcePath]
-                      stringByAppendingPathComponent:@"Lead.bundle"];
     });
     return cachedPath;
 }
