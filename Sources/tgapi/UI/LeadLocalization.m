@@ -23,7 +23,6 @@ NSString *LeadBundlePath(void) {
         // 1–3: Use dladdr to find the dylib, then search near it
         Dl_info info;
         memset(&info, 0, sizeof(info));
-        // Use a known symbol inside this dylib
         IMP imp = class_getMethodImplementation(
             object_getClass([LeadLocalization class]),
             @selector(shared)
@@ -36,6 +35,8 @@ NSString *LeadBundlePath(void) {
                 [dylibDir stringByAppendingPathComponent:@"Lead.bundle"],
                 [[dylibDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Lead.bundle"],
                 [[[dylibDir stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Lead.bundle"],
+                [dylibDir stringByAppendingPathComponent:@"Choco.bundle"], // Fallback if renamed
+                [[dylibDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Choco.bundle"]
             ];
 
             for (NSString *c in candidates) {
@@ -48,10 +49,17 @@ NSString *LeadBundlePath(void) {
                             jbroot(@"/Library/Application Support/Lead")];
         if ([fm fileExistsAtPath:jbPath]) { cachedPath = jbPath; return; }
 
-        // 5: IPA embed — app bundle root
-        NSString *appPath = [[NSBundle mainBundle].bundlePath
-                             stringByAppendingPathComponent:@"Lead.bundle"];
+        // 5: IPA embed — search app bundle and all its subdirectories
+        NSString *bundlePath = [NSBundle mainBundle].bundlePath;
+        NSString *appPath = [bundlePath stringByAppendingPathComponent:@"Lead.bundle"];
         if ([fm fileExistsAtPath:appPath]) { cachedPath = appPath; return; }
+        
+        // Search in Frameworks and other common places
+        NSArray *appSubDirs = @[@"Frameworks", @"PlugIns", @"Dylibs", @"Lead"];
+        for (NSString *sub in appSubDirs) {
+            NSString *path = [[bundlePath stringByAppendingPathComponent:sub] stringByAppendingPathComponent:@"Lead.bundle"];
+            if ([fm fileExistsAtPath:path]) { cachedPath = path; return; }
+        }
 
         // 6: resourcePath fallback
         cachedPath = [[[NSBundle mainBundle] resourcePath]

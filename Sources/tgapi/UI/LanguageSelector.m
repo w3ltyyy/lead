@@ -25,13 +25,43 @@
     }
 
     if (jsonDecodeError || !langs) {
-        self.languages = @[
-           @{
-               @"name": @"English",
-               @"code": @"en",
-               @"flag": @"🇺🇸"
-           }
-        ];
+        NSMutableArray *fallbackLangs = [NSMutableArray array];
+        NSString *bundlePath = LeadBundlePath();
+        NSArray *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:bundlePath error:nil];
+        
+        for (NSString *item in contents) {
+            if ([item hasSuffix:@".lproj"]) {
+                NSString *code = [item stringByReplacingOccurrencesOfString:@".lproj" withString:@""];
+                NSString *name = code;
+                NSString *flag = @"🌐";
+                
+                // Map common codes to names/flags for better UX if JSON is missing
+                if ([code isEqualToString:@"en"]) { name = @"English"; flag = @"🇺🇸"; }
+                else if ([code isEqualToString:@"ru"]) { name = @"Russian"; flag = @"🇷🇺"; }
+                else if ([code isEqualToString:@"ar"]) { name = @"Arabic"; flag = @"🇸🇦"; }
+                else if ([code isEqualToString:@"cn"]) { name = @"Chinese"; flag = @"🇨🇳"; }
+                else if ([code isEqualToString:@"fr"]) { name = @"French"; flag = @"🇫🇷"; }
+                else if ([code isEqualToString:@"es"]) { name = @"Spanish"; flag = @"🇪🇸"; }
+                
+                [fallbackLangs addObject:@{
+                    @"name": name,
+                    @"code": code,
+                    @"flag": flag
+                }];
+            }
+        }
+        
+        if (fallbackLangs.count == 0) {
+            self.languages = @[
+               @{
+                   @"name": @"English",
+                   @"code": @"en",
+                   @"flag": @"🇺🇸"
+               }
+            ];
+        } else {
+            self.languages = [fallbackLangs copy];
+        }
     } else {
         self.languages = langs;
     }
