@@ -248,28 +248,115 @@ class TLParser: NSObject {
         switch m {
         case let .messages(messages, chats, users):
             let (modified, changed) = applyDeletedIndicator(to: messages)
-            guard changed else { return nil }
-            return .messages(messages: modified, chats: chats, users: users)
-
+            let stripped = modified.map { stripTTLMessage($0) }
+            return changed || true ? .messages(messages: stripped, chats: chats, users: users) : nil
         case let .messagesSlice(flags, count, nextRate, offsetIdOffset, messages, chats, users):
             let (modified, changed) = applyDeletedIndicator(to: messages)
-            guard changed else { return nil }
-            return .messagesSlice(
-                flags: flags, count: count, nextRate: nextRate,
-                offsetIdOffset: offsetIdOffset, messages: modified,
-                chats: chats, users: users)
-
+            let stripped = modified.map { stripTTLMessage($0) }
+            return changed || true ? .messagesSlice(flags: flags, count: count, nextRate: nextRate, offsetIdOffset: offsetIdOffset, messages: stripped, chats: chats, users: users) : nil
         case let .channelMessages(flags, pts, count, offsetIdOffset, messages, topics, chats, users):
             let (modified, changed) = applyDeletedIndicator(to: messages)
-            guard changed else { return nil }
-            return .channelMessages(
-                flags: flags, pts: pts, count: count,
-                offsetIdOffset: offsetIdOffset, messages: modified,
-                topics: topics, chats: chats, users: users)
-
-        case .messagesNotModified:
+            let stripped = modified.map { stripTTLMessage($0) }
+            return changed || true ? .channelMessages(flags: flags, pts: pts, count: count, offsetIdOffset: offsetIdOffset, messages: stripped, topics: topics, chats: chats, users: users) : nil
+        default:
             return nil
         }
+    }
+    
+    private static func stripTTLMedia(_ media: Api.MessageMedia) -> Api.MessageMedia {
+        guard UserDefaults.standard.bool(forKey: "LeadAntiSelfDestruct") else { return media }
+        switch media {
+        case let .messageMediaPhoto(flags, photo, _):
+            return .messageMediaPhoto(flags: flags & ~(1 << 2), photo: photo, ttlSeconds: nil)
+        case let .messageMediaDocument(flags, document, altDocuments, videoCover, videoTimestamp, _):
+            return .messageMediaDocument(flags: flags & ~(1 << 2), document: document, altDocuments: altDocuments, videoCover: videoCover, videoTimestamp: videoTimestamp, ttlSeconds: nil)
+        default:
+            return media
+        }
+    }
+
+    private static func stripTTLMessage(_ apiMsg: Api.Message) -> Api.Message {
+        guard UserDefaults.standard.bool(forKey: "LeadAntiSelfDestruct") else { return apiMsg }
+        guard case let .message(flags, flags2, id, fromId, fromBoostsApplied,
+                                peerId, savedPeerId, fwdFrom, viaBotId, viaBusinessBotId,
+                                replyTo, date, message, media, replyMarkup, entities,
+                                views, forwards, replies, editDate, postAuthor, groupedId,
+                                reactions, restrictionReason, _,
+                                quickReplyShortcutId, effect, factcheck,
+                                reportDeliveryUntilDate, paidMessageStars) = apiMsg else {
+            return apiMsg
+        }
+
+        let newMedia = media.map { stripTTLMedia($0) }
+        
+        // Strip ttlPeriod flag (1 << 25 in flags)
+        return .message(
+            flags: flags & ~(1 << 25), flags2: flags2, id: id, fromId: fromId,
+            fromBoostsApplied: fromBoostsApplied, peerId: peerId,
+            savedPeerId: savedPeerId, fwdFrom: fwdFrom,
+            viaBotId: viaBotId, viaBusinessBotId: viaBusinessBotId,
+            replyTo: replyTo, date: date,
+            message: message,
+            media: newMedia, replyMarkup: replyMarkup, entities: entities,
+            views: views, forwards: forwards, replies: replies,
+            editDate: editDate, postAuthor: postAuthor, groupedId: groupedId,
+            reactions: reactions, restrictionReason: restrictionReason,
+            ttlPeriod: nil, quickReplyShortcutId: quickReplyShortcutId,
+            effect: effect, factcheck: factcheck,
+            reportDeliveryUntilDate: reportDeliveryUntilDate,
+            paidMessageStars: paidMessageStars
+        )
+    }
+
+    private static func stripTTLUpdate(_ update: Api.Update) -> Api.Update {
+        switch update {
+        case let .updateNewMessage(message, pts, ptsCount):
+            return .updateNewMessage(message: stripTTLMessage(message), pts: pts, ptsCount: ptsCount)
+        case let .updateNewChannelMessage(message, pts, ptsCount):
+            return .updateNewChannelMessage(message: stripTTLMessage(message), pts: pts, ptsCount: ptsCount)
+        default:
+            return update
+        }
+    }
+
+    @objc static func stripAntiSelfDestruct(_ data: NSData) -> NSData? {
+        guard UserDefaults.standard.bool(forKey: "LeadAntiSelfDestruct") else { return nil }
+        let buffer = Buffer(data: data as Data)
+        guard let result = Api.parse(buffer) else { return nil }
+        
+        var modified = false
+        var newResult: Any = result
+
+        if let updates = result as? Api.Updates {
+            switch updates {
+            case let .updates(updatesArray, users, chats, date, seq):
+                let stripped = updatesArray.map { stripTTLUpdate($0) }
+                newResult = Api.Updates.updates(updates: stripped, users: users, chats: chats, date: date, seq: seq)
+                modified = true
+            case let .updateShort(update, date):
+                newResult = Api.Updates.updateShort(update: stripTTLUpdate(update), date: date)
+                modified = true
+            case let .updateShortMessage(flags, id, userId, message, pts, ptsCount, date, fwdFrom, viaBotId, replyTo, entities, _):
+                newResult = Api.Updates.updateShortMessage(flags: flags & ~(1 << 25), id: id, userId: userId, message: message, pts: pts, ptsCount: ptsCount, date: date, fwdFrom: fwdFrom, viaBotId: viaBotId, replyTo: replyTo, entities: entities, ttlPeriod: nil)
+                modified = true
+            case let .updateShortChatMessage(flags, id, fromId, chatId, message, pts, ptsCount, date, fwdFrom, viaBotId, replyTo, entities, _):
+                newResult = Api.Updates.updateShortChatMessage(flags: flags & ~(1 << 25), id: id, fromId: fromId, chatId: chatId, message: message, pts: pts, ptsCount: ptsCount, date: date, fwdFrom: fwdFrom, viaBotId: viaBotId, replyTo: replyTo, entities: entities, ttlPeriod: nil)
+                modified = true
+            case let .updateShortSentMessage(flags, id, pts, ptsCount, date, media, entities, _):
+                let newMedia = media.map { stripTTLMedia($0) }
+                newResult = Api.Updates.updateShortSentMessage(flags: flags & ~(1 << 25), id: id, pts: pts, ptsCount: ptsCount, date: date, media: newMedia, entities: entities, ttlPeriod: nil)
+                modified = true
+            default:
+                break
+            }
+        }
+        
+        if modified {
+            let outBuf = Buffer()
+            Api.serializeObject(newResult, buffer: outBuf, boxed: true)
+            return outBuf.makeData() as NSData
+        }
+        return nil
     }
 
     @objc static func handleResponse(_ data: NSData, functionID: NSNumber) -> NSData? {
@@ -287,10 +374,36 @@ class TLParser: NSObject {
             return nil
         }
 
-        // Inject deleted-message indicator if any IDs match.
-        if let updated = withIndicator(result) {
+        // Apply deleted indicators AND strip self-destruct from fetched history.
+        let withInd = withIndicator(result)
+        var shouldSerialize = false
+        var objToSerialize: Any = result
+
+        if withInd != nil {
+            objToSerialize = withInd!
+            shouldSerialize = true
+        } else if UserDefaults.standard.bool(forKey: "LeadAntiSelfDestruct") {
+            // Even if no deleted indicators were applied, we should strip TTL.
+            if let msgs = result as? Api.messages.Messages {
+                switch msgs {
+                case let .messages(messages, chats, users):
+                    objToSerialize = Api.messages.Messages.messages(messages: messages.map { stripTTLMessage($0) }, chats: chats, users: users)
+                    shouldSerialize = true
+                case let .messagesSlice(flags, count, nextRate, offsetIdOffset, messages, chats, users):
+                    objToSerialize = Api.messages.Messages.messagesSlice(flags: flags, count: count, nextRate: nextRate, offsetIdOffset: offsetIdOffset, messages: messages.map { stripTTLMessage($0) }, chats: chats, users: users)
+                    shouldSerialize = true
+                case let .channelMessages(flags, pts, count, offsetIdOffset, messages, topics, chats, users):
+                    objToSerialize = Api.messages.Messages.channelMessages(flags: flags, pts: pts, count: count, offsetIdOffset: offsetIdOffset, messages: messages.map { stripTTLMessage($0) }, topics: topics, chats: chats, users: users)
+                    shouldSerialize = true
+                default:
+                    break
+                }
+            }
+        }
+
+        if shouldSerialize {
             let outBuf = Buffer()
-            Api.serializeObject(updated, buffer: outBuf, boxed: true)
+            Api.serializeObject(objToSerialize, buffer: outBuf, boxed: true)
             return outBuf.makeData() as NSData
         }
 
