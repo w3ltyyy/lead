@@ -33,8 +33,22 @@
 
     self.title = [LeadLocalization localizedStringForKey:@"LANGUAGE_SECTION_HEADER"] ?: @"Language";
     
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[LeadLocalization localizedStringForKey:@"CANCEL"] ?: @"Close" style:UIBarButtonItemStylePlain target:self action:@selector(closeTapped)];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[LeadLocalization localizedStringForKey:@"APPLY"] ?: @"Apply" style:UIBarButtonItemStyleDone target:self action:@selector(applyTapped)];
+    // Close Button (Cross icon)
+    UIButton *closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    UIImage *closeImage = [UIImage systemImageNamed:@"xmark"];
+    closeImage = [closeImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    [closeButton setImage:closeImage forState:UIControlStateNormal];
+    [closeButton addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:closeButton];
+
+    // Apply Button (Checkmark icon matching main menu)
+    UIButton *applyButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    UIImage *applyImage = [UIImage systemImageNamed:@"checkmark.square"];
+    applyImage = [applyImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    applyButton.tintColor = [UIColor systemPinkColor];
+    [applyButton setImage:applyImage forState:UIControlStateNormal];
+    [applyButton addTarget:self action:@selector(applyTapped) forControlEvents:UIControlEventTouchUpInside];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:applyButton];
 
     [self setupTableView];
 }
