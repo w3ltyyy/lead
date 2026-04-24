@@ -111,7 +111,7 @@ static void showWelcomeAlertIfNeeded() {
     if (!rootVC) return;
 
     UIAlertController *alert = [UIAlertController
-        alertControllerWithTitle:@"Lead ✓"
+        alertControllerWithTitle:@"Lead"
         message:@"Lead has been successfully injected into Telegram.\n\nTo open the tweak menu: long-press the \"Ask a Question\" row in the Settings tab."
         preferredStyle:UIAlertControllerStyleAlert];
 
