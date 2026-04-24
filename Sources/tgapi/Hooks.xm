@@ -374,7 +374,28 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         
         // Strip Anti-Self-Destruct (TTL) from push updates if enabled
         if ([defaults boolForKey:kAntiSelfDestruct]) {
-            NSData *strippedData = [NSClassFromString(@"TLParser") stripAntiSelfDestruct:data];
+            NSData *uncompressed = data;
+            int32_t top4 = 0;
+            memcpy(&top4, data.bytes, 4);
+            if (top4 == kGzipPackedCtor && data.length >= 8) {
+                const uint8_t *b = (const uint8_t *)data.bytes;
+                uint32_t offset = 4;
+                uint32_t gzipLen = 0;
+                uint8_t first = b[offset];
+                if (first < 0xFE) {
+                    gzipLen = first;
+                    offset += 1;
+                } else if (first == 0xFE && data.length > offset + 3) {
+                    gzipLen = (uint32_t)b[offset+1] | ((uint32_t)b[offset+2] << 8) | ((uint32_t)b[offset+3] << 16);
+                    offset += 4;
+                }
+                if (gzipLen > 0 && offset + gzipLen <= data.length) {
+                    NSData *inner = decompressGzip(b + offset, gzipLen);
+                    if (inner) uncompressed = inner;
+                }
+            }
+
+            NSData *strippedData = [NSClassFromString(@"TLParser") stripAntiSelfDestruct:uncompressed];
             if (strippedData) {
                 customLog2(@"[Lead] parseMessage: STRIPPED SELF-DESTRUCT");
                 data = strippedData;

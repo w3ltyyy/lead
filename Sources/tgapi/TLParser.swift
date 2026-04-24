@@ -322,7 +322,41 @@ class TLParser: NSObject {
     @objc static func stripAntiSelfDestruct(_ data: NSData) -> NSData? {
         guard UserDefaults.standard.bool(forKey: "LeadAntiSelfDestruct") else { return nil }
         let buffer = Buffer(data: data as Data)
-        guard let result = Api.parse(buffer) else { return nil }
+        let reader = BufferReader(buffer)
+        guard let signature = reader.readInt32() else { return nil }
+        
+        if signature == 0x73f1f8dc { // msg_container
+            guard let count = reader.readInt32() else { return nil }
+            let outBuf = Buffer()
+            outBuf.appendInt32(0x73f1f8dc)
+            outBuf.appendInt32(count)
+            
+            var modifiedContainer = false
+            for _ in 0..<count {
+                guard let msg_id = reader.readInt64(),
+                      let seqno = reader.readInt32(),
+                      let bytes = reader.readInt32() else { return nil }
+                
+                guard let bodyBuffer = reader.readBuffer(Int(bytes)) else { return nil }
+                let bodyData = bodyBuffer.makeData() as NSData
+                
+                var newBodyData = bodyData
+                if let stripped = stripAntiSelfDestruct(newBodyData) {
+                    newBodyData = stripped
+                    modifiedContainer = true
+                }
+                
+                outBuf.appendInt64(msg_id)
+                outBuf.appendInt32(seqno)
+                outBuf.appendInt32(Int32(newBodyData.length))
+                outBuf.appendBytes(newBodyData.bytes, length: UInt(newBodyData.length))
+            }
+            
+            return modifiedContainer ? (outBuf.makeData() as NSData) : nil
+        }
+        
+        reader.reset()
+        guard let result = Api.parse(reader, signature: signature) else { return nil }
         
         var modified = false
         var newResult: Any = result
