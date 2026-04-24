@@ -137,7 +137,11 @@
                                                           handler:^(UIAlertAction *action) {
         [[NSUserDefaults standardUserDefaults] setObject:self.selectedLanguageCode forKey:@"LeadLanguage"];
         [[NSUserDefaults standardUserDefaults] synchronize];
-        exit(0);
+        
+        [[UIApplication sharedApplication] performSelector:@selector(suspend)];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            exit(0);
+        });
     }];
 
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:[LeadLocalization localizedStringForKey:@"CANCEL"] ?: @"Cancel"
