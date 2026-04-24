@@ -5,6 +5,8 @@
 @interface LanguageSelector ()
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSArray *languages;
+@property (nonatomic, strong) NSString *initialLanguageCode;
+@property (nonatomic, strong) NSString *selectedLanguageCode;
 @end
 
 @implementation LanguageSelector
@@ -12,93 +14,45 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    NSString *filePath = [NSString stringWithFormat:@"%@/langs.json", LeadBundlePath()];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-        // Desperate search: look in all bundles for langs.json
-        for (NSBundle *bundle in [NSBundle allBundles]) {
-            NSString *p = [bundle pathForResource:@"langs" ofType:@"json"];
-            if (p) { filePath = p; break; }
-        }
-    }
+    self.initialLanguageCode = [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadLanguage"] ?: @"en";
+    self.selectedLanguageCode = self.initialLanguageCode;
+
+    // Hardcoded full list if langs.json is completely unavailable
+    self.languages = @[
+        @{@"name": @"Arabic", @"code": @"ar", @"flag": @"🇸🇦"},
+        @{@"name": @"Chinese", @"code": @"cn", @"flag": @"🇨🇳"},
+        @{@"name": @"English", @"code": @"en", @"flag": @"🇺🇸"},
+        @{@"name": @"French", @"code": @"fr", @"flag": @"🇫🇷"},
+        @{@"name": @"Italian", @"code": @"it", @"flag": @"🇮🇹"},
+        @{@"name": @"Japanese", @"code": @"ja", @"flag": @"🇯🇵"},
+        @{@"name": @"Russian", @"code": @"ru", @"flag": @"🇷🇺"},
+        @{@"name": @"Spanish", @"code": @"es", @"flag": @"🇪🇸"},
+        @{@"name": @"Taiwan", @"code": @"tw", @"flag": @"🇹🇼"},
+        @{@"name": @"Vietnamese", @"code": @"vn", @"flag": @"🇻🇳"}
+    ];
+
+    self.title = [LeadLocalization localizedStringForKey:@"LANGUAGE_SECTION_HEADER"] ?: @"Language";
     
-    if (![[NSFileManager defaultManager] fileExistsAtPath:filePath]) {
-        filePath = nil;
-    }
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[LeadLocalization localizedStringForKey:@"CANCEL"] ?: @"Close" style:UIBarButtonItemStylePlain target:self action:@selector(closeTapped)];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:[LeadLocalization localizedStringForKey:@"APPLY"] ?: @"Apply" style:UIBarButtonItemStyleDone target:self action:@selector(applyTapped)];
 
-    NSError *jsonDecodeError = nil;
-    NSData *data = [NSData dataWithContentsOfFile:filePath];
-    NSArray *langs = nil;
-
-    if (data) {
-        langs = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonDecodeError];
-    }
-
-    if (jsonDecodeError || !langs) {
-        // Hardcoded full list if langs.json is completely unavailable
-        self.languages = @[
-            @{@"name": @"Arabic", @"code": @"ar", @"flag": @"🇸🇦"},
-            @{@"name": @"Chinese", @"code": @"cn", @"flag": @"🇨🇳"},
-            @{@"name": @"English", @"code": @"en", @"flag": @"🇺🇸"},
-            @{@"name": @"French", @"code": @"fr", @"flag": @"🇫🇷"},
-            @{@"name": @"Italian", @"code": @"it", @"flag": @"🇮🇹"},
-            @{@"name": @"Japanese", @"code": @"ja", @"flag": @"🇯🇵"},
-            @{@"name": @"Russian", @"code": @"ru", @"flag": @"🇷🇺"},
-            @{@"name": @"Spanish", @"code": @"es", @"flag": @"🇪🇸"},
-            @{@"name": @"Taiwan", @"code": @"tw", @"flag": @"🇹🇼"},
-            @{@"name": @"Vietnamese", @"code": @"vn", @"flag": @"🇻🇳"}
-        ];
-    } else {
-        self.languages = langs;
-    }
-
-	self.title = @"Change Language";
-	[self loadLanguages];
     [self setupTableView];
 }
 
 - (void)setupTableView {
-	self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
-	self.tableView.delegate = self;
-	self.tableView.dataSource = self;
-	self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
+    self.tableView.delegate = self;
+    self.tableView.dataSource = self;
+    self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
 
-	[self.view addSubview:self.tableView];
+    [self.view addSubview:self.tableView];
 
-	[NSLayoutConstraint activateConstraints:@[
-    	[self.tableView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-		[self.tableView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
-		[self.tableView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
-		[self.tableView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]
-	]];
-}
-
-- (void)loadLanguages {
-    NSMutableArray *languages = [NSMutableArray array];
-
-    for (NSDictionary *language in self.languages) {
-        // Try to locate it, just for the path
-        NSString *bundlePath = LeadBundlePath();
-        NSString *localizationFilePath = [NSString stringWithFormat:@"%@/%@.lproj/Localizable.strings",
-                                          bundlePath ?: @"", language[@"code"]];
-
-        if (![[NSFileManager defaultManager] fileExistsAtPath:localizationFilePath]) {
-             // Fallback desperate search
-             NSString *fallbackPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:[NSString stringWithFormat:@"Lead.bundle/%@.lproj/Localizable.strings", language[@"code"]]];
-             if ([[NSFileManager defaultManager] fileExistsAtPath:fallbackPath]) {
-                 localizationFilePath = fallbackPath;
-             }
-        }
-
-        [languages addObject:@{
-            @"code": language[@"code"],
-            @"name" : language[@"name"],
-            @"flag": language[@"flag"],
-            @"path" : localizationFilePath,
-            @"isValid" : @(YES)} // FORCE YES so user can select it
-        ];
-    }
-
-    self.languages = [languages copy];
+    [NSLayoutConstraint activateConstraints:@[
+        [self.tableView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+        [self.tableView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+        [self.tableView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+        [self.tableView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]
+    ]];
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -118,9 +72,9 @@
     } else {
         cell.imageView.image = nil;
         cell.accessoryView = nil;
-		cell.alpha = 1.0;
-		cell.userInteractionEnabled = YES;
-		cell.accessoryType = UITableViewCellAccessoryNone;
+        cell.alpha = 1.0;
+        cell.userInteractionEnabled = YES;
+        cell.accessoryType = UITableViewCellAccessoryNone;
     }
 
     NSDictionary *languageData = self.languages[indexPath.row];
@@ -128,13 +82,7 @@
     NSString *title = [NSString stringWithFormat:@"%@ %@", languageData[@"flag"], languageData[@"name"]];
     cell.textLabel.text = title;
 
-    if (![languageData[@"isValid"] boolValue]) {
-        cell.alpha = 0.6;
-        cell.userInteractionEnabled = NO;
-    }
-    NSString *selectedLanguageCode = [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadLanguage"];
-
-    if ([selectedLanguageCode isEqualToString:languageData[@"code"]]) {
+    if ([self.selectedLanguageCode isEqualToString:languageData[@"code"]]) {
         cell.accessoryType = UITableViewCellAccessoryCheckmark;
     }
 
@@ -143,45 +91,51 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSDictionary *languageData = self.languages[indexPath.row];
+    self.selectedLanguageCode = languageData[@"code"];
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    [tableView reloadData];
+}
 
-    NSDictionary *dict = GetAllTranslations(languageData[@"code"]);
-
-    if (!dict) {
-        [self showAlertWithTitle:@"Error" message:@"Failed to load language localization data"];
-        return;
-    }
-
-    TGLocalization *localization = [[objc_getClass("TGLocalization") alloc] initWithVersion:96929692
-                                                                   code:languageData[@"code"]
-                                                                   dict:dict
-                                                              isActive:YES];
-
-    if (localization) {
-        [LeadLocalization shared].localization = localization;
-
-        [[NSUserDefaults standardUserDefaults] setObject:languageData[@"code"] forKey:@"LeadLanguage"];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"LanguageChangedNotification" object:nil];
-
-        [tableView deselectRowAtIndexPath:indexPath animated:YES];
-
-        [tableView reloadData];
+- (void)closeTapped {
+    if ([self.selectedLanguageCode isEqualToString:self.initialLanguageCode]) {
+        [self dismissViewControllerAnimated:YES completion:nil];
     } else {
-        [self showAlertWithTitle:@"Error" message:@"Failed to load the language."];
+        [self applyTapped];
     }
 }
 
-- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
+- (void)applyTapped {
+    if ([self.selectedLanguageCode isEqualToString:self.initialLanguageCode]) {
+        [self dismissViewControllerAnimated:YES completion:nil];
+        return;
+    }
+
+    NSString *title = [LeadLocalization localizedStringForKey:@"APPLY"] ?: @"Apply";
+    NSString *message = [LeadLocalization localizedStringForKey:@"APPLY_CHANGES"] ?: @"To apply the language, you need to restart the app.";
+    
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
                                                                    message:message
                                                             preferredStyle:UIAlertControllerStyleAlert];
 
-    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK"
-                                                       style:UIAlertActionStyleDefault
-                                                     handler:nil];
+    UIAlertAction *restartAction = [UIAlertAction actionWithTitle:@"Restart"
+                                                            style:UIAlertActionStyleDestructive
+                                                          handler:^(UIAlertAction *action) {
+        [[NSUserDefaults standardUserDefaults] setObject:self.selectedLanguageCode forKey:@"LeadLanguage"];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        exit(0);
+    }];
 
-    [alert addAction:okAction];
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:[LeadLocalization localizedStringForKey:@"CANCEL"] ?: @"Cancel"
+                                                           style:UIAlertActionStyleCancel
+                                                         handler:^(UIAlertAction *action) {
+        self.selectedLanguageCode = self.initialLanguageCode;
+        [self.tableView reloadData];
+        [self dismissViewControllerAnimated:YES completion:nil];
+    }];
+
+    [alert addAction:restartAction];
+    [alert addAction:cancelAction];
 
     [self presentViewController:alert animated:YES completion:nil];
 }
