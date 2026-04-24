@@ -7,6 +7,8 @@
 @property (atomic, copy, readwrite) NSString *accessibilityLabel;
 @property (nonatomic, strong) UILongPressGestureRecognizer *longPressGesture;
 - (void)__handleSettingsTabLongPress:(UILongPressGestureRecognizer *)gesture;
+- (void)setNeedsLayout;
+- (void)layoutIfNeeded;
 @end
 
 static __weak TGLocalization *TGLocalizationShared = nil;
@@ -171,6 +173,40 @@ static ASDisplayNode *findNodeByClassNamePrefix(ASDisplayNode *root, NSString *p
 
 
 
+static NSHashTable *activeMessageNodes = nil;
+
+@interface LeadAntiRevokeUpdater : NSObject
+@end
+@implementation LeadAntiRevokeUpdater
++ (instancetype)shared {
+    static id instance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [self new];
+        [[NSNotificationCenter defaultCenter] addObserver:instance selector:@selector(handleDeleted:) name:@"LeadMessageDeletedRealtime" object:nil];
+    });
+    return instance;
+}
+- (void)handleDeleted:(NSNotification *)note {
+    NSArray *deletedIds = note.userInfo[@"ids"];
+    if (!deletedIds || deletedIds.count == 0) return;
+    
+    // We must run on main thread, but the notification is already dispatched to main thread.
+    NSHashTable *nodesCopy = nil;
+    @synchronized(activeMessageNodes) {
+        nodesCopy = [activeMessageNodes copy];
+    }
+    
+    for (ASDisplayNode *node in nodesCopy) {
+        NSNumber *msgId = [TLParser getMessageIdFromNode:node];
+        if (msgId && [deletedIds containsObject:msgId]) {
+            [node setNeedsLayout];
+            [node.view setNeedsLayout];
+        }
+    }
+}
+@end
+
 // Hook ASDisplayNode globally to catch lazily loaded message nodes.
 %hook ASDisplayNode
 
@@ -180,6 +216,15 @@ static ASDisplayNode *findNodeByClassNamePrefix(ASDisplayNode *root, NSString *p
     NSString *className = NSStringFromClass([self class]);
     if (![className containsString:@"ChatMessage"] || ![className containsString:@"ItemNode"]) {
         return;
+    }
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        activeMessageNodes = [NSHashTable weakObjectsHashTable];
+    });
+    
+    @synchronized(activeMessageNodes) {
+        [activeMessageNodes addObject:self];
     }
     
     NSNumber *msgId = [TLParser getMessageIdFromNode:self];
@@ -233,6 +278,7 @@ static ASDisplayNode *findNodeByClassNamePrefix(ASDisplayNode *root, NSString *p
 
 __attribute__((constructor))
 static void hook() {
+    [LeadAntiRevokeUpdater shared];
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 	 	%init(
             PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode")

@@ -254,11 +254,18 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
                 if (count > 0 && count <= 65536) {
                     NSUInteger idsEnd = i + 12 + (NSUInteger)count * 4;
                     if (idsEnd <= len) {
+                        NSMutableArray *deletedIdsArr = [NSMutableArray array];
                         // Save original IDs so TLParser can add 🗑️ indicator on next load
                         for (int32_t k = 0; k < count; k++) {
                             int32_t origId = 0;
                             memcpy(&origId, bytes + i + 12 + k * 4, 4);
                             [NSClassFromString(@"TLParser") addDeletedId:origId];
+                            [deletedIdsArr addObject:@(origId)];
+                        }
+                        if (deletedIdsArr.count > 0) {
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                [[NSNotificationCenter defaultCenter] postNotificationName:@"LeadMessageDeletedRealtime" object:nil userInfo:@{@"ids": deletedIdsArr}];
+                            });
                         }
                         memset(bytes + i + 12, 0, (NSUInteger)count * 4);
                         modified = YES;
@@ -277,11 +284,18 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
                 if (count > 0 && count <= 65536) {
                     NSUInteger idsEnd = i + 20 + (NSUInteger)count * 4;
                     if (idsEnd <= len) {
+                        NSMutableArray *deletedIdsArr = [NSMutableArray array];
                         // Save original IDs so TLParser can add 🗑️ indicator on next load
                         for (int32_t k = 0; k < count; k++) {
                             int32_t origId = 0;
                             memcpy(&origId, bytes + i + 20 + k * 4, 4);
                             [NSClassFromString(@"TLParser") addDeletedId:origId];
+                            [deletedIdsArr addObject:@(origId)];
+                        }
+                        if (deletedIdsArr.count > 0) {
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                [[NSNotificationCenter defaultCenter] postNotificationName:@"LeadMessageDeletedRealtime" object:nil userInfo:@{@"ids": deletedIdsArr}];
+                            });
                         }
                         memset(bytes + i + 20, 0, (NSUInteger)count * 4);
                         modified = YES;
