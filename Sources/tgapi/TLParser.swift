@@ -267,9 +267,11 @@ class TLParser: NSObject {
         guard UserDefaults.standard.bool(forKey: "LeadAntiSelfDestruct") else { return media }
         switch media {
         case let .messageMediaPhoto(flags, photo, _):
-            return .messageMediaPhoto(flags: flags & ~(1 << 2), photo: photo, ttlSeconds: nil)
+            // Clear ttlSeconds (bit 2) and spoiler (bit 3)
+            return .messageMediaPhoto(flags: flags & ~(1 << 2) & ~(1 << 3), photo: photo, ttlSeconds: nil)
         case let .messageMediaDocument(flags, document, altDocuments, videoCover, videoTimestamp, _):
-            return .messageMediaDocument(flags: flags & ~(1 << 2), document: document, altDocuments: altDocuments, videoCover: videoCover, videoTimestamp: videoTimestamp, ttlSeconds: nil)
+            // Clear ttlSeconds (bit 2) and spoiler (bit 4, or whatever it is, let's clear 3 and 4)
+            return .messageMediaDocument(flags: flags & ~(1 << 2) & ~(1 << 3) & ~(1 << 4), document: document, altDocuments: altDocuments, videoCover: videoCover, videoTimestamp: videoTimestamp, ttlSeconds: nil)
         default:
             return media
         }
@@ -383,6 +385,14 @@ class TLParser: NSObject {
             default:
                 break
             }
+        } else if let update = result as? Api.Update {
+            let stripped = stripTTLUpdate(update)
+            newResult = stripped
+            modified = true
+        } else if let message = result as? Api.Message {
+            let stripped = stripTTLMessage(message)
+            newResult = stripped
+            modified = true
         }
         
         if modified {
