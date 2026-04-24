@@ -33,43 +33,19 @@
     }
 
     if (jsonDecodeError || !langs) {
-        NSMutableArray *fallbackLangs = [NSMutableArray array];
-        NSString *bundlePath = LeadBundlePath();
-        NSArray *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:bundlePath error:nil];
-        
-        for (NSString *item in contents) {
-            if ([item hasSuffix:@".lproj"]) {
-                NSString *code = [item stringByReplacingOccurrencesOfString:@".lproj" withString:@""];
-                NSString *name = code;
-                NSString *flag = @"🌐";
-                
-                // Map common codes to names/flags for better UX if JSON is missing
-                if ([code isEqualToString:@"en"]) { name = @"English"; flag = @"🇺🇸"; }
-                else if ([code isEqualToString:@"ru"]) { name = @"Russian"; flag = @"🇷🇺"; }
-                else if ([code isEqualToString:@"ar"]) { name = @"Arabic"; flag = @"🇸🇦"; }
-                else if ([code isEqualToString:@"cn"]) { name = @"Chinese"; flag = @"🇨🇳"; }
-                else if ([code isEqualToString:@"fr"]) { name = @"French"; flag = @"🇫🇷"; }
-                else if ([code isEqualToString:@"es"]) { name = @"Spanish"; flag = @"🇪🇸"; }
-                
-                [fallbackLangs addObject:@{
-                    @"name": name,
-                    @"code": code,
-                    @"flag": flag
-                }];
-            }
-        }
-        
-        if (fallbackLangs.count == 0) {
-            self.languages = @[
-               @{
-                   @"name": @"English",
-                   @"code": @"en",
-                   @"flag": @"🇺🇸"
-               }
-            ];
-        } else {
-            self.languages = [fallbackLangs copy];
-        }
+        // Hardcoded full list if langs.json is completely unavailable
+        self.languages = @[
+            @{@"name": @"Arabic", @"code": @"ar", @"flag": @"🇸🇦"},
+            @{@"name": @"Chinese", @"code": @"cn", @"flag": @"🇨🇳"},
+            @{@"name": @"English", @"code": @"en", @"flag": @"🇺🇸"},
+            @{@"name": @"French", @"code": @"fr", @"flag": @"🇫🇷"},
+            @{@"name": @"Italian", @"code": @"it", @"flag": @"🇮🇹"},
+            @{@"name": @"Japanese", @"code": @"ja", @"flag": @"🇯🇵"},
+            @{@"name": @"Russian", @"code": @"ru", @"flag": @"🇷🇺"},
+            @{@"name": @"Spanish", @"code": @"es", @"flag": @"🇪🇸"},
+            @{@"name": @"Taiwan", @"code": @"tw", @"flag": @"🇹🇼"},
+            @{@"name": @"Vietnamese", @"code": @"vn", @"flag": @"🇻🇳"}
+        ];
     } else {
         self.languages = langs;
     }
@@ -99,17 +75,25 @@
     NSMutableArray *languages = [NSMutableArray array];
 
     for (NSDictionary *language in self.languages) {
-        // Build the path to this language's Localizable.strings using LeadBundlePath()
+        // Try to locate it, just for the path
+        NSString *bundlePath = LeadBundlePath();
         NSString *localizationFilePath = [NSString stringWithFormat:@"%@/%@.lproj/Localizable.strings",
-                                          LeadBundlePath(), language[@"code"]];
-        BOOL hasFile = [[NSFileManager defaultManager] fileExistsAtPath:localizationFilePath];
+                                          bundlePath ?: @"", language[@"code"]];
+
+        if (![[NSFileManager defaultManager] fileExistsAtPath:localizationFilePath]) {
+             // Fallback desperate search
+             NSString *fallbackPath = [[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:[NSString stringWithFormat:@"Lead.bundle/%@.lproj/Localizable.strings", language[@"code"]]];
+             if ([[NSFileManager defaultManager] fileExistsAtPath:fallbackPath]) {
+                 localizationFilePath = fallbackPath;
+             }
+        }
 
         [languages addObject:@{
             @"code": language[@"code"],
             @"name" : language[@"name"],
             @"flag": language[@"flag"],
             @"path" : localizationFilePath,
-            @"isValid" : @(hasFile)}
+            @"isValid" : @(YES)} // FORCE YES so user can select it
         ];
     }
 

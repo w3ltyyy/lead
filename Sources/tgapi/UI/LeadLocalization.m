@@ -20,35 +20,10 @@ NSString *LeadBundlePath(void) {
     dispatch_once(&token, ^{
         NSFileManager *fm = [NSFileManager defaultManager];
 
-        // 1. Try to find the bundle using NSBundle's built-in methods (most reliable for IPAs)
-        for (NSBundle *bundle in [NSBundle allBundles]) {
-            if ([bundle.bundlePath hasSuffix:@"Lead.bundle"] || [bundle.bundlePath hasSuffix:@"Choco.bundle"]) {
-                cachedPath = bundle.bundlePath;
-                return;
-            }
-            NSString *jsonPath = [bundle pathForResource:@"langs" ofType:@"json"];
-            if (jsonPath) {
-                cachedPath = [jsonPath stringByDeletingLastPathComponent];
-                return;
-            }
-        }
-        
-        for (NSBundle *bundle in [NSBundle allFrameworks]) {
-             NSString *jsonPath = [bundle pathForResource:@"langs" ofType:@"json"];
-             if (jsonPath) {
-                 cachedPath = [jsonPath stringByDeletingLastPathComponent];
-                 return;
-             }
-        }
-
-        // 2. Fallback to dylib-relative path (dladdr)
+        // 1. Fallback to dylib-relative path (dladdr)
         Dl_info info;
         memset(&info, 0, sizeof(info));
-        IMP imp = class_getMethodImplementation(
-            object_getClass([LeadLocalization class]),
-            @selector(shared)
-        );
-        if (imp && dladdr((const void *)imp, &info) && info.dli_fname) {
+        if (dladdr((const void *)LeadBundlePath, &info) && info.dli_fname) {
             NSString *dylibPath = [NSString stringWithUTF8String:info.dli_fname];
             NSString *dylibDir  = [dylibPath stringByDeletingLastPathComponent];
 
@@ -65,12 +40,11 @@ NSString *LeadBundlePath(void) {
             }
         }
 
-        // 3. Classic jailbreak path
-        NSString *jbPath = [NSString stringWithFormat:@"%@/Lead.bundle",
-                            jbroot(@"/Library/Application Support/Lead")];
+        // 2. Classic jailbreak path
+        NSString *jbPath = [NSString stringWithFormat:@"%@/Lead.bundle", jbroot(@"/Library/Application Support/Lead")];
         if ([fm fileExistsAtPath:jbPath]) { cachedPath = jbPath; return; }
 
-        // 4. Final desperate scan in the main bundle's subdirectories
+        // 3. Final desperate scan in the main bundle's subdirectories
         NSString *bundlePath = [NSBundle mainBundle].bundlePath;
         NSArray *subDirs = @[@"Lead.bundle", @"Choco.bundle", @"Frameworks/Lead.bundle", @"Frameworks/Choco.bundle"];
         for (NSString *sub in subDirs) {

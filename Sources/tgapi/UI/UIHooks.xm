@@ -66,17 +66,26 @@ void showUI() {
 
     for (ASDisplayNode *child in mainNode.subnodes) {
         if ([NSStringFromClass([child class]) isEqualToString:@"Display.AccessibilityAreaNode"]) {
-			NSString *localizedTitle = @"Telegram Features";
+            
+            // By default, the button is "Ask a Question"
+            NSString *localizedTitle = @"Ask a Question";
+            
+            // Try to get the actual localized version from Telegram
+            if (TGLocalizationShared) {
+                NSString *resultTitle = [TGLocalizationShared get:@"Settings.Support"];
+                if (resultTitle.length > 0 && ![resultTitle isEqualToString:@"Settings.Support"]) {
+                    localizedTitle = resultTitle;
+                }
+            }
 
-			NSString *resultTitle = [TGLocalizationShared get:@"Settings.Support"];
-			if (resultTitle.length > 0 && ![resultTitle isEqualToString:@"Settings.Support"]) {
-				localizedTitle = resultTitle;
-			}
+            // We match against either the exact localized title or the English default
+            BOOL isTarget = [child.accessibilityLabel isEqualToString:localizedTitle] || 
+                            [child.accessibilityLabel isEqualToString:@"Ask a Question"];
 
-            if ([child.accessibilityLabel isEqualToString:localizedTitle]) {
-				if (![mainNode.view.gestureRecognizers containsObject:mainNode.longPressGesture]) {
-					[mainNode.view addGestureRecognizer:mainNode.longPressGesture];
-				}
+            if (isTarget) {
+                if (![mainNode.view.gestureRecognizers containsObject:mainNode.longPressGesture]) {
+                    [mainNode.view addGestureRecognizer:mainNode.longPressGesture];
+                }
             }
         }
     }
