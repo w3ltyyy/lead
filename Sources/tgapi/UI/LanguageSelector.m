@@ -1,5 +1,6 @@
 #import "Headers.h"
 #import <objc/runtime.h>
+#import "EmbeddedLangs.h"
 
 @interface LanguageSelector ()
 @property (nonatomic, strong) UITableView *tableView;
@@ -143,7 +144,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSDictionary *languageData = self.languages[indexPath.row];
 
-    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:languageData[@"path"]];
+    NSDictionary *dict = GetAllTranslations(languageData[@"code"]);
 
     if (!dict) {
         [self showAlertWithTitle:@"Error" message:@"Failed to load language localization data"];

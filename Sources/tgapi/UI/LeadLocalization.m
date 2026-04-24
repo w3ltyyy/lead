@@ -1,5 +1,6 @@
 #import "Headers.h"
 #import <dlfcn.h>
+#import "EmbeddedLangs.h"
 #import <objc/runtime.h>
 
 // ============================================================
@@ -76,26 +77,18 @@ NSString *LeadBundlePath(void) {
     NSString *lang = [[NSUserDefaults standardUserDefaults]
                       stringForKey:@"LeadLanguage"] ?: @"en";
 
-    NSString *bundlePath = LeadBundlePath();
-    NSString *stringsPath = [NSString stringWithFormat:@"%@/%@.lproj/Localizable.strings",
-                             bundlePath, lang];
-
-    // Fall back to English if selected language file is missing
-    if (![[NSFileManager defaultManager] fileExistsAtPath:stringsPath]) {
-        stringsPath = [NSString stringWithFormat:@"%@/en.lproj/Localizable.strings",
-                       bundlePath];
+    NSDictionary *dict = GetAllTranslations(lang);
+    if (!dict) {
+        dict = GetAllTranslations(@"en");
     }
 
-    // Direct NSDictionary load — no dependency on TGLocalization internals
-    self.strings = [NSDictionary dictionaryWithContentsOfFile:stringsPath];
+    self.strings = dict;
 
-    // Also build the TGLocalization object (kept for code that uses self.localization)
-    if (self.strings) {
-        self.localization = [[objc_getClass("TGLocalization") alloc]
-                             initWithVersion:96929692
-                                        code:lang
-                                        dict:self.strings
-                                    isActive:YES];
+    if (dict) {
+        self.localization = [[objc_getClass("TGLocalization") alloc] initWithVersion:96929692
+                                                                       code:lang
+                                                                       dict:dict
+                                                                   isActive:YES];
     }
 }
 
