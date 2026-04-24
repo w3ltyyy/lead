@@ -233,7 +233,8 @@ static NSHashTable *activeMessageNodes = nil;
     ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
         if (isDeletedMsg) {
-            node.view.backgroundColor = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.1];
+            // Background color highlight removed as requested
+            // node.view.backgroundColor = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.1];
             
             UIImageView *trashIcon = nil;
             for (UIView *v in node.view.subviews) {
@@ -243,11 +244,13 @@ static NSHashTable *activeMessageNodes = nil;
                 }
             }
             
+            BOOL isNewlyCreated = NO;
             if (!trashIcon) {
                 trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
                 trashIcon.tintColor = [UIColor systemRedColor];
                 trashIcon.tag = 8898;
                 [node.view addSubview:trashIcon];
+                isNewlyCreated = YES;
             }
             
             ASDisplayNode *statusNode = findNodeByClassNamePrefix(node, @"ChatMessageDateAndStatusNode");
@@ -262,8 +265,20 @@ static NSHashTable *activeMessageNodes = nil;
                 trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
             }
             
+            BOOL wasHidden = trashIcon.hidden;
             trashIcon.hidden = NO;
             [node.view bringSubviewToFront:trashIcon];
+            
+            // Play a nice spring "pop" animation if it just appeared (either created now, or un-hidden)
+            if (wasHidden || isNewlyCreated) {
+                trashIcon.transform = CGAffineTransformMakeScale(0.1, 0.1);
+                trashIcon.alpha = 0.0;
+                [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.8 options:UIViewAnimationOptionCurveEaseOut animations:^{
+                    trashIcon.transform = CGAffineTransformIdentity;
+                    trashIcon.alpha = 1.0;
+                } completion:nil];
+            }
+            
         } else {
             node.view.backgroundColor = [UIColor clearColor];
             for (UIView *v in node.view.subviews) {
