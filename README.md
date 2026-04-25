@@ -1,22 +1,27 @@
+<p align="center">
+  <img src="icon.png" width="200">
+</p>
+
 # Lead
 
 A powerful, native-feeling iOS Tweak for the Telegram app. 
 
-To open the Tweak menu: **Long-press the screen with 3 fingers** (or 4 fingers if no flex is injected).
+📢 **Join our Telegram channel:** [t.me/leadgramm](https://t.me/leadgramm)
+
+To open the Tweak menu: **Long-press the "Telegram Features" row in Settings.**
 
 ## 🚀 Features
 
 ### ✅ Stable & Working
-- **Anti-Revoke**: Prevent users from deleting messages. Deleted messages are retained in the chat and seamlessly marked with a native-looking 🗑️ trash icon. 
-  *(Note: If a message is deleted while you are in the chat, simply scroll up and down to refresh the UI and show the indicator).*
-- **Ghost Mode**: Read messages and view stories without triggering read receipts.
-- **Disable Ads**: Remove sponsored messages and ads from channels.
-- **Allow saving Protected Content**: Save media from restricted channels (Note: Due to frequent API updates, this feature may be limited on newer Telegram builds).
+- **Anti-Self-Destruct**: Save disappearing photos/videos, remove timers, and see them as normal media.
+- **Anti-Revoke**: Messages are never deleted for you. Deleted messages are marked with a ⏱️ icon.
+- **Ghost Mode**: Read messages and view stories without read receipts.
+- **Custom Indicators**: Adds italic/spoiler labels to intercepted disappearing content.
 
 ### 🚧 Beta / Work in Progress (May contain bugs)
-- **Save without forwarding**: Save media directly in chats without needing to forward it first.
-- **Anti-Edit**: Retain the original version of edited messages.
-- **Infinite disappearing media**: View self-destructing media without limits.
+- **Content Protection Bypass**: Forward and save media from restricted channels and chats. (May not work on latest builds).
+- **Anti-Edit**: See original content of edited messages. (May not work on latest builds).
+- **Disable Ads**: Remove sponsored messages and ads from channels. (May not work on latest builds).
 
 ## 📸 Screenshots
 

@@ -1,8 +1,8 @@
-Package: com.choco.tg
+Package: com.w3ltyyy.lead
 Name: Lead
-Version: 1.2.1
+Version: 1.2.6-2
 Architecture: iphoneos-arm
-Description: A simple Tweak For Telegram iOS
-Maintainer: waruhachi
-Author: choco
+Description: The best Tweak For Telegram iOS
+Maintainer: w3ltyyy
+Author: w3ltyyy
 Section: Tweaks

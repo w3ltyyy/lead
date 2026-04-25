@@ -1,0 +1,70 @@
+[0;36m==> [1;36mNotice:[m Build may be slow as Theos isn’t using all available CPU cores on this computer. Consider upgrading GNU Make: https://theos.dev/docs/parallel-building
+[1;31m> [1;3;39mMaking all for tweak Lead…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/UI/LocationSelector.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/UI/Lead.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/UI/LanguageSelector.m (arm64)…[m
+[0;31m==> [1;39mPreprocessing Sources/tgapi/UI/UIHooks.xm…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/UI/UIHooks.xm (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/UI/LeadLocalization.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/ReflectionTest.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/FunctionHandler.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/Logger/Logger.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/DynamicHookTest.m (arm64)…[m
+[0;31m==> [1;39mPreprocessing Sources/tgapi/LocationHook.xm…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/LocationHook.xm (arm64)…[m
+[0;31m==> [1;39mPreprocessing Sources/tgapi/FilePickerFix.xm…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/FilePickerFix.xm (arm64)…[m
+[0;31m==> [1;39mPreprocessing Sources/tgapi/Hooks.xm…[m
+[0;32m==> [1;39mCompiling Sources/tgapi/Hooks.xm (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapiC/Tweak.m (arm64)…[m
+[0;32m==> [1;39mCompiling Sources/tgapiC/roothide_stub.m (arm64)…[m
+[0;33m==> [1;39mLinking tweak Lead (arm64)…[m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api4.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api19.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api24.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api26.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Buffer.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api6.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api22.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api2.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api0.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api20.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api39.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api7.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api27.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api25.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api18.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api5.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api21.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api1.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api38.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api40.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api3.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api23.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api12.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api36.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api34.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api10.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api14.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api9.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api29.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api30.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api32.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api16.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api35.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/DeserializeFunctionResponse.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/TelegramApiLogger.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api11.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api13.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api37.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api33.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api17.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api28.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api8.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api15.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/api_sources/Api31.swift.70569a28.o'[0m
+clang++: [0;1;31merror: [0m[1mno such file or directory: '/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Sources/tgapi/TLParser.swift.70569a28.o'[0m
+make[3]: *** [/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Lead.dylib] Error 1
+make[2]: *** [/Users/matvey/Documents/lead/TGExtra-main/.theos/obj/debug/arm64/Lead.dylib] Error 2
+make[1]: *** [internal-library-all_] Error 2
+make: *** [Lead.all.tweak.variables] Error 2

@@ -12,6 +12,7 @@
 + (NSString *)getDebugDumpFromNode:(id)node;
 + (BOOL)isDeleted:(NSNumber *)msgId;
 + (NSData *)stripAntiSelfDestruct:(NSData *)data;
++ (BOOL)isMessageSelfDestructing:(NSNumber *)msgId;
 @end
 
 @interface MTRpcError : NSObject

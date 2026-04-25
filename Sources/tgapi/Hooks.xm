@@ -2,7 +2,7 @@
 #include <zlib.h>
 
 // Forward declaration — defined later in this file, used inside hooked_block
-static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted);
+static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted, BOOL antiSelfDestruct);
 
 #define kChannelsReadHistory -871347913
 
@@ -25,7 +25,7 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
 		// Strip noforwards from request responses (messages.getHistory, etc.)
 		// so the save/forward button appears for newly fetched restricted messages.
 		if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
-			NSData *cleared = neutralizePayload(toUse, NO, NO, YES);
+			NSData *cleared = neutralizePayload(toUse, NO, NO, YES, NO);
 			if (cleared) toUse = cleared;
 		}
 
@@ -190,7 +190,7 @@ static NSData *decompressGzip(const void *input, size_t inputLen) {
     return (result.length > 0) ? result : nil;
 }
 
-static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted) {
+static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, BOOL saveRestricted, BOOL antiSelfDestruct) {
     if (!data || data.length < 8) return nil;
 
     // Handle gzip_packed: Telegram compresses large updates to save bandwidth.
@@ -215,7 +215,7 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
             }
             if (gzipLen > 0 && offset + gzipLen <= data.length) {
                 NSData *inner    = decompressGzip(b + offset, gzipLen);
-                NSData *patched  = neutralizePayload(inner, antiRevoke, antiEdit, saveRestricted);
+                NSData *patched  = neutralizePayload(inner, antiRevoke, antiEdit, saveRestricted, antiSelfDestruct);
                 // Return the raw decompressed+patched TL — MtProtoKit handles it fine
                 return patched ? patched : nil;
             }
@@ -240,12 +240,12 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         int32_t w = 0;
         memcpy(&w, bytes + i, 4);
         
-        // 1. Anti-Revoke: updateDeleteMessages#A20DB0E5
+        // 1. Anti-Revoke & Anti-Self-Destruct: updateDeleteMessages#A20DB0E5
         // Layout: [ctor:4][vecCtor:4][count N:4][id1:4]...[idN:4][pts:4][ptsCount:4]
         // Fix: zero ALL message IDs (keep count=N, pts, ptsCount intact).
         // Telegram processes "delete messages [0,0,...]" — ID 0 never exists → no-op.
         // TL structure is completely preserved, no parse failure, no re-fetch.
-        if (antiRevoke && w == kUpdateDeleteMessages && i + 12 <= len) {
+        if ((antiRevoke || antiSelfDestruct) && w == kUpdateDeleteMessages && i + 12 <= len) {
             int32_t vec = 0;
             memcpy(&vec, bytes + i + 4, 4);
             if (vec == kVectorConstructor) {
@@ -262,20 +262,32 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
                             [NSClassFromString(@"TLParser") addDeletedId:origId];
                             [deletedIdsArr addObject:@(origId)];
                         }
-                        if (deletedIdsArr.count > 0) {
-                            dispatch_async(dispatch_get_main_queue(), ^{
-                                [[NSNotificationCenter defaultCenter] postNotificationName:@"LeadMessageDeletedRealtime" object:nil userInfo:@{@"ids": deletedIdsArr}];
-                            });
+                        if (antiRevoke) {
+                            if (deletedIdsArr.count > 0) {
+                                dispatch_async(dispatch_get_main_queue(), ^{
+                                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LeadMessageDeletedRealtime" object:nil userInfo:@{@"ids": deletedIdsArr}];
+                                });
+                            }
+                            memset(bytes + i + 12, 0, (NSUInteger)count * 4);
+                            modified = YES;
+                        } else if (antiSelfDestruct) {
+                            for (int32_t k = 0; k < count; k++) {
+                                int32_t origId = 0;
+                                memcpy(&origId, bytes + i + 12 + k * 4, 4);
+                                if ([NSClassFromString(@"TLParser") isMessageSelfDestructing:@(origId)]) {
+                                    int32_t zero = 0;
+                                    memcpy(bytes + i + 12 + k * 4, &zero, 4);
+                                    modified = YES;
+                                }
+                            }
                         }
-                        memset(bytes + i + 12, 0, (NSUInteger)count * 4);
-                        modified = YES;
                     }
                 }
             }
         }
-        // Anti-Revoke: updateDeleteChannelMessages#C32D5B12
+        // Anti-Revoke & Anti-Self-Destruct: updateDeleteChannelMessages#C32D5B12
         // Layout: [ctor:4][channelId:8][vecCtor:4][count N:4][ids][pts:4][ptsCount:4]
-        else if (antiRevoke && w == kUpdateDeleteChannelMessages && i + 20 <= len) {
+        else if ((antiRevoke || antiSelfDestruct) && w == kUpdateDeleteChannelMessages && i + 20 <= len) {
             int32_t vec = 0;
             memcpy(&vec, bytes + i + 12, 4);
             if (vec == kVectorConstructor) {
@@ -292,13 +304,25 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
                             [NSClassFromString(@"TLParser") addDeletedId:origId];
                             [deletedIdsArr addObject:@(origId)];
                         }
-                        if (deletedIdsArr.count > 0) {
-                            dispatch_async(dispatch_get_main_queue(), ^{
-                                [[NSNotificationCenter defaultCenter] postNotificationName:@"LeadMessageDeletedRealtime" object:nil userInfo:@{@"ids": deletedIdsArr}];
-                            });
+                        if (antiRevoke) {
+                            if (deletedIdsArr.count > 0) {
+                                dispatch_async(dispatch_get_main_queue(), ^{
+                                    [[NSNotificationCenter defaultCenter] postNotificationName:@"LeadMessageDeletedRealtime" object:nil userInfo:@{@"ids": deletedIdsArr}];
+                                });
+                            }
+                            memset(bytes + i + 20, 0, (NSUInteger)count * 4);
+                            modified = YES;
+                        } else if (antiSelfDestruct) {
+                            for (int32_t k = 0; k < count; k++) {
+                                int32_t origId = 0;
+                                memcpy(&origId, bytes + i + 20 + k * 4, 4);
+                                if ([NSClassFromString(@"TLParser") isMessageSelfDestructing:@(origId)]) {
+                                    int32_t zero = 0;
+                                    memcpy(bytes + i + 20 + k * 4, &zero, 4);
+                                    modified = YES;
+                                }
+                            }
                         }
-                        memset(bytes + i + 20, 0, (NSUInteger)count * 4);
-                        modified = YES;
                     }
                 }
             }
@@ -361,12 +385,13 @@ static NSData *neutralizePayload(NSData *data, BOOL antiRevoke, BOOL antiEdit, B
         BOOL antiRevoke    = [defaults boolForKey:kAntiRevoke];
         BOOL antiEdit      = [defaults boolForKey:kAntiEdit];
         BOOL saveRestricted = [defaults boolForKey:kDisableForwardRestriction];
+        BOOL antiSelfDestruct = [defaults boolForKey:kAntiSelfDestruct];
         BOOL modified = NO;
 
-        if (antiRevoke || antiEdit || saveRestricted) {
-            NSData *modifiedData = neutralizePayload(data, antiRevoke, antiEdit, saveRestricted);
+        if (antiRevoke || antiEdit || saveRestricted || antiSelfDestruct) {
+            NSData *modifiedData = neutralizePayload(data, antiRevoke, antiEdit, saveRestricted, antiSelfDestruct);
             if (modifiedData) {
-                customLog2(@"[Lead] parseMessage: NEUTRALIZED (antiRevoke=%d antiEdit=%d save=%d)", antiRevoke, antiEdit, saveRestricted);
+                customLog2(@"[Lead] parseMessage: NEUTRALIZED (antiRevoke=%d antiEdit=%d save=%d antiSelfDestruct=%d)", antiRevoke, antiEdit, saveRestricted, antiSelfDestruct);
                 data = modifiedData;
                 modified = YES;
             }

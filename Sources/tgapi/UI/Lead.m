@@ -34,27 +34,36 @@
 }
 
 - (void)setupFooterView {
-  UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.tableView.frame.size.width, 60)];
+  UIView *footerView = [[UIView alloc]
+      initWithFrame:CGRectMake(0, 0, self.tableView.frame.size.width, 60)];
   UILabel *versionLabel = [[UILabel alloc] init];
   versionLabel.translatesAutoresizingMaskIntoConstraints = NO;
   versionLabel.font = [UIFont systemFontOfSize:12];
   versionLabel.textColor = [UIColor secondaryLabelColor];
   versionLabel.textAlignment = NSTextAlignmentCenter;
   versionLabel.numberOfLines = 0;
-  
-  NSString *version = @"1.2.1"; // Hardcoded for simplicity or we could try to read it
-  NSString *build = @"422"; // Random build number or commit hash
-  versionLabel.text = [NSString stringWithFormat:@"Lead Version %@ (Build %@)\n© 2024 Lead Team", version, build];
-  
+
+  NSString *version =
+      @"1.2.6-2"; // Updated build
+  NSString *build = @"454"; // Updated build number
+  versionLabel.text = [NSString
+      stringWithFormat:@"Lead Version %@ (Build %@)\n© 2026 Lead Team", version,
+                       build];
+
   [footerView addSubview:versionLabel];
-  
+
   [NSLayoutConstraint activateConstraints:@[
-    [versionLabel.topAnchor constraintEqualToAnchor:footerView.topAnchor constant:20],
-    [versionLabel.centerXAnchor constraintEqualToAnchor:footerView.centerXAnchor],
-    [versionLabel.leadingAnchor constraintEqualToAnchor:footerView.leadingAnchor constant:20],
-    [versionLabel.trailingAnchor constraintEqualToAnchor:footerView.trailingAnchor constant:-20]
+    [versionLabel.topAnchor constraintEqualToAnchor:footerView.topAnchor
+                                           constant:20],
+    [versionLabel.centerXAnchor
+        constraintEqualToAnchor:footerView.centerXAnchor],
+    [versionLabel.leadingAnchor constraintEqualToAnchor:footerView.leadingAnchor
+                                               constant:20],
+    [versionLabel.trailingAnchor
+        constraintEqualToAnchor:footerView.trailingAnchor
+                       constant:-20]
   ]];
-  
+
   self.tableView.tableFooterView = footerView;
 }
 

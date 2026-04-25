@@ -13,6 +13,24 @@
 
 static __weak TGLocalization *TGLocalizationShared = nil;
 
+%hook ChatMessageItem
+- (BOOL)noForwards {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
+        return NO;
+    }
+    return %orig;
+}
+%end
+
+%hook ApiChat
+- (BOOL)noForwards {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
+        return NO;
+    }
+    return %orig;
+}
+%end
+
 %hook TGLocalization
 
 - (id)initWithVersion:(int)a code:(id)b dict:(id)c isActive:(BOOL)d {
@@ -229,53 +247,58 @@ static NSHashTable *activeMessageNodes = nil;
     
     NSNumber *msgId = [TLParser getMessageIdFromNode:self];
     BOOL isDeletedMsg = (msgId && [TLParser isDeleted:msgId]);
+    BOOL isSelfDestructMsg = (msgId && [TLParser isMessageSelfDestructing:msgId]);
     
     ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (isDeletedMsg) {
-            // Background color highlight removed as requested
-            // node.view.backgroundColor = [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:0.1];
-            
-            UIImageView *trashIcon = nil;
+        if (isDeletedMsg || isSelfDestructMsg) {
+            UIImageView *statusIcon = nil;
             for (UIView *v in node.view.subviews) {
                 if (v.tag == 8898) {
-                    trashIcon = (UIImageView *)v;
+                    statusIcon = (UIImageView *)v;
                     break;
                 }
             }
             
             BOOL isNewlyCreated = NO;
-            if (!trashIcon) {
-                trashIcon = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"trash.fill"]];
-                trashIcon.tintColor = [UIColor systemRedColor];
-                trashIcon.tag = 8898;
-                [node.view addSubview:trashIcon];
+            if (!statusIcon) {
+                statusIcon = [[UIImageView alloc] init];
+                statusIcon.tag = 8898;
+                [node.view addSubview:statusIcon];
                 isNewlyCreated = YES;
+            }
+            
+            if (isDeletedMsg) {
+                statusIcon.image = [UIImage systemImageNamed:@"trash.fill"];
+                statusIcon.tintColor = [UIColor systemRedColor];
+            } else {
+                statusIcon.image = [UIImage systemImageNamed:@"timer"];
+                statusIcon.tintColor = [UIColor systemOrangeColor];
             }
             
             ASDisplayNode *statusNode = findNodeByClassNamePrefix(node, @"ChatMessageDateAndStatusNode");
             if (statusNode && statusNode.view) {
                 CGRect statusFrame = [node.view convertRect:statusNode.view.bounds fromView:statusNode.view];
                 // Place to the left of the time
-                trashIcon.frame = CGRectMake(statusFrame.origin.x - 18, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
-                trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+                statusIcon.frame = CGRectMake(statusFrame.origin.x - 18, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
+                statusIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
             } else {
                 // Fallback to bottom right if status node isn't found
-                trashIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 35, 20, 20);
-                trashIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
+                statusIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 35, 20, 20);
+                statusIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
             }
             
-            BOOL wasHidden = trashIcon.hidden;
-            trashIcon.hidden = NO;
-            [node.view bringSubviewToFront:trashIcon];
+            BOOL wasHidden = statusIcon.hidden;
+            statusIcon.hidden = NO;
+            [node.view bringSubviewToFront:statusIcon];
             
             // Play a nice spring "pop" animation if it just appeared (either created now, or un-hidden)
             if (wasHidden || isNewlyCreated) {
-                trashIcon.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                trashIcon.alpha = 0.0;
+                statusIcon.transform = CGAffineTransformMakeScale(0.1, 0.1);
+                statusIcon.alpha = 0.0;
                 [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.8 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    trashIcon.transform = CGAffineTransformIdentity;
-                    trashIcon.alpha = 1.0;
+                    statusIcon.transform = CGAffineTransformIdentity;
+                    statusIcon.alpha = 1.0;
                 } completion:nil];
             }
             
@@ -296,7 +319,9 @@ static void hook() {
     [LeadAntiRevokeUpdater shared];
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 	 	%init(
-            PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode")
+            PeerInfoScreenItemNode = objc_getClass("PeerInfoScreen.PeerInfoScreenItemNode"),
+            ChatMessageItem = objc_getClass("_TtC10TelegramUI15ChatMessageItem"),
+            ApiChat = objc_getClass("_TtC10TelegramUI11ApiChat")
 		);
 
         // Show welcome alert after the app UI has fully loaded
