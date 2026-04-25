@@ -1,8 +1,43 @@
-.DS_Store
-/.build
-/Packages
-/*.xcodeproj
-xcuserdata/
+# Theos build artifacts
+.theos/
+_
+packages/
+*.deb
+*.dylib
+obj/
+.symbols/
 
-.theos
-/packages
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+
+# Xcode
+build/
+*.xcodeproj/
+*.xcworkspace/
+!Package.swift
+.swiftpm/
+
+# Gemini / Antigravity / AI stuff
+.gemini/
+.ai/
+
+# Logs
+*.log
+build_log.txt
+*_log.txt
+
+# Scratch / Test files
+*_test.*
+*_script.sh
+*_script2.sh
+log_test.m
+regex_test.swift
+
+# Misc
+*.swp
+*.swo
+*~
