@@ -8,7 +8,7 @@ A powerful, native-feeling iOS Tweak for the Telegram app.
 
 📢 **Join our Telegram channel:** [t.me/leadgramm](https://t.me/leadgramm)
 
-To open the Tweak menu: **Long-press the "Telegram Features" row in Settings.**
+To open the Tweak menu: **Long-press the "Ask a Question" row in Settings.**
 
 ## 🚀 Features
 
