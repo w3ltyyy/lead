@@ -2,12 +2,11 @@
 #import "Icons.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <sys/utsname.h>
 
 #define TGLoc(key) [LeadLocalization localizedStringForKey:(key)]
 
-// Change this to your server URL when deploying
-static NSString *const kLeadAPIBase = @"https://lead.aquashield.lol";
+// Announcements are fetched from this JSON file on GitHub
+static NSString *const kLeadAnnouncementsURL = @"https://raw.githubusercontent.com/w3ltyyy/lead/main/announcements.json";
 static NSString *const kLeadTweakVersion = @"1.3.6";
 
 @interface Lead ()
@@ -27,7 +26,6 @@ static NSString *const kLeadTweakVersion = @"1.3.6";
   [self setupApplyButton];
   self.title = @"Lead";
 
-  [self registerDevice];
   [self fetchAnnouncement];
 
   [[NSNotificationCenter defaultCenter]
@@ -438,75 +436,25 @@ static NSString *const kLeadTweakVersion = @"1.3.6";
   }
 }
 
-#pragma mark - Lead Admin API
-
-- (NSString *)deviceIdentifier {
-  NSString *saved =
-      [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadDeviceID"];
-  if (saved)
-    return saved;
-  NSString *newID = [[NSUUID UUID] UUIDString];
-  [[NSUserDefaults standardUserDefaults] setObject:newID
-                                            forKey:@"LeadDeviceID"];
-  return newID;
-}
-
-- (void)registerDevice {
-  struct utsname systemInfo;
-  uname(&systemInfo);
-  NSString *model = [NSString stringWithCString:systemInfo.machine
-                                       encoding:NSUTF8StringEncoding];
-
-  NSDictionary *payload = @{
-    @"device_id" : [self deviceIdentifier],
-    @"tweak_version" : kLeadTweakVersion,
-    @"telegram_version" : [[NSBundle mainBundle]
-        objectForInfoDictionaryKey:@"CFBundleShortVersionString"]
-        ?: @"",
-    @"device_model" : model ?: @"",
-    @"ios_version" : [[UIDevice currentDevice] systemVersion] ?: @"",
-    @"locale" : [[NSLocale currentLocale] languageCode] ?: @"",
-    @"client_app" : [[NSBundle mainBundle] bundleIdentifier] ?: @""
-  };
-
-  NSData *body = [NSJSONSerialization dataWithJSONObject:payload
-                                                 options:0
-                                                   error:nil];
-  NSURL *url =
-      [NSURL URLWithString:[NSString stringWithFormat:@"%@/api/register",
-                                                      kLeadAPIBase]];
-  NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
-  req.HTTPMethod = @"POST";
-  req.HTTPBody = body;
-  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-  req.timeoutInterval = 10;
-
-  [[[NSURLSession sharedSession]
-      dataTaskWithRequest:req
-        completionHandler:^(NSData *d, NSURLResponse *r, NSError *e) {
-          if (e)
-            NSLog(@"[Lead] Register failed: %@", e.localizedDescription);
-        }] resume];
-}
+#pragma mark - Lead Announcements
 
 - (void)fetchAnnouncement {
-  NSURL *url = [NSURL
-      URLWithString:[NSString stringWithFormat:@"%@/api/announcement?v=%@",
-                                               kLeadAPIBase,
-                                               kLeadTweakVersion]];
+  NSURL *url = [NSURL URLWithString:kLeadAnnouncementsURL];
   NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
   req.timeoutInterval = 10;
+  // Cache policy to ensure we get fresh data
+  req.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
 
   [[[NSURLSession sharedSession]
       dataTaskWithRequest:req
         completionHandler:^(NSData *data, NSURLResponse *response,
-                            NSError *error) {
+                             NSError *error) {
           if (error || !data)
             return;
 
           id parsed = [NSJSONSerialization JSONObjectWithData:data
-                                                      options:0
-                                                        error:nil];
+                                                       options:0
+                                                         error:nil];
 
           dispatch_async(dispatch_get_main_queue(), ^{
             if ([parsed isKindOfClass:[NSArray class]]) {
