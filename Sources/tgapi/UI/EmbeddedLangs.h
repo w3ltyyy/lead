@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 
 static inline NSDictionary *GetAllTranslations(NSString *code) {
-  if ([code isEqualToString:@"tr"]) {
+    if ([code isEqualToString:@"tr"]) {
     return @{
       @"SHOW_IOS_RESTRICTED_TITLE" : @"App Store Tarafından Engellenen Sohbetleri Göster",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Yalnızca App Store kuralları nedeniyle iPhone'da gizlenen kanalları ve gönderileri açar. Etkinleştirdikten sonra uygulamayı yeniden başlatın.",
@@ -12,6 +12,19 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"FAKE_LOCATION_SECTION_HEADER" : @"Sahte Konum",
       @"LANGUAGE_SECTION_HEADER" : @"Dil",
       @"CREDITS_SECTION_HEADER" : @"Emeği Geçenler",
+      
+      // Sayfa ve Kategori Başlıkları (Eksik olanlar)
+      @"UI_PAGE_MESSAGES" : @"Mesajlar",
+      @"UI_PAGE_CONTENT" : @"İçerik ve Hikayeler",
+      @"UI_PAGE_MEDIA" : @"Medya ve Dosyalar",
+      @"UI_PAGE_CALLS" : @"Aramalar",
+      @"UI_PAGE_EXTRAS" : @"Ekstralar",
+      @"GENERAL" : @"Genel",
+      @"UI_GENERAL" : @"Genel",
+      @"UI_EXCEPTIONS" : @"İstisnalar",
+      @"UI_GHOST_PRESENCE" : @"Görünürlük ve Okundu",
+      @"UI_GHOST_ACTIVITY" : @"Aktivite Durumları",
+      
       @"DISABLE_ONLINE_STATUS_TITLE" : @"Çevrimiçi Durumunu Gizle",
       @"DISABLE_ONLINE_STATUS_SUBTITLE" : @"Diğer kişilerin çevrimiçi olduğunuzu görmesini engeller.",
       @"DISABLE_TYPING_STATUS_TITLE" : @"Yazıyor Durumunu Gizle",
@@ -79,6 +92,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"APPLY_CHANGES" : @"Değişikliklerinizi uygulamak için uygulama kapanacak ve yeniden başlatılacak. Devam edilsin mi?",
       @"OK" : @"Tamam",
       @"CANCEL" : @"İptal",
+      @"UI_RESTART" : @"Yeniden Başlat",
+      @"UI_LANGUAGE_RESTART" : @"Dili değiştirmek için Telegram yeniden başlatılacak.",
       @"DISCLAIMER" : @"Yasal Uyarı",
       @"AUTHOR_MESSAGE" : @"Bu Telegram tweak'i yalnızca kişisel ve eğitim amaçlıdır. Telegram ile hiçbir bağlantımız yoktur. Telegram adı ve logosu dahil tüm ticari markalar ilgili sahiplerine aittir. Kuralları çiğnemek veya Telegram'ın koşullarını ihlal etmek için kullanmayın — işler ters giderse sorumlu değiliz. Kendi sorumluluğunuzda kullanın.\n\nLead Team tarafından yapılmıştır.",
     };
