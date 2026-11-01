@@ -16,6 +16,7 @@
   self.currentCode = [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadLanguage"] ?: @"en";
   self.languages = @[
     @{ @"code" : @"en", @"name" : @"English", @"flag" : @"🇺🇸" },
+    @{ @"code" : @"tr", @"name" : @"Türkçe", @"flag" : @"🇹🇷" },
     @{ @"code" : @"ru", @"name" : @"Русский", @"flag" : @"🇷🇺" },
     @{ @"code" : @"es", @"name" : @"Español", @"flag" : @"🇪🇸" },
     @{ @"code" : @"fr", @"name" : @"Français", @"flag" : @"🇫🇷" },
