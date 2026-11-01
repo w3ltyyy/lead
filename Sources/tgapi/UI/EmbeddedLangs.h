@@ -83,12 +83,7 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"AUTHOR_MESSAGE" : @"Bu Telegram tweak'i yalnızca kişisel ve eğitim amaçlıdır. Telegram ile hiçbir bağlantımız yoktur. Telegram adı ve logosu dahil tüm ticari markalar ilgili sahiplerine aittir. Kuralları çiğnemek veya Telegram'ın koşullarını ihlal etmek için kullanmayın — işler ters giderse sorumlu değiliz. Kendi sorumluluğunuzda kullanın.\n\nLead Team tarafından yapılmıştır.",
     };
   }
-  if ([code isEqualToString:@"ar"]) {
-    // (Diğer diller burada devam ediyor...)
-  }
-  return nil;
-}
-
+  
   if ([code isEqualToString:@"ar"]) {
     return @{
       @"SHOW_IOS_RESTRICTED_TITLE" : @"إظهار المحادثات المحجوبة بسبب App Store",
