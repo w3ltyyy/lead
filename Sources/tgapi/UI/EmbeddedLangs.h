@@ -46,7 +46,7 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"DISABLE_STORY_READ_RECEIPT_TITLE" : @"Hikaye Okundu Bilgisini Kapat",
       @"DISABLE_STORY_READ_RECEIPT_SUBTITLE" : @"Hikayelerini izlediğinizi başkaları göremez.",
       @"UI_READ_ON_REPLY_TITLE" : @"Yanıt Verirken Okundu Gönder",
-      @"UI_READ_ON_REPLY_SUBTITLE", @"Mesajı yanıtladığınızda otomatik olarak okundu bilgisi gönderir.",
+      @"UI_READ_ON_REPLY_SUBTITLE" : @"Mesajı yanıtladığınızda otomatik olarak okundu bilgisi gönderir.",
       @"UI_KEEP_VOICE_UNREAD_TITLE" : @"Sesli Mesajları Okunmadı Tut",
       @"UI_KEEP_VOICE_UNREAD_SUBTITLE" : @"Dinlediğiniz sesli mesajlar siz işaretlemedikçe okunmadı kalır.",
 
