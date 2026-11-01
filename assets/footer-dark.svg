@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="120" viewBox="0 0 1280 120" role="img" aria-label="Lead">
+<defs>
+<linearGradient id="logo" x1="0.3" y1="0" x2="0.7" y2="1"><stop offset="0" stop-color="#f4f4f5"/><stop offset="1" stop-color="#5c5c63"/></linearGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.25"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+<linearGradient id="run" gradientUnits="userSpaceOnUse" x1="-300" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.7"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/><animate attributeName="x1" values="-300;1280" dur="5s" repeatCount="indefinite"/><animate attributeName="x2" values="0;1580" dur="5s" repeatCount="indefinite"/></linearGradient>
+</defs>
+<rect x="140" y="24" width="1000" height="1" fill="url(#fade)"/>
+<rect x="140" y="24" width="1000" height="1" fill="url(#run)"/>
+<g transform="translate(548,52) scale(0.05)"><path d="M0,52 C0,8 54,-12 87,16 L648,576 C700,628 664,682 605,682 L155,682 C69,682 0,612 0,527 Z" fill="url(#logo)"/></g>
+<text x="590" y="80" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Helvetica, Arial, sans-serif" fill="#ffffff"><tspan font-size="22" font-weight="800" letter-spacing="-0.5">Lead</tspan><tspan dx="10" font-size="15" font-weight="500" fill="#a1a1aa">· t.me/leadgramm</tspan></text>
+</svg>
