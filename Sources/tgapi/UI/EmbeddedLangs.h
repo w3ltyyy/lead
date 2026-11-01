@@ -64,7 +64,7 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"ANTI_SCREENSHOT_SUBTITLE" : @"Gizli sohbetlerde ve korumalı kanallarda karşı tarafa bildirim göndermeden ekran görüntüsü alın.",
       @"ANTI_SELF_DESTRUCT_TITLE" : @"Kaybolan Medyaları Serbestçe Görüntüle",
       @"ANTI_SELF_DESTRUCT_SUBTITLE" : @"Kendi kendini imha etme zamanlayıcısını tetiklemeden tek seferlik fotoğrafları/videoları açın.",
-      `ANTI_AUTO_DELETE_TITLE` : @"Otomatik Silinen Mesajları Kaydet",
+      @"ANTI_AUTO_DELETE_TITLE" : @"Otomatik Silinen Mesajları Kaydet",
       @"ANTI_AUTO_DELETE_SUBTITLE" : @"Otomatik silme süresi olan (1 gün, 7 gün vb.) sohbetlerde mesajların silinmesini önleyin.",
       @"FIX_FILE_PICKER_TITLE" : @"Dosya Seçiciyi Düzelt",
       @"FIX_FILE_PICKER_SUBTITLE" : @"Sideload sürümlerinde Dosyalar uygulamasından dosya seçememe sorununu düzeltir.",
