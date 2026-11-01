@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 
 static inline NSDictionary *GetAllTranslations(NSString *code) {
-    if ([code isEqualToString:@"tr"]) {
+  if ([code isEqualToString:@"tr"]) {
     return @{
       @"SHOW_IOS_RESTRICTED_TITLE" : @"App Store Tarafından Engellenen Sohbetleri Göster",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Yalnızca App Store kuralları nedeniyle iPhone'da gizlenen kanalları ve gönderileri açar. Etkinleştirdikten sonra uygulamayı yeniden başlatın.",
@@ -73,7 +73,7 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"CACHE_CLEAR_WARNING_TITLE" : @"Onayla",
       @"CACHE_CLEAR_WARNING_MESSAGE" : @"Dosya seçici önbelleğini temizlemek istediğinizden emin misiniz?",
       @"ENABLE_FAKE_LOCATION_TITLE" : @"Konum Sahteciliğini Etkinleştir",
-      @"ENABLE_FAKE_LOCATION_SUBTITLE" : "Cihazınızın GPS'ini geçersiz kılın ve bunun yerine özel bir konum paylaşın.",
+      @"ENABLE_FAKE_LOCATION_SUBTITLE" : @"Cihazınızın GPS'ini geçersiz kılın ve bunun yerine özel bir konum paylaşın.",
       @"SELECT_FAKE_LOCATION_TITLE" : @"Sahte Konum Seç",
       @"APPLY" : @"Uygula",
       @"APPLY_CHANGES" : @"Değişikliklerinizi uygulamak için uygulama kapanacak ve yeniden başlatılacak. Devam edilsin mi?",
@@ -83,6 +83,11 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"AUTHOR_MESSAGE" : @"Bu Telegram tweak'i yalnızca kişisel ve eğitim amaçlıdır. Telegram ile hiçbir bağlantımız yoktur. Telegram adı ve logosu dahil tüm ticari markalar ilgili sahiplerine aittir. Kuralları çiğnemek veya Telegram'ın koşullarını ihlal etmek için kullanmayın — işler ters giderse sorumlu değiliz. Kendi sorumluluğunuzda kullanın.\n\nLead Team tarafından yapılmıştır.",
     };
   }
+  if ([code isEqualToString:@"ar"]) {
+    // (Diğer diller burada devam ediyor...)
+  }
+  return nil;
+}
 
   if ([code isEqualToString:@"ar"]) {
     return @{
