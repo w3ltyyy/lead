@@ -6,18 +6,31 @@
 @interface TLParser : NSObject
 + (NSData *)handleResponse:(NSData *)data functionID:(NSNumber *)ios;
 + (void)addDeletedId:(int32_t)msgId;
++ (void)addDeletedId:(int32_t)msgId channelId:(int64_t)channelId;
 + (void)loadPersistedIds;
 + (NSNumber *)getMessageId:(id)item;
 + (NSNumber *)getMessageIdFromNode:(id)node;
 + (NSString *)getDebugDumpFromNode:(id)node;
-+ (BOOL)isDeleted:(NSNumber *)msgId;
++ (BOOL)isDeletedMessageNode:(id)node;
++ (BOOL)isEdited:(NSNumber *)msgId;
++ (BOOL)isEditedMessageNode:(id)node;
++ (NSString *)editKeyForNode:(id)node;
++ (NSString *)peerTagForNode:(id)node;
++ (NSArray *)editHistoryForKey:(NSString *)key;
++ (void)observeMessageTextFromNode:(id)node;
++ (NSArray *)editHistoryForMessageId:(NSNumber *)msgId;
++ (BOOL)wantsPatching;
++ (BOOL)diagEnabled;
++ (void)diagLog:(NSString *)line;
++ (void)diagResponse:(int32_t)functionID inLength:(NSInteger)inLength patched:(BOOL)patched result:(id)result;
++ (void)diagNode:(id)node;
++ (void)diagClear;
++ (NSString *)diagLogPath;
++ (NSInteger)diagLogSize;
 + (NSData *)stripAntiSelfDestruct:(NSData *)data;
 + (BOOL)isMessageSelfDestructing:(NSNumber *)msgId;
-+ (BOOL)handleForwardRequest:(NSData *)data;
-+ (NSData *)fakeUpdatesResponse;
-+ (id)parseMessagesResponse:(NSData *)data;
-+ (NSData *)createGetMessagesRequest:(NSData *)data;
-+ (NSArray *)createSendMediaRequests:(NSData *)response originalForwardData:(NSData *)original;
++ (NSData *)transformVideoToVoiceSendMedia:(NSData *)data duration:(NSNumber *)duration;
++ (NSData *)transformAudioToVoiceSendMedia:(NSData *)data;
 @end
 
 @interface MTRpcError : NSObject
@@ -31,6 +44,7 @@
 @interface MTRequest : NSObject
 @property (nonatomic, strong) NSNumber *functionID;
 @property (nonatomic, strong) NSData *fakeData;
+@property (nonatomic, strong) NSData *fakePayload;
 @property (nonatomic, strong) NSData *payload;
 @property (nonatomic, copy) void (^completed)(id boxedResponse, MTRequestResponseInfo *info, MTRpcError *error);
 @property (nonatomic, strong, readonly) id (^responseParser)(NSData *);
@@ -50,12 +64,27 @@ extern "C" {
 void handleOnlineStatus(MTRequest *request, NSData *payload);
 void handleSetTyping(MTRequest *request, NSData *payload);
 void handleMessageReadReceipt(MTRequest *request, NSData *payload);
+void handleDiscussionReadReceipt(MTRequest *request, NSData *payload);
 void handleStoriesReadReceipt(MTRequest *request, NSData *payload);
 void handleGetSponsoredMessages(MTRequest *request, NSData *payload);
+void handleGetSponsoredPeers(MTRequest *request, NSData *payload);
 void handleChannelsReadReceipt(MTRequest *request, NSData *payload);
 void handleSendScreenshotNotification(MTRequest *request, NSData *payload);
 void handleReadMessageContents(MTRequest *request, NSData *payload);
+void handleChannelsReadMessageContents(MTRequest *request, NSData *payload);
+void handleForwardMessages(MTRequest *request, NSData *payload);
+void handleOwnDeletion(NSData *payload);
 NSData *decompressGzip(const void *input, size_t inputLen);
+NSArray<NSString *> *LeadSendTargetPeerKeys(NSData *payload);
+NSArray<NSData *> *LeadTakePendingReads(NSArray<NSString *> *peerKeys);
+NSString *LeadPeerKey(NSString *kind, long long peerId);
+NSArray<NSString *> *LeadGhostAliasesForRawPeerId(long long rawPeerId);
+BOOL LeadIsGhostPeerEnabledForKeys(NSArray<NSString *> *keys);
+BOOL LeadIsGhostPeerEnabledForRawPeerId(long long rawPeerId);
+void LeadSetGhostPeerEnabled(NSString *primaryKey, NSArray<NSString *> *aliases,
+                             NSString *title, BOOL enabled);
+NSArray<NSDictionary *> *LeadGhostPeerRecords(void);
+void LeadRemoveGhostPeer(NSString *primaryKey);
 #ifdef __cplusplus
 }
 #endif

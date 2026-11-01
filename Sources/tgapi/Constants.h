@@ -4,15 +4,19 @@
 #define kAccountUpdateOnlineStatus 1713919532
 #define kMessagesSetTypingAction 1486110434
 #define kMessagesReadHistory 238054714
+// messages.readDiscussion#f731a9f4 — read receipt for comment threads / topics
+#define kMessagesReadDiscussion -147740172
 #define kStoriesReadStories -1521034552
-#define kGetSponsoredMessages -1680673735
+#define kGetSponsoredMessages 1030547536
+#define kGetSponsoredMessagesLegacy -1680673735
+#define kGetSponsoredPeers -1228356717
 #define kSendScreenshotNotification -1589618665
 // messages.readMessageContents#36a73f77 — sent when TTL/disappearing media is
 // opened
-#define kMessagesReadMessageContents 917472119
-// upload.getFile#be5335be / upload.getCdnFile#2000bcc3 — file chunk downloads
+#define kMessagesReadMessageContents 916930423
+// upload.getFile#be5335be / upload.getCdnFile#395f69da — file chunk downloads
 #define kUploadGetFile      -1101843010
-#define kUploadGetCdnFile   -1691921240
+#define kUploadGetCdnFile   962554330
 
 #define kActionIDTyping 381645902           // .sendMessageTypingAction
 #define kActionIDRecordingVideo -1584933265 // .sendMessageRecordVideoAction
@@ -37,6 +41,8 @@
 
 #define kGhostModeEnabled @"LeadGhostModeEnabled"
 #define kGhostDetailsToggle @"LeadGhostDetailsToggle"
+#define kGhostPeerRecords @"LeadGhostPeerRecords"
+#define kGhostPeerKeys @"LeadGhostPeerKeys"
 #define kDisableOnlineStatus @"disableOnlineStatus"
 
 #define kDisableTypingStatus @"disableTypingStatus"
@@ -59,20 +65,38 @@
 #define kDisableMessageReadReceipt @"disableMessageReadReceipt"
 #define kDisableStoriesReadReceipt @"disableStoriesReadReceipt"
 #define kDisableScreenshotNotification @"disableScreenshotNotification"
+// Ghost Mode: hold blocked read receipts per chat and send them when you reply there.
+#define kGhostReadOnReply @"LeadGhostReadOnReply"
+// Ghost Mode: don't tell senders their voice / round messages were played.
+#define kGhostKeepVoiceUnread @"LeadGhostKeepVoiceUnread"
+// Forward without the "Forwarded from" header (drop_author) by default.
+#define kForwardDropAuthor @"LeadForwardDropAuthor"
+// Keep stories their author deleted (anti-revoke for stories).
+#define kSaveDeletedStories @"LeadSaveDeletedStories"
+// In-app banner when Anti-Revoke catches a deletion.
+#define kDeletionBanner @"LeadDeletionBanner"
+// Log name / username / photo changes of people you talk to.
+#define kProfileChangesLog @"LeadProfileChangesLog"
+// Profile button with the peer's ID and estimated registration date.
+#define kShowPeerInfo @"LeadShowPeerInfo"
 
 // FIX: was incorrectly mapped to "disableOnlineStatus" — now has its own key
 #define kDisableAllAds @"disableAllAds"
 #define kDisableForwardRestriction @"disableForwardRestriction"
+#define kLeadDiagnostics @"LeadDiagnostics"
+// Hide the proxy sponsor channel and PSA banners from help.getPromoData.
+#define kHideProxyPromo @"LeadHideProxyPromo"
 
 // Anti-features
 #define kAntiRevoke @"LeadAntiRevoke"
 #define kAntiEdit @"LeadAntiEdit"
-// Key for preventing disappearing/self-destruct media from being marked as read
 #define kAntiSelfDestruct @"LeadAntiSelfDestruct"
 #define kAntiAutoDelete @"LeadAntiAutoDelete"
 #define kConfirmCalls @"LeadConfirmCalls"
 #define kHideStories @"LeadHideStories"
 #define kDownloadStories @"LeadDownloadStories"
+// Hide "dissapearing message" label on TTL messages
+#define kHideTTLLabel @"LeadHideTTLLabel"
 
 #define FAKE_LOCATION_ENABLED_KEY @"LeadFakeLocation"
 #define FAKE_LATITUDE_KEY @"LeadSavedLatitude"
@@ -86,3 +110,24 @@
 
 // Send audio/video files as voice messages
 #define kSendAsVoice @"LeadSendAsVoice"
+#define kVideoToVoicePreviewEnabled @"LeadVideoToVoicePreviewEnabled"
+#define kVideoToVoiceLastDuration @"LeadVideoToVoiceLastDuration"
+#define kMessagesSendMedia 53536639 // messages.sendMedia#330e77f
+#define kMessagesSendMessage -17526942        // messages.sendMessage#fef48f62
+#define kMessagesSendMultiMedia 469278068     // messages.sendMultiMedia#1bf89d74
+#define kMessagesSendInlineBotResult -1060145594 // messages.sendInlineBotResult#c0cf7646
+#define kMessagesForwardMessages 326126204    // messages.forwardMessages#13704a7c
+#define kHelpGetPromoData -1063816159         // help.getPromoData#c0977421
+#define kChannelsReadMessageContents -357180360 // channels.readMessageContents#eab5dc38
+#define kMessagesDeleteMessages -443640366     // messages.deleteMessages#e58e95d2
+#define kChannelsDeleteMessages -2067661490    // channels.deleteMessages#84c1fd4e
+#define kMessagesGetDocumentByHash -1309538785
+
+// Visual-only Telegram Stars balance
+#define kVisualStarsEnabled @"LeadVisualStarsEnabled"
+#define kVisualStarsAmount @"LeadVisualStarsAmount"
+
+// Show chats / posts that Telegram hides on iOS only (App Store Review Guideline 1.1).
+#define kShowIosRestricted @"LeadShowIosRestricted"
+// restrictionReason#d072acb4 platform:string reason:string text:string
+#define kRestrictionReasonCtor ((int32_t)0xD072ACB4)

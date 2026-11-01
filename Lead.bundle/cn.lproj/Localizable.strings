@@ -112,3 +112,6 @@
 
 
 
+
+"SHOW_IOS_RESTRICTED_TITLE" = "显示被 App Store 屏蔽的聊天";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "打开仅因 App Store 规则在 iPhone 上被隐藏的频道和帖子。开启后请重启应用。";

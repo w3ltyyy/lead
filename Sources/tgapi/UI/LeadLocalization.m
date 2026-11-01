@@ -1,4 +1,5 @@
 #import "EmbeddedLangs.h"
+#import "LeadUIStrings.h"
 #import "Headers.h"
 #import <dlfcn.h>
 #import <objc/runtime.h>
@@ -105,6 +106,11 @@ NSString *LeadBundlePath(void) {
     dict = GetAllTranslations(@"en");
   }
 
+  // Menu strings (UI_*) go in first, so the long-standing feature strings win on overlap.
+  NSMutableDictionary *merged = [LeadUIStrings(@"en") mutableCopy];
+  [merged addEntriesFromDictionary:LeadUIStrings(lang)];
+  [merged addEntriesFromDictionary:dict ?: @{}];
+  dict = merged;
   self.strings = dict;
 
   if (dict && dict.count > 0) {
@@ -226,10 +232,10 @@ NSString *LeadBundlePath(void) {
       @"ANTI_REVOKE_SUBTITLE" :
           @"Keep messages in your chat even after the sender deletes them. "
           @"Deleted messages stay visible to you.",
-      @"ANTI_EDIT_TITLE" : @"Save Original Edited Messages",
+      @"ANTI_EDIT_TITLE" : @"Edit History",
       @"ANTI_EDIT_SUBTITLE" :
-          @"When someone edits a message, the original text is preserved on "
-          @"your end. You'll always see what was first written.",
+          @"Keep the latest edited text visible and save previous versions. "
+          @"Tap the pencil icon on edited messages to view history.",
       @"ANTI_SCREENSHOT_TITLE" : @"Disable Screenshot Notifications",
       @"ANTI_SCREENSHOT_SUBTITLE" :
           @"Take screenshots in secret chats and protected channels without "
@@ -245,14 +251,16 @@ NSString *LeadBundlePath(void) {
           @"expires.",
       /* Download Speed Boost */
       @"DOWNLOAD_BOOST_SECTION_HEADER" : @"Download Speed",
-      @"DOWNLOAD_BOOST_TITLE" : @"Download Speed Boost",
-      @"DOWNLOAD_BOOST_SUBTITLE" : @"Increases chunk size and parallel connections for faster file downloads. Medium is recommended for most users.",
+      @"DOWNLOAD_BOOST_TITLE" : @"Download Speed Boost (Experimental)",
+      @"DOWNLOAD_BOOST_SUBTITLE" : @"Tries to increase chunk size and parallel parts for faster file downloads. This cannot bypass Telegram server-side limits.",
       @"DOWNLOAD_BOOST_OFF" : @"Off (Default)",
       @"DOWNLOAD_BOOST_MEDIUM" : @"Medium (512 KB / 8 parts)",
       @"DOWNLOAD_BOOST_MAX" : @"Maximum (1 MB / 12 parts)",
       /* Calls & Voice */
       @"CONFIRM_CALLS_TITLE" : @"Confirm Calls",
       @"CONFIRM_CALLS_SUBTITLE" : @"Show a confirmation dialog before answering incoming calls.",
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Show App Store-Blocked Chats",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Opens channels and posts hidden only on iPhone by App Store rules. Restart the app after turning it on.",
       @"SEND_AS_VOICE_TITLE" : @"Send Audio as Voice Message",
       @"SEND_AS_VOICE_SUBTITLE" : @"Audio files you send will appear as voice bubbles instead of file attachments.",
       @"DOWNLOAD_STORIES_TITLE" : @"Auto-Save Stories",

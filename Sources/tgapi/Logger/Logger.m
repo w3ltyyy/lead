@@ -123,30 +123,41 @@ void customLog(NSString *format, ...) {
 }
 
 void customLog2(NSString *format, ...) {
+    static dispatch_queue_t queue;
+    static NSDateFormatter *dateFormatter;
+    static dispatch_once_t token;
+    dispatch_once(&token, ^{
+        queue = dispatch_queue_create("com.lead.debuglog", DISPATCH_QUEUE_SERIAL);
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"HH:mm:ss"];
+    });
+
     va_list args;
     va_start(args, format);
     NSString *formattedMessage = [[NSString alloc] initWithFormat:format arguments:args];
     va_end(args);
-
     NSDate *currentDate = [NSDate date];
-    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"HH:mm:ss"];
-    NSString *dateString = [dateFormatter stringFromDate:currentDate];
-    NSString *logMessage = [NSString stringWithFormat:@"%@ %@\n", dateString, formattedMessage];
-    NSData *logData = [logMessage dataUsingEncoding:NSUTF8StringEncoding];
 
-    // Always write to Documents — works on non-jb sideload without app group
-    NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/lead_debug.txt"];
-    NSFileManager *fm = [NSFileManager defaultManager];
-    if (![fm fileExistsAtPath:path]) {
-        [fm createFileAtPath:path contents:nil attributes:nil];
-    }
-    NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
-    if (fh) {
-        [fh seekToEndOfFile];
-        [fh writeData:logData];
-        [fh closeFile];
-    }
+    // Called from layout and network hooks — never touch the disk on the caller's thread.
+    dispatch_async(queue, ^{
+        NSString *logMessage = [NSString stringWithFormat:@"%@ %@\n", [dateFormatter stringFromDate:currentDate], formattedMessage];
+        NSData *logData = [logMessage dataUsingEncoding:NSUTF8StringEncoding];
+
+        // Always write to Documents — works on non-jb sideload without app group
+        NSString *path = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/lead_debug.txt"];
+        NSFileManager *fm = [NSFileManager defaultManager];
+        unsigned long long size = [[fm attributesOfItemAtPath:path error:nil] fileSize];
+        // Keep the debug log bounded; start over once it passes 1 MB.
+        if (![fm fileExistsAtPath:path] || size > 1024 * 1024) {
+            [fm createFileAtPath:path contents:nil attributes:nil];
+        }
+        NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:path];
+        if (fh) {
+            [fh seekToEndOfFile];
+            [fh writeData:logData];
+            [fh closeFile];
+        }
+    });
 }
 
 NSData *decompressGzip(const void *input, size_t inputLen) {
@@ -169,8 +180,14 @@ NSData *decompressGzip(const void *input, size_t inputLen) {
         if (ret < 0 && ret != Z_BUF_ERROR) { inflateEnd(&strm); return nil; }
         NSUInteger produced = sizeof(buf) - strm.avail_out;
         if (produced > 0) [result appendBytes:buf length:produced];
-    } while (ret != Z_STREAM_END && strm.avail_in > 0);
+        if (ret == Z_BUF_ERROR && produced == 0) break;
+        // Keep going while inflate filled the whole buffer: it may still hold output
+        // after consuming all input. Stopping on avail_in == 0 alone truncated
+        // payloads larger than 64 KB.
+    } while (ret != Z_STREAM_END && (strm.avail_in > 0 || strm.avail_out == 0));
 
     inflateEnd(&strm);
+    // A partial stream must never be handed back as a valid TL payload.
+    if (ret != Z_STREAM_END) return nil;
     return (result.length > 0) ? result : nil;
 }

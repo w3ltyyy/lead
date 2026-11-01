@@ -1,10 +1,14 @@
 #import <UIKit/UIKit.h>
+#import <AVFoundation/AVFoundation.h>
 #import "Headers.h"
 #import "../Logger/Logger.h"
+#import "LeadMenu.h"
+#import "../Headers.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
 @interface ASDisplayNode : NSObject
+@property (atomic, strong, readonly) CALayer *layer;
 @property (atomic, assign, readonly) UIView *view;
 @property (atomic, copy, readonly) NSArray *subnodes;
 @property (atomic, copy, readwrite) NSString *accessibilityLabel;
@@ -21,12 +25,19 @@
 @interface _TtC18MultiScaleTextNode18MultiScaleTextNode : ASDisplayNode
 @end
 
-@interface _TtCC20StoryContainerScreen32StoryItemSetContainerComponent4View : UIView
-- (void)requestSave;
-@end
 
 @interface _TtC14PeerInfoScreen18PeerInfoHeaderNode : ASDisplayNode
 @property (nonatomic, strong) id peer;
+@end
+
+@interface TGMediaVideoConverter : NSObject
++ (id)hashForAVAsset:(AVAsset *)avAsset adjustments:(id)adjustments;
+@end
+
+@interface TGVideoEditAdjustments : NSObject
++ (instancetype)editAdjustmentsWithDictionary:(NSDictionary *)dictionary;
+- (NSTimeInterval)trimStartValue;
+- (NSTimeInterval)trimEndValue;
 @end
 
 @interface LegacyComponentsGlobals : NSObject
@@ -55,85 +66,586 @@ static TGLocalization *getActiveTGLocalization(void) {
 }
 
 void showUI();
+static BOOL LeadIsUsableGhostTitle(NSString *title);
+static BOOL LeadIsCurrentUserPeer(long long peerId);
+static long long LeadPeerIdFromObject(id object);
+static char LeadEditHistoryTapGestureKey;
+static char LeadVideoToVoiceButtonKey;
 
-%hook _TtC10TelegramUI29ChatPresentationInterfaceState
-- (BOOL)copyProtectionEnabled {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
-        return NO;
+static UIViewController *LeadTopViewController(void) {
+    UIViewController *root = LeadTopPresenter();
+    if ([root isKindOfClass:[UINavigationController class]]) {
+        root = ((UINavigationController *)root).visibleViewController;
+    } else if ([root isKindOfClass:[UITabBarController class]]) {
+        root = ((UITabBarController *)root).selectedViewController;
+        if ([root isKindOfClass:[UINavigationController class]]) {
+            root = ((UINavigationController *)root).visibleViewController;
+        }
     }
-    return %orig;
-}
-%end
-
-%hook _TtC30ChatPresentationInterfaceState30ChatPresentationInterfaceState
-- (BOOL)copyProtectionEnabled {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
-        return NO;
-    }
-    return %orig;
-}
-%end
-
-%hook _TtC7Postbox7Message
-- (BOOL)isCopyProtected {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
-        return NO;
-    }
-    return %orig;
+    return root;
 }
 
-// Suppress ad attribute so Telegram treats the message as non-sponsored.
-// This catches ads that were already cached (5-min cache) and bypasses
-// the API-level block in FunctionHandler.m for those cases.
-- (id)adAttribute {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableAllAds]) {
-        return nil;
-    }
-    return %orig;
-}
-%end
+// Little round badge next to a message bubble: trash (deleted), pencil (edited),
+// timer (self-destructing). Lives on the item node's view under tag 8898.
+typedef NS_ENUM(NSInteger, LeadBadgeKind) {
+    LeadBadgeKindNone,
+    LeadBadgeKindDeleted,
+    LeadBadgeKindEdited,
+    LeadBadgeKindTimer,
+};
 
-// ============================================================
-// Send as Voice: make audio files appear and behave as voice messages.
-// Hooks TelegramMediaFile.isVoice — when kSendAsVoice is enabled and
-// the file has an audio mimeType, report it as a voice message.
-// ============================================================
-@interface _TtC12TelegramCore16TelegramMediaFile : NSObject
-- (NSString *)mimeType;
+static const CGFloat LeadBadgeSide = 22.0;
+
+@interface LeadMessageBadge : UIView
+@property (nonatomic, assign) LeadBadgeKind kind;
+@property (nonatomic, assign) BOOL alsoEdited;
+@property (nonatomic, copy) NSString *editKey;
+@property (nonatomic, copy) NSString *peerTag;
+@property (nonatomic, strong) NSNumber *messageId;
+// Which side of the bubble it sits on, once known: -1 left of it (outgoing), 1 right
+// of it (incoming). A message never changes sides, so this outlives the layout
+// passes where Telegram rebuilds the bubble with an empty frame (adding a reaction).
+@property (nonatomic, assign) NSInteger side;
+- (void)setKind:(LeadBadgeKind)kind animated:(BOOL)animated;
 @end
 
-%hook _TtC12TelegramCore16TelegramMediaFile
+@implementation LeadMessageBadge {
+    UIVisualEffectView *_blur;
+    UIImageView *_glyph;
+}
 
-- (BOOL)isVoice {
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kSendAsVoice]) {
-        return %orig;
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.tag = 8898;
+        self.userInteractionEnabled = NO;
+        _blur = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterial]];
+        _blur.frame = self.bounds;
+        _blur.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _blur.layer.cornerRadius = LeadBadgeSide / 2.0;
+        _blur.clipsToBounds = YES;
+        [self addSubview:_blur];
+        _glyph = [UIImageView new];
+        _glyph.contentMode = UIViewContentModeCenter;
+        _glyph.frame = self.bounds;
+        _glyph.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self addSubview:_glyph];
+        self.layer.shadowColor = UIColor.blackColor.CGColor;
+        self.layer.shadowOpacity = 0.12;
+        self.layer.shadowRadius = 3;
+        self.layer.shadowOffset = CGSizeMake(0, 1);
     }
-    if (%orig) return YES;
-    NSString *mime = [self mimeType];
-    if ([mime hasPrefix:@"audio/"]) {
+    return self;
+}
+
+- (void)setKind:(LeadBadgeKind)kind {
+    [self setKind:kind animated:NO];
+}
+
+- (void)setKind:(LeadBadgeKind)kind animated:(BOOL)animated {
+    BOOL changed = _kind != kind;
+    _kind = kind;
+    NSString *symbol = nil;
+    UIColor *tint = nil;
+    switch (kind) {
+    case LeadBadgeKindDeleted:
+        symbol = @"trash.fill";
+        tint = UIColor.systemRedColor;
+        break;
+    case LeadBadgeKindEdited:
+        symbol = @"pencil";
+        tint = UIColor.labelColor;
+        break;
+    case LeadBadgeKindTimer:
+        symbol = @"timer";
+        tint = UIColor.systemOrangeColor;
+        break;
+    case LeadBadgeKindNone:
+        break;
+    }
+    UIImageSymbolConfiguration *config = [UIImageSymbolConfiguration configurationWithPointSize:10.5 weight:UIImageSymbolWeightBold];
+    _glyph.image = symbol ? [UIImage systemImageNamed:symbol withConfiguration:config] : nil;
+    _glyph.tintColor = tint;
+    self.accessibilityLabel = kind == LeadBadgeKindDeleted ? LeadL(@"UI_DELETED_MARK") : kind == LeadBadgeKindEdited ? LeadL(@"UI_EDIT_HISTORY_TITLE") : nil;
+    if (animated && changed) {
+        self.transform = CGAffineTransformMakeScale(0.4, 0.4);
+        self.alpha = 0;
+        [UIView animateWithDuration:0.45 delay:0 usingSpringWithDamping:0.62 initialSpringVelocity:0.6 options:UIViewAnimationOptionAllowUserInteraction animations:^{
+            self.transform = CGAffineTransformIdentity;
+            self.alpha = 1;
+        } completion:nil];
+    }
+}
+@end
+
+static LeadMessageBadge *LeadBadgeInView(UIView *view) {
+    for (UIView *subview in view.subviews) {
+        if ([subview isKindOfClass:[LeadMessageBadge class]]) return (LeadMessageBadge *)subview;
+    }
+    return nil;
+}
+
+static NSString *LeadDeletionTimeText(NSString *peerTag, NSNumber *messageId) {
+    if (!messageId) return nil;
+    for (NSDictionary *entry in LeadMessageLogEntries()) {
+        if (![entry[@"kind"] isEqual:@"deleted"] || [entry[@"id"] intValue] != messageId.intValue) continue;
+        if (peerTag.length && entry[@"peer"] && ![entry[@"peer"] isEqual:peerTag]) continue;
+        NSNumber *timestamp = entry[@"date"];
+        if (![timestamp isKindOfClass:[NSNumber class]]) return nil;
+        NSDate *date = [NSDate dateWithTimeIntervalSince1970:timestamp.doubleValue];
+        // With seconds: deletions often come in bursts, and that's how to tell them apart.
+        NSDateFormatter *formatter = [NSDateFormatter new];
+        formatter.timeStyle = NSDateFormatterMediumStyle;
+        formatter.dateStyle = [NSCalendar.currentCalendar isDateInToday:date] ? NSDateFormatterNoStyle : NSDateFormatterMediumStyle;
+        formatter.doesRelativeDateFormatting = YES;
+        return [formatter stringFromDate:date];
+    }
+    return nil;
+}
+
+static void LeadBadgeTapped(LeadMessageBadge *badge) {
+    UIViewController *host = LeadTopViewController();
+    if (!host) return;
+    if (badge.kind == LeadBadgeKindEdited || (badge.kind == LeadBadgeKindDeleted && badge.alsoEdited)) {
+        BOOL hasText = badge.editKey.length && [TLParser editHistoryForKey:badge.editKey].count > 0;
+        [LeadEditHistoryViewController presentForKey:badge.editKey mediaReplaced:!hasText from:host];
+    } else if (badge.kind == LeadBadgeKindDeleted) {
+        NSString *time = LeadDeletionTimeText(badge.peerTag, badge.messageId);
+        NSString *text = time ? [NSString stringWithFormat:LeadL(@"UI_DELETED_MARK_AT"), time] : LeadL(@"UI_DELETED_MARK");
+        LeadSelectionHaptic();
+        [LeadToast showText:text symbol:@"trash" inView:host.view];
+    }
+}
+
+// Telegram's list routes touches through its own recognizers, so the badge
+// can't take a tap itself; one recognizer on the item view checks the badge frame.
+@interface LeadBadgeTapTarget : NSObject <UIGestureRecognizerDelegate>
++ (instancetype)shared;
+@end
+
+@implementation LeadBadgeTapTarget
++ (instancetype)shared {
+    static LeadBadgeTapTarget *target = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        target = [LeadBadgeTapTarget new];
+    });
+    return target;
+}
+
+static BOOL LeadBadgeHit(UIGestureRecognizer *recognizer, LeadMessageBadge **outBadge) {
+    LeadMessageBadge *badge = LeadBadgeInView(recognizer.view);
+    if (!badge || badge.hidden || badge.kind == LeadBadgeKindNone || badge.kind == LeadBadgeKindTimer) return NO;
+    CGPoint location = [recognizer locationInView:recognizer.view];
+    if (!CGRectContainsPoint(CGRectInset(badge.frame, -12, -12), location)) return NO;
+    if (outBadge) *outBadge = badge;
+    return YES;
+}
+
+// Only claim touches that land on the badge, so taps elsewhere reach Telegram untouched.
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)recognizer {
+    return LeadBadgeHit(recognizer, NULL);
+}
+
+- (BOOL)gestureRecognizer:(__unused UIGestureRecognizer *)recognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(__unused UIGestureRecognizer *)other {
+    return YES;
+}
+
+- (void)handleTap:(UITapGestureRecognizer *)recognizer {
+    LeadMessageBadge *badge = nil;
+    if (LeadBadgeHit(recognizer, &badge)) LeadBadgeTapped(badge);
+}
+@end
+
+static void LeadInstallBadgeTap(UIView *view, BOOL enabled) {
+    UITapGestureRecognizer *tap = objc_getAssociatedObject(view, &LeadEditHistoryTapGestureKey);
+    if (!enabled) {
+        if (tap) {
+            [view removeGestureRecognizer:tap];
+            objc_setAssociatedObject(view, &LeadEditHistoryTapGestureKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        return;
+    }
+    if (tap) return;
+    tap = [[UITapGestureRecognizer alloc] initWithTarget:[LeadBadgeTapTarget shared] action:@selector(handleTap:)];
+    tap.cancelsTouchesInView = NO;
+    tap.delegate = [LeadBadgeTapTarget shared];
+    [view addGestureRecognizer:tap];
+    objc_setAssociatedObject(view, &LeadEditHistoryTapGestureKey, tap, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+static ASDisplayNode *findNodeByClassNamePrefix(ASDisplayNode *root, NSString *prefix);
+
+// Outside the bubble, level with its top edge, on the side with free space:
+// it never covers text, the time or Telegram's share/comment buttons.
+static CGRect LeadRectInView(UIView *view, ASDisplayNode *node) {
+    // Through layers: the bubble background may be layer-backed, where -view must not be touched.
+    CALayer *layer = node.layer;
+    if (!layer || layer.hidden) return CGRectNull;
+    return [view.layer convertRect:layer.bounds fromLayer:layer];
+}
+
+// Outside the bubble, level with its top edge, on the side with free space:
+// it never covers text, the time or Telegram's share/comment buttons.
+// Returns NO while the bubble has no usable frame yet (mid-animation).
+static BOOL LeadBadgeFrame(UIView *itemView, ASDisplayNode *itemNode, LeadMessageBadge *badge, CGRect *outFrame) {
+    CGFloat side = LeadBadgeSide;
+    CGSize size = itemView.bounds.size;
+    if (size.width < 60) return NO;
+    ASDisplayNode *bubble = findNodeByClassNamePrefix(itemNode, @"ChatMessageBackground");
+    CGRect frame = bubble ? LeadRectInView(itemView, bubble) : CGRectNull;
+    if (!CGRectIsNull(frame) && frame.size.width >= 30 && frame.size.height >= 20 &&
+        CGRectGetMinX(frame) >= -1 && CGRectGetMaxX(frame) <= size.width + 1) {
+        if (badge.side == 0) {
+            badge.side = CGRectGetMidX(frame) > size.width / 2.0 ? -1 : 1;
+        }
+        BOOL outgoing = badge.side < 0;
+        CGFloat x = outgoing ? CGRectGetMinX(frame) - side - 6 : CGRectGetMaxX(frame) + 6;
+        CGFloat y = CGRectGetMinY(frame) + 3;
+        if (x < 2 || x + side > size.width - 2) {
+            // No room beside a full-width bubble: sit on its top corner instead.
+            x = outgoing ? CGRectGetMinX(frame) - side / 3.0 : CGRectGetMaxX(frame) - side * 2.0 / 3.0;
+            y = CGRectGetMinY(frame) - side / 3.0;
+        }
+        *outFrame = CGRectMake(MIN(MAX(0, x), size.width - side), MAX(0, y), side, side);
         return YES;
+    }
+    if (bubble) return NO;
+    // Stickers, round videos: next to the time.
+    ASDisplayNode *status = findNodeByClassNamePrefix(itemNode, @"ChatMessageDateAndStatusNode");
+    frame = status ? LeadRectInView(itemView, status) : CGRectNull;
+    if (CGRectIsNull(frame) || frame.size.width < 10) return NO;
+    *outFrame = CGRectMake(MAX(0, CGRectGetMinX(frame) - side - 4), CGRectGetMidY(frame) - side / 2.0, side, side);
+    return YES;
+}
+
+// Places the badge, and once more after Telegram's layout animation settles.
+static void LeadPlaceBadge(LeadMessageBadge *badge, UIView *view, ASDisplayNode *node, BOOL settle) {
+    CGRect frame;
+    if (LeadBadgeFrame(view, node, badge, &frame)) {
+        badge.frame = frame;
+        badge.alpha = 1;
+    } else if (badge.alpha > 0 && CGRectIsEmpty(badge.frame)) {
+        badge.alpha = 0;
+    }
+    if (!settle) return;
+    __weak LeadMessageBadge *weakBadge = badge;
+    __weak UIView *weakView = view;
+    __weak ASDisplayNode *weakNode = node;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        LeadMessageBadge *strongBadge = weakBadge;
+        if (!strongBadge || strongBadge.hidden || !weakView || !weakNode) return;
+        LeadPlaceBadge(strongBadge, weakView, weakNode, NO);
+    });
+}
+
+static void LeadVideoToVoiceToast(NSString *text, UIColor *color) {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIWindow *window = LeadMainWindow();
+        if (!window) return;
+        UILabel *toast = [[UILabel alloc] initWithFrame:CGRectZero];
+        toast.text = text;
+        toast.textColor = UIColor.whiteColor;
+        toast.font = [UIFont systemFontOfSize:14.0 weight:UIFontWeightSemibold];
+        toast.textAlignment = NSTextAlignmentCenter;
+        toast.backgroundColor = color ?: [[UIColor blackColor] colorWithAlphaComponent:0.78];
+        toast.layer.cornerRadius = 16.0;
+        toast.layer.masksToBounds = YES;
+        CGSize size = [toast sizeThatFits:CGSizeMake(window.bounds.size.width - 48.0, 44.0)];
+        CGFloat width = MIN(window.bounds.size.width - 48.0, size.width + 28.0);
+        toast.frame = CGRectMake((window.bounds.size.width - width) * 0.5, window.safeAreaInsets.top + 18.0, width, 34.0);
+        toast.alpha = 0.0;
+        [window addSubview:toast];
+        [UIView animateWithDuration:0.16 animations:^{
+            toast.alpha = 1.0;
+        } completion:^(__unused BOOL finished) {
+            [UIView animateWithDuration:0.18 delay:1.15 options:0 animations:^{
+                toast.alpha = 0.0;
+            } completion:^(__unused BOOL done) {
+                [toast removeFromSuperview];
+            }];
+        }];
+    });
+}
+
+static NSString *LeadVisualStarsFormattedAmount(void) {
+    long long amount = [[[NSUserDefaults standardUserDefaults] objectForKey:kVisualStarsAmount] longLongValue];
+    if (amount <= 0) amount = 0;
+    NSNumberFormatter *formatter = [NSNumberFormatter new];
+    formatter.numberStyle = NSNumberFormatterDecimalStyle;
+    formatter.groupingSeparator = @",";
+    formatter.usesGroupingSeparator = YES;
+    return [formatter stringFromNumber:@(amount)] ?: [NSString stringWithFormat:@"%lld", amount];
+}
+
+static BOOL LeadVisualStarsEnabled(void) {
+    return [[NSUserDefaults standardUserDefaults] boolForKey:kVisualStarsEnabled] &&
+           [[[NSUserDefaults standardUserDefaults] objectForKey:kVisualStarsAmount] longLongValue] > 0;
+}
+
+static BOOL LeadStringIsNumericBalanceCandidate(NSString *text) {
+    if (text.length == 0 || text.length > 24) return NO;
+    NSCharacterSet *digits = [NSCharacterSet decimalDigitCharacterSet];
+    BOOL hasDigit = NO;
+    for (NSUInteger i = 0; i < text.length; i++) {
+        unichar ch = [text characterAtIndex:i];
+        if ([digits characterIsMember:ch]) {
+            hasDigit = YES;
+            continue;
+        }
+        if (ch == ',' || ch == '.' || ch == ' ' || ch == 0x00A0 || ch == 0x202F) {
+            continue;
+        }
+        return NO;
+    }
+    return hasDigit;
+}
+
+static BOOL LeadTextLooksLikeStarsBalance(NSString *text) {
+    if (text.length == 0) return NO;
+    NSString *lower = text.localizedLowercaseString;
+    BOOL hasStarsWord = [lower containsString:@"stars"] ||
+                        [lower containsString:@"telegram stars"] ||
+                        [lower containsString:@"xtr"];
+    BOOL hasStarSymbol = [text containsString:@"⭐"] ||
+                         [text containsString:@"★"] ||
+                         [text containsString:@"✦"];
+    if (!(hasStarsWord || hasStarSymbol)) return NO;
+    return [text rangeOfCharacterFromSet:[NSCharacterSet decimalDigitCharacterSet]].location != NSNotFound;
+}
+
+static BOOL LeadViewLooksLikeStarsBalanceContext(UIView *view, BOOL numericOnly) {
+    UIView *current = view;
+    for (NSUInteger depth = 0; current && depth < 10; depth++) {
+        NSString *className = NSStringFromClass([current class]);
+        NSString *lower = className.localizedLowercaseString;
+        if ([lower containsString:@"starsbalance"] ||
+            ([lower containsString:@"stars"] && [lower containsString:@"balance"]) ||
+            ([lower containsString:@"gift"] && [lower containsString:@"balance"]) ||
+            ([lower containsString:@"balance"] && ![lower containsString:@"slider"])) {
+            return YES;
+        }
+        if (!numericOnly && ([lower containsString:@"starstransaction"] ||
+                             [lower containsString:@"starspurchase"] ||
+                             [lower containsString:@"starstransfer"])) {
+            return YES;
+        }
+        current = current.superview;
+    }
+    UIResponder *responder = view.nextResponder;
+    for (NSUInteger depth = 0; responder && depth < 8; depth++) {
+        NSString *lower = NSStringFromClass([responder class]).localizedLowercaseString;
+        if ([lower containsString:@"starsbalance"] ||
+            ([lower containsString:@"stars"] && [lower containsString:@"balance"])) {
+            return YES;
+        }
+        responder = responder.nextResponder;
     }
     return NO;
 }
 
-%end
+static NSString *LeadVisualStarsReplacementForText(NSString *text, UIView *view) {
+    if (!LeadVisualStarsEnabled() || text.length == 0) return nil;
+    BOOL numericOnly = LeadStringIsNumericBalanceCandidate(text);
+    BOOL starsText = LeadTextLooksLikeStarsBalance(text);
+    if (!numericOnly && !starsText) return nil;
+    if (!LeadViewLooksLikeStarsBalanceContext(view, numericOnly)) return nil;
 
-%hook ChatMessageItem
-- (BOOL)noForwards {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
-        return NO;
+    NSString *amount = LeadVisualStarsFormattedAmount();
+    if (starsText) {
+        if ([text containsString:@"⭐"]) return [NSString stringWithFormat:@"⭐ %@", amount];
+        if ([text containsString:@"★"]) return [NSString stringWithFormat:@"★ %@", amount];
+        return [NSString stringWithFormat:@"%@ Stars", amount];
     }
-    return %orig;
+    return amount;
+}
+
+%hook UILabel
+- (void)setText:(NSString *)text {
+    NSString *replacement = LeadVisualStarsReplacementForText(text, self);
+    if (replacement.length > 0 && ![replacement isEqualToString:text]) {
+        %orig(replacement);
+        return;
+    }
+    %orig;
+}
+
+- (void)setAttributedText:(NSAttributedString *)attributedText {
+    NSString *plain = attributedText.string;
+    NSString *replacement = LeadVisualStarsReplacementForText(plain, self);
+    if (replacement.length > 0 && ![replacement isEqualToString:plain]) {
+        NSDictionary *attrs = attributedText.length > 0 ? [attributedText attributesAtIndex:0 effectiveRange:nil] : @{};
+        %orig([[NSAttributedString alloc] initWithString:replacement attributes:attrs]);
+        return;
+    }
+    %orig;
 }
 %end
 
-%hook ApiChat
-- (BOOL)noForwards {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableForwardRestriction]) {
-        return NO;
+
+@interface LeadVideoToVoiceTarget : NSObject
++ (instancetype)shared;
+- (void)toggle:(UIButton *)button;
+- (void)sendDidFinish:(NSNotification *)notification;
+@end
+
+@implementation LeadVideoToVoiceTarget
++ (instancetype)shared {
+    static LeadVideoToVoiceTarget *target = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        target = [LeadVideoToVoiceTarget new];
+        [[NSNotificationCenter defaultCenter] addObserver:target
+                                                 selector:@selector(sendDidFinish:)
+                                                     name:@"LeadVideoToVoiceDidFinishSend"
+                                                   object:nil];
+    });
+    return target;
+}
+
+- (void)sendDidFinish:(__unused NSNotification *)notification {
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kVideoToVoicePreviewEnabled];
+}
+
+- (void)toggle:(UIButton *)button {
+    BOOL enabled = !button.selected;
+    button.selected = enabled;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setBool:enabled forKey:kVideoToVoicePreviewEnabled];
+    if (!enabled) {
+        [defaults removeObjectForKey:kVideoToVoiceLastDuration];
+    }
+    [defaults synchronize];
+
+    if (@available(iOS 10.0, *)) {
+        UIImpactFeedbackGenerator *feedback = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+        [feedback impactOccurred];
+    }
+    button.backgroundColor = enabled ? [[UIColor systemBlueColor] colorWithAlphaComponent:0.92] : [[UIColor blackColor] colorWithAlphaComponent:0.28];
+    button.layer.borderWidth = enabled ? 1.5 : 0.0;
+    button.layer.borderColor = enabled ? UIColor.whiteColor.CGColor : UIColor.clearColor.CGColor;
+
+    LeadVideoToVoiceToast(enabled ? @"Video will be sent as voice" : @"Video will be sent normally",
+                          [[UIColor blackColor] colorWithAlphaComponent:0.78]);
+}
+@end
+
+static UIImage *LeadVideoToVoiceIcon(BOOL selected) {
+    UIImage *image = nil;
+    if (@available(iOS 13.0, *)) {
+        image = [UIImage systemImageNamed:selected ? @"waveform.circle.fill" : @"waveform.circle"];
+    }
+    return image ?: [UIImage systemImageNamed:@"mic.circle"];
+}
+
+static void LeadUpdateVideoToVoiceButtonStyle(UIButton *button, BOOL enabled) {
+    button.selected = enabled;
+    button.backgroundColor = enabled ? [[UIColor systemBlueColor] colorWithAlphaComponent:0.92] : [[UIColor blackColor] colorWithAlphaComponent:0.28];
+    button.layer.borderWidth = enabled ? 1.5 : 0.0;
+    button.layer.borderColor = enabled ? UIColor.whiteColor.CGColor : UIColor.clearColor.CGColor;
+}
+
+static UIButton *LeadEnsureVideoToVoiceButton(id interfaceView) {
+    UIButton *button = objc_getAssociatedObject(interfaceView, &LeadVideoToVoiceButtonKey);
+    if (button) return button;
+
+    UIView *wrapper = nil;
+    Ivar wrapperIvar = class_getInstanceVariable([interfaceView class], "_wrapperView");
+    if (wrapperIvar) {
+        wrapper = object_getIvar(interfaceView, wrapperIvar);
+    }
+    if (!wrapper) return nil;
+
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(0, 0, 40.0, 40.0);
+    button.adjustsImageWhenHighlighted = YES;
+    button.tintColor = UIColor.whiteColor;
+    button.layer.cornerRadius = 20.0;
+    button.layer.masksToBounds = YES;
+    [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kVideoToVoicePreviewEnabled];
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:kVideoToVoiceLastDuration];
+    [button setImage:LeadVideoToVoiceIcon(NO) forState:UIControlStateNormal];
+    [button setImage:LeadVideoToVoiceIcon(YES) forState:UIControlStateSelected];
+    LeadUpdateVideoToVoiceButtonStyle(button, NO);
+    [button addTarget:[LeadVideoToVoiceTarget shared] action:@selector(toggle:) forControlEvents:UIControlEventTouchUpInside];
+    [wrapper addSubview:button];
+    objc_setAssociatedObject(interfaceView, &LeadVideoToVoiceButtonKey, button, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    return button;
+}
+
+static void LeadLayoutVideoToVoiceButton(id interfaceView) {
+    UIButton *button = LeadEnsureVideoToVoiceButton(interfaceView);
+    if (!button) return;
+
+    UIView *anchor = nil;
+    // Telegram: _roundVideoButton sits to the right of _muteButton.
+    Ivar roundIvar = class_getInstanceVariable([interfaceView class], "_roundVideoButton");
+    if (roundIvar) {
+        UIView *v = object_getIvar(interfaceView, roundIvar);
+        if (v && !v.hidden) anchor = v;
+    }
+    // Swiftgram: replaces _roundVideoButton with _telescopeButton (same position).
+    if (!anchor) {
+        Ivar telescopeIvar = class_getInstanceVariable([interfaceView class], "_telescopeButton");
+        if (telescopeIvar) {
+            UIView *v = object_getIvar(interfaceView, telescopeIvar);
+            if (v && !v.hidden) anchor = v;
+        }
+    }
+    // Last resort: mute button (visible when video can be sent as GIF).
+    if (!anchor) {
+        Ivar muteIvar = class_getInstanceVariable([interfaceView class], "_muteButton");
+        if (muteIvar) anchor = object_getIvar(interfaceView, muteIvar);
+    }
+    if (!anchor) {
+        button.hidden = YES;
+        return;
+    }
+    button.hidden = anchor.hidden;
+    button.alpha = anchor.alpha;
+    button.userInteractionEnabled = !button.hidden;
+    LeadUpdateVideoToVoiceButtonStyle(button, [[NSUserDefaults standardUserDefaults] boolForKey:kVideoToVoicePreviewEnabled]);
+    button.frame = CGRectMake(CGRectGetMaxX(anchor.frame) + 8.0, anchor.frame.origin.y, 40.0, 40.0);
+}
+
+// Copy protection, ads and voice flags are handled at the MTProto layer
+// (TLParser / FunctionHandler): Postbox.Message, TelegramMediaFile,
+// ChatPresentationInterfaceState and LocalFileVideoMediaResource are pure
+// Swift classes whose properties never go through objc_msgSend, so hooks on
+// them never fired.
+
+%hook TGMediaVideoConverter
+
++ (id)hashForAVAsset:(AVAsset *)avAsset adjustments:(id)adjustments {
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:kVideoToVoicePreviewEnabled]) {
+        Class signalClass = NSClassFromString(@"SSignal");
+        if (signalClass && [signalClass respondsToSelector:@selector(single:)]) {
+            return ((id (*)(Class, SEL, id))objc_msgSend)(signalClass, @selector(single:), nil);
+        }
     }
     return %orig;
 }
+
+%end
+
+%hook TGMediaPickerGalleryInterfaceView
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    UIButton *button = objc_getAssociatedObject(self, &LeadVideoToVoiceButtonKey);
+    if (button && !button.hidden && button.alpha > 0.01 && button.userInteractionEnabled) {
+        CGPoint buttonPoint = [button convertPoint:point fromView:(UIView *)self];
+        if ([button pointInside:buttonPoint withEvent:event]) {
+            return [button hitTest:buttonPoint withEvent:event] ?: button;
+        }
+    }
+    return %orig;
+}
+
+- (void)layoutSubviews {
+    %orig;
+    LeadLayoutVideoToVoiceButton(self);
+}
+
 %end
 
 static BOOL _leadGestureAttached = NO;
@@ -214,19 +726,12 @@ static void tryAttachLeadGestureInView(UIView *view) {
 
 static void tryAttachLeadGesture(void) {
     if (_leadGestureAttached) return;
-    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    UIWindow *window = LeadMainWindow();
     if (window) tryAttachLeadGestureInView(window);
 }
 
 void showUI() {
-	Lead *ui = [Lead new];
-	UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:ui];
-
-	UIWindow *window = UIApplication.sharedApplication.keyWindow;
-	UIViewController *rootVC = window.rootViewController;
-	if (rootVC) {
-	    [rootVC presentViewController:navVC animated:YES completion:nil];
-	}
+	[Lead presentMenu];
 }
 
 
@@ -268,7 +773,11 @@ void showUI() {
         @"hacer una pregunta", @"poser une question",
         @"about turrit", @"\u043e turrit", @"leadgram",
         @"stellen sie eine frage", @"fai una domanda", @"bir soru sor",
-        @"\uc9c8\ubb38\ud558\uae30", @"\u63d0\u95ee", @"\u8cea\u554f\u3059\u308b"
+        @"\uc9c8\ubb38\ud558\uae30", @"\u63d0\u95ee", @"\u8cea\u554f\u3059\u308b",
+        // Simplified Chinese: \u5173\u4e8eTurrit
+        @"\u5173\u4e8eturrit",
+        // Traditional Chinese: \u95dc\u65bcTurrit
+        @"\u95dc\u65bcturrit"
     ];
     for (NSString *s in known) {
         if ([lower containsString:s]) { isSupportRow = YES; break; }
@@ -286,7 +795,6 @@ void showUI() {
     }
 
     if (!isSupportRow) {
-        customLog2(@"[Lead] unmatched label: %@", label);
         return;
     }
 
@@ -409,7 +917,7 @@ static void showWelcomeAlertIfNeeded() {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if ([defaults boolForKey:@"LeadWelcomeShown"]) return;
 
-    UIWindow *window = UIApplication.sharedApplication.keyWindow;
+    UIWindow *window = LeadMainWindow();
     UIViewController *rootVC = window.rootViewController;
     if (!rootVC) return;
 
@@ -531,12 +1039,287 @@ static void injectBadgeToNode(ASDisplayNode *textNode, ASDisplayNode *headerNode
     } @catch (NSException *e) {}
 }
 
+@interface LeadGhostProfileTarget : NSObject
+@property(nonatomic, assign) long long peerId;
+@property(nonatomic, copy) NSString *peerTitle;
+@property(nonatomic, weak) UIBarButtonItem *barItem;
+@property(nonatomic, weak) UIViewController *controller;
+- (void)toggleGhostException;
+@end
+@implementation LeadGhostProfileTarget
+static char LeadGhostTargetKey;
+static void LeadInstallGhostNavItem(UIViewController *controller);
+static BOOL LeadIsUsableGhostTitle(NSString *title);
+static NSString *LeadPeerTitleFromObject(id object);
+
+static NSArray *LeadGhostAliasesForLooseId(long long looseId, NSString *primaryKey) {
+    NSMutableArray *aliases = [NSMutableArray array];
+    if (primaryKey.length > 0) [aliases addObject:primaryKey];
+    if (looseId != 0) {
+        [aliases addObject:LeadPeerKey(@"user", looseId)];
+        [aliases addObject:LeadPeerKey(@"channel", looseId)];
+        [aliases addObject:LeadPeerKey(@"chat", looseId)];
+    }
+    return aliases;
+}
+
+static void LeadUpdateGhostBarItem(UIBarButtonItem *item, BOOL enabled) {
+    UIImageSymbolConfiguration *config =
+        [UIImageSymbolConfiguration configurationWithPointSize:20.0
+                                                        weight:UIImageSymbolWeightSemibold];
+    UIImage *image = [[UIImage systemImageNamed:(enabled ? @"eye.fill" : @"eye.slash")]
+        imageWithConfiguration:config];
+    [UIView performWithoutAnimation:^{
+        item.image = image;
+        item.title = nil;
+        item.tintColor = enabled ? [UIColor systemGreenColor] : nil;
+        item.accessibilityLabel = enabled ? @"Ghost exception enabled" : @"Ghost exception disabled";
+    }];
+}
+
+- (void)toggleGhostException {
+    long long looseId = self.peerId;
+    if (looseId == 0) return;
+    NSString *primaryKey = LeadPeerKey(@"peer", looseId);
+    NSArray *aliases = LeadGhostAliasesForLooseId(looseId, primaryKey);
+    BOOL enabled = LeadIsGhostPeerEnabledForKeys(aliases);
+
+    // Data is definitely loaded by toggle time — retry if we stored a bad title.
+    NSString *title = self.peerTitle;
+    if (!LeadIsUsableGhostTitle(title) && self.controller) {
+        NSString *fresh = LeadPeerTitleFromObject(self.controller);
+        if (LeadIsUsableGhostTitle(fresh)) {
+            title = fresh;
+            self.peerTitle = fresh;
+        } else {
+            title = primaryKey;
+        }
+    }
+
+    LeadSetGhostPeerEnabled(primaryKey, aliases, title, !enabled);
+    if (self.barItem) {
+        LeadUpdateGhostBarItem(self.barItem, !enabled);
+    }
+    UIViewController *controller = self.controller;
+    if (controller) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            LeadInstallGhostNavItem(controller);
+        });
+    }
+}
+@end
+
+static long long LeadPeerIdFromObject(id object) {
+    if (!object) return 0;
+    @try {
+        NSNumber *peerNumber = [NSClassFromString(@"TLParser") performSelector:@selector(getPeerIdFromNode:) withObject:object];
+        if (peerNumber) return [peerNumber longLongValue];
+    } @catch (NSException *e) {}
+    return 0;
+}
+
+static NSInteger LeadPeerNamespaceFromObject(id object) {
+    if (!object) return NSNotFound;
+    @try {
+        NSNumber *namespaceNumber = [NSClassFromString(@"TLParser") performSelector:@selector(getPeerNamespaceFromNode:) withObject:object];
+        if (namespaceNumber) return [namespaceNumber integerValue];
+    } @catch (NSException *e) {}
+    return NSNotFound;
+}
+
+static NSString *LeadPeerTitleFromObject(id object) {
+    if (!object) return nil;
+    @try {
+        NSString *title = [NSClassFromString(@"TLParser") performSelector:@selector(getPeerDisplayTitleFromNode:) withObject:object];
+        if (LeadIsUsableGhostTitle(title)) return title;
+    } @catch (NSException *e) {}
+    @try {
+        if ([object isKindOfClass:[UIViewController class]]) {
+            UIViewController *controller = (UIViewController *)object;
+            NSArray<NSString *> *candidates = @[
+                controller.navigationItem.title ?: @"",
+                controller.title ?: @""
+            ];
+            for (NSString *candidate in candidates) {
+                if (LeadIsUsableGhostTitle(candidate)) return candidate;
+            }
+        }
+    } @catch (NSException *e) {}
+    return nil;
+}
+
+static BOOL LeadIsSettingsOrMyProfileObject(id object) {
+    if (!object) return YES;
+    @try {
+        NSNumber *result = [NSClassFromString(@"TLParser") performSelector:@selector(isSettingsOrMyProfileNode:) withObject:object];
+        return result && [result boolValue];
+    } @catch (NSException *e) {}
+    return NO;
+}
+
+static BOOL LeadIsCurrentUserPeer(long long peerId) {
+    if (peerId == 0) return YES;
+    @try {
+        NSNumber *currId = [NSClassFromString(@"TLParser") performSelector:@selector(getCurrentUserId)];
+        return currId && [currId longLongValue] == peerId;
+    } @catch (NSException *e) {}
+    return NO;
+}
+
+static BOOL LeadGhostControlsShouldBeVisible(void) {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (![defaults boolForKey:kGhostModeEnabled]) return NO;
+
+    NSArray *keys = @[
+        kDisableOnlineStatus, kDisableTypingStatus, kDisableRecordingVideoStatus,
+        kDisableUploadingVideoStatus, kDisableRecordingVoiceStatus,
+        kDisableUploadingVoiceStatus, kDisableUploadingPhotoStatus,
+        kDisableUploadingFileStatus, kDisableChoosingLocationStatus,
+        kDisableChoosingContactStatus, kDisablePlayingGameStatus,
+        kDisableRecordingRoundVideoStatus, kDisableUploadingRoundVideoStatus,
+        kDisableSpeakingInGroupCallStatus, kDisableChoosingStickerStatus,
+        kDisableEmojiInteractionStatus, kDisableEmojiAcknowledgementStatus,
+        kDisableMessageReadReceipt, kDisableStoriesReadReceipt
+    ];
+    for (NSString *key in keys) {
+        if ([defaults boolForKey:key]) return YES;
+    }
+    return NO;
+}
+
+static BOOL LeadIsUsableGhostTitle(NSString *title) {
+    if (title.length == 0 || title.length >= 80) return NO;
+    NSString *trimmed = [title stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if (trimmed.length == 0 || [trimmed hasPrefix:@"+"]) return NO;
+    NSString *lower = title.localizedLowercaseString;
+    NSArray *blockedExact = @[
+        @"username", @"addressname", @"firstname", @"lastname", @"title",
+        @"peer", @"_peer", @"message", @"call",
+        @"video call", @"mute", @"notifications", @"bio", @"about", @"info",
+        @"edit", @"done", @"settings", @"add to contacts", @"add contact",
+        @"contact", @"invite", @"more", @"back", @"block user", @"block",
+        @"report", @"delete contact", @"share contact", @"send message"
+    ];
+    for (NSString *word in blockedExact) {
+        if ([lower isEqualToString:word]) {
+            return NO;
+        }
+    }
+    if ([lower containsString:@"share qr"] || [lower containsString:@"qr code"]) return NO;
+    return YES;
+}
+
+static void LeadInstallGhostNavItem(UIViewController *controller) {
+    @try {
+        if (!controller || !controller.navigationItem) return;
+
+        UIBarButtonItem *ghostItem = nil;
+        NSMutableArray *rightItems = [NSMutableArray array];
+        for (UIBarButtonItem *item in controller.navigationItem.rightBarButtonItems ?: @[]) {
+            if ([item.accessibilityIdentifier isEqualToString:@"LeadGhostExceptionBarItem"]) {
+                if (!ghostItem) ghostItem = item;
+                continue;
+            }
+            [rightItems addObject:item];
+        }
+
+        if (!LeadGhostControlsShouldBeVisible()) {
+            if (ghostItem) {
+                [UIView performWithoutAnimation:^{
+                    controller.navigationItem.rightBarButtonItems = rightItems;
+                }];
+            }
+            return;
+        }
+
+        if (LeadIsSettingsOrMyProfileObject(controller)) {
+            if (ghostItem) {
+                [UIView performWithoutAnimation:^{
+                    controller.navigationItem.rightBarButtonItems = rightItems;
+                }];
+            }
+            return;
+        }
+
+        long long peerId = LeadPeerIdFromObject(controller);
+        if (peerId == 0 || LeadIsCurrentUserPeer(peerId)) {
+            if (ghostItem) {
+                [UIView performWithoutAnimation:^{
+                    controller.navigationItem.rightBarButtonItems = rightItems;
+                }];
+            }
+            return;
+        }
+
+        NSInteger peerNamespace = LeadPeerNamespaceFromObject(controller);
+        if (peerNamespace == 2) {
+            if (ghostItem) {
+                [UIView performWithoutAnimation:^{
+                    controller.navigationItem.rightBarButtonItems = rightItems;
+                }];
+            }
+            return;
+        }
+
+        NSString *primaryKey = LeadPeerKey(@"peer", peerId);
+        NSArray *aliases = LeadGhostAliasesForLooseId(peerId, primaryKey);
+        BOOL enabled = LeadIsGhostPeerEnabledForKeys(aliases);
+        [[NSUserDefaults standardUserDefaults]
+            setObject:@{@"peerId": @(peerId), @"time": @([[NSDate date] timeIntervalSince1970])}
+               forKey:@"LeadCurrentProfilePeer"];
+
+        LeadGhostProfileTarget *target = ghostItem ? objc_getAssociatedObject(ghostItem, &LeadGhostTargetKey) : nil;
+        if (!target) target = [LeadGhostProfileTarget new];
+
+        if (!ghostItem) {
+            ghostItem = [[UIBarButtonItem alloc] initWithImage:nil
+                                                         style:UIBarButtonItemStylePlain
+                                                        target:target
+                                                        action:@selector(toggleGhostException)];
+            ghostItem.accessibilityIdentifier = @"LeadGhostExceptionBarItem";
+
+        } else {
+            ghostItem.target = target;
+            ghostItem.action = @selector(toggleGhostException);
+        }
+
+        [rightItems insertObject:ghostItem atIndex:0];
+        [UIView performWithoutAnimation:^{
+            controller.navigationItem.rightBarButtonItems = rightItems;
+        }];
+
+        NSString *title = LeadPeerTitleFromObject(controller);
+        if (!LeadIsUsableGhostTitle(title)) title = primaryKey;
+        target.peerId = peerId;
+        target.peerTitle = title;
+        target.barItem = ghostItem;
+        target.controller = controller;
+        objc_setAssociatedObject(ghostItem, &LeadGhostTargetKey, target, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if (enabled && LeadIsUsableGhostTitle(title)) {
+            LeadSetGhostPeerEnabled(primaryKey, aliases, title, YES);
+        }
+        LeadUpdateGhostBarItem(ghostItem, enabled);
+    } @catch (NSException *e) {}
+}
+
+static void removeGhostButtonFromHeader(ASDisplayNode *headerNode) {
+    @try {
+        UIView *oldButton = [headerNode.view viewWithTag:9989];
+        if (oldButton) [oldButton removeFromSuperview];
+    } @catch (NSException *e) {}
+}
+
 static void recursiveSearchAndInject(ASDisplayNode *node, ASDisplayNode *header, long long peerId) {
     if (!node) return;
     NSString *cls = NSStringFromClass([node class]);
+
+    if (node == header) {
+        removeGhostButtonFromHeader(header);
+    }
     
     if ([cls containsString:@"TextNode"] && ![cls containsString:@"Accessibility"] && ![cls containsString:@"Button"]) {
         injectBadgeToNode(node, header, peerId);
+        removeGhostButtonFromHeader(header);
     }
     @try {
         NSArray *subs = node.subnodes;
@@ -557,6 +1340,7 @@ static NSHashTable *activeMessageNodes = nil;
     dispatch_once(&onceToken, ^{
         instance = [self new];
         [[NSNotificationCenter defaultCenter] addObserver:instance selector:@selector(handleDeleted:) name:@"LeadMessageDeletedRealtime" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:instance selector:@selector(handleDeleted:) name:@"LeadMessageEditedRealtime" object:nil];
     });
     return instance;
 }
@@ -583,31 +1367,6 @@ static NSHashTable *activeMessageNodes = nil;
 - (void)layout {
     %orig;
     
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kDisableAllAds]) {
-        @try {
-            NSString *className = NSStringFromClass([self class]);
-            if ([className containsString:@"ChatSponsoredMessage"] || [className containsString:@"ChatChannelAdItemNode"]) {
-                self.view.hidden = YES;
-                self.view.alpha = 0.0;
-                return;
-            }
-
-            if ([self respondsToSelector:NSSelectorFromString(@"item")]) {
-                id item = [self valueForKey:@"item"];
-                if (item && [item respondsToSelector:NSSelectorFromString(@"message")]) {
-                    id message = [item valueForKey:@"message"];
-                    if (message && [message respondsToSelector:NSSelectorFromString(@"adAttribute")]) {
-                        if ([message valueForKey:@"adAttribute"] != nil) {
-                            self.view.hidden = YES;
-                            self.view.alpha = 0.0;
-                            return;
-                        }
-                    }
-                }
-            }
-        } @catch (NSException *e) {}
-    }
-
     NSString *cls = NSStringFromClass([self class]);
     BOOL isProfileHeader = [cls containsString:@"Profile"] || 
                            [cls containsString:@"UserInfo"] || 
@@ -618,24 +1377,13 @@ static NSHashTable *activeMessageNodes = nil;
     
     if (isProfileHeader) {
         long long peerId = 0;
-        peerId = [[NSClassFromString(@"TLParser") performSelector:@selector(getPeerIdFromNode:) withObject:self] longLongValue];
+        peerId = LeadPeerIdFromObject(self);
         
         if (peerId == 0 && ([cls containsString:@"Settings"] || [cls containsString:@"Profile"])) {
             peerId = [[NSUserDefaults standardUserDefaults] integerForKey:@"LeadLastKnownUserId"];
         }
         recursiveSearchAndInject(self, self, peerId);
 
-    }
-
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:kHideStories]) {
-        NSString *className = NSStringFromClass([self class]);
-        if ([className containsString:@"StoryPeerList"] || 
-            [className containsString:@"StoryContainer"] ||
-            [className containsString:@"StorySetIndicator"] ||
-            [className containsString:@"AvatarStoryIndicator"]) {
-            self.view.hidden = YES;
-            self.view.alpha = 0.0;
-        }
     }
 
     NSString *className = NSStringFromClass([self class]);
@@ -653,80 +1401,174 @@ static NSHashTable *activeMessageNodes = nil;
     }
     
     NSNumber *msgId = [TLParser getMessageIdFromNode:self];
-    BOOL isDeletedMsg = (msgId && [TLParser isDeleted:msgId]);
+    if (msgId && [TLParser diagEnabled]) {
+        [TLParser diagNode:self];
+    }
+    if (msgId && [[NSUserDefaults standardUserDefaults] boolForKey:kAntiEdit]) {
+        [TLParser observeMessageTextFromNode:self];
+    }
+    BOOL isDeletedMsg = (msgId && [TLParser isDeletedMessageNode:self]);
+    BOOL isEditedMsg = (msgId && [TLParser isEditedMessageNode:self]);
     BOOL isSelfDestructMsg = (msgId && [TLParser isMessageSelfDestructing:msgId]);
-    
+    LeadBadgeKind kind = isDeletedMsg ? LeadBadgeKindDeleted : isEditedMsg ? LeadBadgeKindEdited : isSelfDestructMsg ? LeadBadgeKindTimer : LeadBadgeKindNone;
+    NSString *editKey = isEditedMsg ? [TLParser editKeyForNode:self] : nil;
+    NSString *peerTag = msgId ? [TLParser peerTagForNode:self] : nil;
+
     ASDisplayNode *node = (ASDisplayNode *)self;
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (isDeletedMsg || isSelfDestructMsg) {
-            UIImageView *statusIcon = nil;
-            for (UIView *v in node.view.subviews) {
-                if (v.tag == 8898) {
-                    statusIcon = (UIImageView *)v;
-                    break;
-                }
-            }
-            
-            BOOL isNewlyCreated = NO;
-            if (!statusIcon) {
-                statusIcon = [[UIImageView alloc] init];
-                statusIcon.tag = 8898;
-                [node.view addSubview:statusIcon];
-                isNewlyCreated = YES;
-            }
-            
-            if (isDeletedMsg) {
-                statusIcon.image = [UIImage systemImageNamed:@"trash.fill"];
-                statusIcon.tintColor = [UIColor systemRedColor];
-            } else {
-                statusIcon.image = [UIImage systemImageNamed:@"timer"];
-                statusIcon.tintColor = [UIColor systemOrangeColor];
-            }
-            
-            ASDisplayNode *statusNode = findNodeByClassNamePrefix(node, @"ChatMessageDateAndStatusNode");
-            if (statusNode && statusNode.view) {
-                CGRect statusFrame = [node.view convertRect:statusNode.view.bounds fromView:statusNode.view];
-                statusIcon.frame = CGRectMake(statusFrame.origin.x - 18, statusFrame.origin.y + (statusFrame.size.height / 2.0) - 7, 14, 14);
-                statusIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
-            } else {
-                statusIcon.frame = CGRectMake(node.view.bounds.size.width - 40, node.view.bounds.size.height - 35, 20, 20);
-                statusIcon.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin;
-            }
-            
-            BOOL wasHidden = statusIcon.hidden;
-            statusIcon.hidden = NO;
-            [node.view bringSubviewToFront:statusIcon];
-            
-            if (wasHidden || isNewlyCreated) {
-                statusIcon.transform = CGAffineTransformMakeScale(0.1, 0.1);
-                statusIcon.alpha = 0.0;
-                [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.8 options:UIViewAnimationOptionCurveEaseOut animations:^{
-                    statusIcon.transform = CGAffineTransformIdentity;
-                    statusIcon.alpha = 1.0;
-                } completion:nil];
-            }
-            
-        } else {
-            node.view.backgroundColor = [UIColor clearColor];
-            for (UIView *v in node.view.subviews) {
-                if (v.tag == 8898) {
-                    v.hidden = YES;
-                }
-            }
+        UIView *view = node.view;
+        if (!view) return;
+        LeadMessageBadge *badge = LeadBadgeInView(view);
+        LeadInstallBadgeTap(view, kind == LeadBadgeKindDeleted || kind == LeadBadgeKindEdited);
+        if (kind == LeadBadgeKindNone) {
+            badge.hidden = YES;
+            badge.kind = LeadBadgeKindNone;
+            return;
         }
+        BOOL appearing = !badge || badge.hidden;
+        if (!badge) {
+            badge = [[LeadMessageBadge alloc] initWithFrame:CGRectZero];
+            [view addSubview:badge];
+        }
+        // The item view can be rebound to another message.
+        if (![badge.messageId isEqual:msgId] || ![badge.peerTag ?: @"" isEqualToString:peerTag ?: @""]) badge.side = 0;
+        badge.alsoEdited = isEditedMsg;
+        badge.editKey = editKey;
+        badge.peerTag = peerTag;
+        badge.messageId = msgId;
+        badge.hidden = NO;
+        [view bringSubviewToFront:badge];
+        if (appearing) badge.kind = LeadBadgeKindNone;
+        [badge setKind:kind animated:YES];
+        LeadPlaceBadge(badge, view, node, YES);
     });
 }
 %end
 
-%hook _TtC10TelegramUI14ChatController
-- (void)viewDidLoad {
+// "#" button on profiles: copy the Bot-API style ID, see the estimated sign-up year.
+// Telegram draws bar items with its own navigation bar, which honours target/action
+// but ignores UIKit's UIBarButtonItem.menu — so the tap opens an action sheet.
+@interface LeadPeerInfoTarget : NSObject
+@property (nonatomic, copy) NSString *idText;
+@property (nonatomic, copy) NSString *registered;
+@property (nonatomic, weak) UIViewController *controller;
+@property (nonatomic, weak) UIBarButtonItem *barItem;
+- (void)showPeerInfo;
+@end
+
+@implementation LeadPeerInfoTarget
+- (void)showPeerInfo {
+    UIViewController *controller = self.controller;
+    if (!controller || !self.idText) return;
+    LeadSelectionHaptic();
+    NSString *message = self.registered ? [NSString stringWithFormat:LeadL(@"UI_PEER_REGISTERED"), self.registered] : nil;
+    UIAlertController *sheet = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"ID %@", self.idText]
+                                                                   message:message
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+    NSString *idText = self.idText;
+    __weak UIViewController *weakController = controller;
+    UIAlertAction *copy = [UIAlertAction actionWithTitle:LeadL(@"UI_COPY") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
+        [UIPasteboard generalPasteboard].string = idText;
+        [LeadToast showText:LeadL(@"UI_COPIED") symbol:@"checkmark" inView:weakController.view];
+    }];
+    @try {
+        [copy setValue:[UIImage systemImageNamed:@"doc.on.doc"] forKey:@"image"];
+    } @catch (__unused NSException *exception) {}
+    [sheet addAction:copy];
+    [sheet addAction:[UIAlertAction actionWithTitle:LeadL(@"CANCEL") style:UIAlertActionStyleCancel handler:nil]];
+    sheet.popoverPresentationController.barButtonItem = self.barItem;
+    if (!self.barItem) {
+        sheet.popoverPresentationController.sourceView = controller.view;
+        sheet.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMaxX(controller.view.bounds) - 40, 60, 1, 1);
+    }
+    UIViewController *presenter = controller;
+    while (presenter.presentedViewController && !presenter.presentedViewController.isBeingDismissed) {
+        presenter = presenter.presentedViewController;
+    }
+    [presenter presentViewController:sheet animated:YES completion:nil];
+}
+@end
+
+static char LeadPeerInfoTargetKey;
+
+static void LeadInstallPeerInfoItem(UIViewController *controller) {
+    @try {
+        if (!controller.navigationItem) return;
+        UIBarButtonItem *existing = nil;
+        NSMutableArray *items = [NSMutableArray array];
+        for (UIBarButtonItem *item in controller.navigationItem.rightBarButtonItems ?: @[]) {
+            if ([item.accessibilityIdentifier isEqualToString:@"LeadPeerInfoBarItem"]) {
+                existing = item;
+                continue;
+            }
+            [items addObject:item];
+        }
+        long long peerId = LeadPeerIdFromObject(controller);
+        BOOL show = [[NSUserDefaults standardUserDefaults] boolForKey:kShowPeerInfo] && peerId != 0 &&
+                    !LeadIsSettingsOrMyProfileObject(controller) && !LeadIsCurrentUserPeer(peerId);
+        if (!show) {
+            if (existing) {
+                [UIView performWithoutAnimation:^{
+                    controller.navigationItem.rightBarButtonItems = items;
+                }];
+            }
+            return;
+        }
+        NSInteger peerNamespace = LeadPeerNamespaceFromObject(controller);
+        NSString *idText = peerNamespace == 2 ? [NSString stringWithFormat:@"-100%lld", peerId]
+                         : peerNamespace == 1 ? [NSString stringWithFormat:@"-%lld", peerId]
+                                              : [NSString stringWithFormat:@"%lld", peerId];
+        LeadPeerInfoTarget *target = existing ? objc_getAssociatedObject(existing, &LeadPeerInfoTargetKey) : nil;
+        if (!target) target = [LeadPeerInfoTarget new];
+        UIBarButtonItem *item = existing ?: [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"number"]
+                                                                            style:UIBarButtonItemStylePlain
+                                                                           target:target
+                                                                           action:@selector(showPeerInfo)];
+        item.target = target;
+        item.action = @selector(showPeerInfo);
+        item.accessibilityIdentifier = @"LeadPeerInfoBarItem";
+        item.accessibilityLabel = [NSString stringWithFormat:@"ID %@", idText];
+        target.idText = idText;
+        target.registered = (peerNamespace == 0 || peerNamespace == NSNotFound) ? LeadRegistrationEstimate(peerId) : nil;
+        target.controller = controller;
+        target.barItem = item;
+        objc_setAssociatedObject(item, &LeadPeerInfoTargetKey, target, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        if (existing && [controller.navigationItem.rightBarButtonItems.lastObject isEqual:existing]) return;
+        [items addObject:item];
+        [UIView performWithoutAnimation:^{
+            controller.navigationItem.rightBarButtonItems = items;
+        }];
+    } @catch (NSException *e) {}
+}
+
+static void LeadInstallProfileItems(UIViewController *controller) {
+    LeadInstallGhostNavItem(controller);
+    LeadInstallPeerInfoItem(controller);
+}
+
+%hook _TtC14PeerInfoScreen18PeerInfoScreenImpl
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    LeadInstallProfileItems((UIViewController *)self);
+    UIViewController *controller = (UIViewController *)self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        LeadInstallProfileItems(controller);
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        LeadInstallProfileItems(controller);
+    });
+}
+%end
+
+%hook _TtC10TelegramUI18ChatControllerImpl
+- (void)viewWillAppear:(BOOL)animated {
     %orig;
     @try {
         id context = [((id)self) valueForKey:@"context"];
         Class tlParser = NSClassFromString(@"TLParser");
         if ([tlParser respondsToSelector:@selector(setSharedContext:)]) {
             [tlParser performSelector:@selector(setSharedContext:) withObject:context];
-            
+
             NSNumber *currId = [tlParser performSelector:@selector(getCurrentUserId)];
             if (currId) {
                 [[NSUserDefaults standardUserDefaults] setInteger:[currId integerValue] forKey:@"LeadLastKnownUserId"];
@@ -758,19 +1600,25 @@ static NSHashTable *activeMessageNodes = nil;
         if (label && label.length > 0 && [[NSUserDefaults standardUserDefaults] boolForKey:kConfirmCalls]) {
             NSString *lower = [label lowercaseString];
             
-            // All known call button labels (EN, RU, case-insensitive)
-            NSSet *callLabels = [NSSet setWithArray:@[
+            // Fallback EN/RU labels plus whatever the active Telegram language
+            // calls the profile buttons (PeerInfo.ButtonCall / ButtonVideoCall).
+            NSMutableSet *callLabels = [NSMutableSet setWithArray:@[
                 @"call", @"позвонить", @"звонок"
             ]];
-            NSSet *videoLabels = [NSSet setWithArray:@[
+            NSMutableSet *videoLabels = [NSMutableSet setWithArray:@[
                 @"video", @"видео", @"video call", @"видеозвонок"
             ]];
+            TGLocalization *loc = getActiveTGLocalization();
+            NSString *localizedCall = [[loc get:@"PeerInfo.ButtonCall"] lowercaseString];
+            NSString *localizedVideo = [[loc get:@"PeerInfo.ButtonVideoCall"] lowercaseString];
+            if (localizedCall.length > 0 && ![localizedCall isEqualToString:@"peerinfo.buttoncall"]) [callLabels addObject:localizedCall];
+            if (localizedVideo.length > 0 && ![localizedVideo isEqualToString:@"peerinfo.buttonvideocall"]) [videoLabels addObject:localizedVideo];
             
             BOOL isCall = [callLabels containsObject:lower];
             BOOL isVideo = [videoLabels containsObject:lower];
             
             if (isCall || isVideo) {
-                UIWindow *window = UIApplication.sharedApplication.keyWindow;
+                UIWindow *window = LeadMainWindow();
                 UIViewController *rootVC = window.rootViewController;
                 while (rootVC.presentedViewController) {
                     rootVC = rootVC.presentedViewController;
@@ -839,31 +1687,26 @@ static NSHashTable *activeMessageNodes = nil;
 %end
 %end // SiriBypassHooks
 
-// ============================================================
-// Download Stories: auto-save story to camera roll when opened.
-// Hooks StoryItemSetContainerComponent.View — calls requestSave
-// automatically when the story becomes visible.
-// ============================================================
-%hook _TtCC20StoryContainerScreen32StoryItemSetContainerComponent4View
-
-- (void)didMoveToWindow {
-    %orig;
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kDownloadStories]) return;
-    if (!self.window) return;
-    // Delay slightly so the story is fully loaded before saving
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.8 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        @try {
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kDownloadStories]) {
-                [self requestSave];
-            }
-        } @catch (NSException *e) {}
-    });
-}
-
-%end
+// Stories: "Download Stories" clears the story noforwards flag and "Hide Stories"
+// empties the feed — both in TLParser. StoryItemSetContainerComponent.View's
+// requestSave is private Swift, so calling it from here only ever threw.
 
 __attribute__((constructor))
 static void hook() {
+    NSBundle *bundle = [NSBundle mainBundle];
+    NSString *bundleId = bundle.bundleIdentifier ?: @"";
+    NSString *processName = [NSProcessInfo processInfo].processName ?: @"";
+    NSString *executableName = bundle.executablePath.lastPathComponent ?: @"";
+    NSDictionary *extensionInfo = bundle.infoDictionary[@"NSExtension"];
+    NSString *extensionPoint = extensionInfo[@"NSExtensionPointIdentifier"] ?: @"";
+    NSString *identity = [[NSString stringWithFormat:@"%@ %@ %@ %@", bundleId, processName, executableName, extensionPoint] lowercaseString];
+    if ([identity containsString:@"notificationservice"] ||
+        [identity containsString:@"notificationcontent"] ||
+        [identity containsString:@"com.apple.usernotifications.service"]) {
+        NSLog(@"[Lead] Skipping UI hooks inside notification extension");
+        return;
+    }
+
     NSLog(@"[Lead] Tweak initializing...");
     
     @try {
@@ -880,9 +1723,11 @@ static void hook() {
     }
     
     [LeadAntiRevokeUpdater shared];
+    [LeadDeletionBanner install];
     
     [[NSUserDefaults standardUserDefaults] registerDefaults:@{
         kDisableAllAds: @NO,
+        kGhostModeEnabled: @NO,
         kAntiRevoke: @NO,
         kAntiEdit: @NO,
         kAntiSelfDestruct: @NO,
@@ -892,17 +1737,32 @@ static void hook() {
         kDisableStoriesReadReceipt: @NO,
         kDisableOnlineStatus: @NO,
         kDisableTypingStatus: @NO,
-        kConfirmCalls: @YES
+        kDisableRecordingVideoStatus: @NO,
+        kDisableUploadingVideoStatus: @NO,
+        kDisableRecordingVoiceStatus: @NO,
+        kDisableUploadingVoiceStatus: @NO,
+        kDisableUploadingPhotoStatus: @NO,
+        kDisableUploadingFileStatus: @NO,
+        kDisableChoosingLocationStatus: @NO,
+        kDisableChoosingContactStatus: @NO,
+        kDisablePlayingGameStatus: @NO,
+        kDisableRecordingRoundVideoStatus: @NO,
+        kDisableUploadingRoundVideoStatus: @NO,
+        kDisableSpeakingInGroupCallStatus: @NO,
+        kDisableChoosingStickerStatus: @NO,
+        kDisableEmojiInteractionStatus: @NO,
+        kDisableEmojiAcknowledgementStatus: @NO,
+        kConfirmCalls: @YES,
+        kHideTTLLabel: @NO,
+        kVisualStarsEnabled: @NO,
+        kVisualStarsAmount: @0,
+        kGhostPeerRecords: @[],
+        kGhostPeerKeys: @[]
     }];
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         %init(
-            ChatMessageItem = objc_getClass("_TtC10TelegramUI15ChatMessageItem"),
-            ApiChat = objc_getClass("_TtC10TelegramUI11ApiChat"),
-            _TtC10TelegramUI29ChatPresentationInterfaceState = objc_getClass("_TtC10TelegramUI29ChatPresentationInterfaceState"),
-            _TtC30ChatPresentationInterfaceState30ChatPresentationInterfaceState = objc_getClass("_TtC30ChatPresentationInterfaceState30ChatPresentationInterfaceState"),
-            _TtC10TelegramUI14ChatController = objc_getClass("_TtC10TelegramUI14ChatController"),
-            _TtC7Postbox7Message = objc_getClass("_TtC7Postbox7Message")
+            _TtC10TelegramUI18ChatControllerImpl = objc_getClass("_TtC10TelegramUI18ChatControllerImpl")
         );
 
         @try {
@@ -919,11 +1779,5 @@ static void hook() {
             showWelcomeAlertIfNeeded();
         });
 
-        // Download Speed Boost — find FetchImpl.Impl via runtime class scan.
-        // The class name contains "FetchImpl" and "Impl" and lives in TelegramCore.
-        // We swizzle the init method to intercept defaultPartSize and maxPendingParts.
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [LeadDownloadBoost install];
-        });
     });
  }

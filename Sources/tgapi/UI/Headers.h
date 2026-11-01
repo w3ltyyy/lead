@@ -7,6 +7,8 @@
 #import "../Constants.h"
 
 @interface Lead : UIViewController <UITableViewDataSource, UITableViewDelegate>
+// Presents the menu (in its own navigation controller) over the topmost screen.
++ (void)presentMenu;
 @end
 
 @interface TGLocalization : NSObject
@@ -32,10 +34,21 @@ NSString *LeadBundlePath(void);
 @interface DonateViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @end
 
-@interface LeadDownloadBoost : NSObject
-+ (void)install;
-@end
 
 @interface LocationSelector : UIViewController <MKMapViewDelegate>
 @end
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+NSString *LeadPeerKey(NSString *kind, long long peerId);
+NSArray<NSString *> *LeadGhostAliasesForRawPeerId(long long rawPeerId);
+BOOL LeadIsGhostPeerEnabledForKeys(NSArray<NSString *> *keys);
+BOOL LeadIsGhostPeerEnabledForRawPeerId(long long rawPeerId);
+void LeadSetGhostPeerEnabled(NSString *primaryKey, NSArray<NSString *> *aliases,
+                             NSString *title, BOOL enabled);
+NSArray<NSDictionary *> *LeadGhostPeerRecords(void);
+void LeadRemoveGhostPeer(NSString *primaryKey);
+#ifdef __cplusplus
+}
+#endif

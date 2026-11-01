@@ -30,6 +30,7 @@ public final class DeserializeFunctionResponse<T> {
     }
 }
 
+// Marker only: the generated code is slim (tools/gen_api.py) and skips
+// descriptionFields(), which only Telegram's logger ever used.
 public protocol TypeConstructorDescription {
-    func descriptionFields() -> (String, [(String, ConstructorParameterDescription)])
 }

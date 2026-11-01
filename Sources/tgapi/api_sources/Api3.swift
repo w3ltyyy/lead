@@ -1,520 +1,330 @@
-public extension Api {
-    enum BusinessGreetingMessage: TypeConstructorDescription {
-        public class Cons_businessGreetingMessage: TypeConstructorDescription {
-            public var shortcutId: Int32
-            public var recipients: Api.BusinessRecipients
-            public var noActivityDays: Int32
-            public init(shortcutId: Int32, recipients: Api.BusinessRecipients, noActivityDays: Int32) {
-                self.shortcutId = shortcutId
-                self.recipients = recipients
-                self.noActivityDays = noActivityDays
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessGreetingMessage", [("shortcutId", ConstructorParameterDescription(self.shortcutId)), ("recipients", ConstructorParameterDescription(self.recipients)), ("noActivityDays", ConstructorParameterDescription(self.noActivityDays))])
+extension Api {
+    enum ChannelParticipant: TypeConstructorDescription {
+        class Cons_channelParticipant: TypeConstructorDescription {
+            var flags: Int32
+            var userId: Int64
+            var date: Int32
+            var subscriptionUntilDate: Int32?
+            var rank: String?
+            init(flags: Int32, userId: Int64, date: Int32, subscriptionUntilDate: Int32?, rank: String?) {
+                self.flags = flags
+                self.userId = userId
+                self.date = date
+                self.subscriptionUntilDate = subscriptionUntilDate
+                self.rank = rank
             }
         }
-        case businessGreetingMessage(Cons_businessGreetingMessage)
+        class Cons_channelParticipantAdmin: TypeConstructorDescription {
+            var flags: Int32
+            var userId: Int64
+            var inviterId: Int64?
+            var promotedBy: Int64
+            var date: Int32
+            var adminRights: Api.ChatAdminRights
+            var rank: String?
+            init(flags: Int32, userId: Int64, inviterId: Int64?, promotedBy: Int64, date: Int32, adminRights: Api.ChatAdminRights, rank: String?) {
+                self.flags = flags
+                self.userId = userId
+                self.inviterId = inviterId
+                self.promotedBy = promotedBy
+                self.date = date
+                self.adminRights = adminRights
+                self.rank = rank
+            }
+        }
+        class Cons_channelParticipantBanned: TypeConstructorDescription {
+            var flags: Int32
+            var peer: Api.Peer
+            var kickedBy: Int64
+            var date: Int32
+            var bannedRights: Api.ChatBannedRights
+            var rank: String?
+            init(flags: Int32, peer: Api.Peer, kickedBy: Int64, date: Int32, bannedRights: Api.ChatBannedRights, rank: String?) {
+                self.flags = flags
+                self.peer = peer
+                self.kickedBy = kickedBy
+                self.date = date
+                self.bannedRights = bannedRights
+                self.rank = rank
+            }
+        }
+        class Cons_channelParticipantCreator: TypeConstructorDescription {
+            var flags: Int32
+            var userId: Int64
+            var adminRights: Api.ChatAdminRights
+            var rank: String?
+            init(flags: Int32, userId: Int64, adminRights: Api.ChatAdminRights, rank: String?) {
+                self.flags = flags
+                self.userId = userId
+                self.adminRights = adminRights
+                self.rank = rank
+            }
+        }
+        class Cons_channelParticipantLeft: TypeConstructorDescription {
+            var peer: Api.Peer
+            init(peer: Api.Peer) {
+                self.peer = peer
+            }
+        }
+        class Cons_channelParticipantSelf: TypeConstructorDescription {
+            var flags: Int32
+            var userId: Int64
+            var inviterId: Int64
+            var date: Int32
+            var subscriptionUntilDate: Int32?
+            var rank: String?
+            init(flags: Int32, userId: Int64, inviterId: Int64, date: Int32, subscriptionUntilDate: Int32?, rank: String?) {
+                self.flags = flags
+                self.userId = userId
+                self.inviterId = inviterId
+                self.date = date
+                self.subscriptionUntilDate = subscriptionUntilDate
+                self.rank = rank
+            }
+        }
+        case channelParticipant(Cons_channelParticipant)
+        case channelParticipantAdmin(Cons_channelParticipantAdmin)
+        case channelParticipantBanned(Cons_channelParticipantBanned)
+        case channelParticipantCreator(Cons_channelParticipantCreator)
+        case channelParticipantLeft(Cons_channelParticipantLeft)
+        case channelParticipantSelf(Cons_channelParticipantSelf)
 
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
             switch self {
-            case .businessGreetingMessage(let _data):
+            case .channelParticipant(let _data):
                 if boxed {
-                    buffer.appendInt32(-451302485)
+                    buffer.appendInt32(466961494)
                 }
-                serializeInt32(_data.shortcutId, buffer: buffer, boxed: false)
-                _data.recipients.serialize(buffer, true)
-                serializeInt32(_data.noActivityDays, buffer: buffer, boxed: false)
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeInt32(_data.subscriptionUntilDate!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    serializeString(_data.rank!, buffer: buffer, boxed: false)
+                }
+                break
+            case .channelParticipantAdmin(let _data):
+                if boxed {
+                    buffer.appendInt32(885242707)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    serializeInt64(_data.inviterId!, buffer: buffer, boxed: false)
+                }
+                serializeInt64(_data.promotedBy, buffer: buffer, boxed: false)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                _data.adminRights.serialize(buffer, true)
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    serializeString(_data.rank!, buffer: buffer, boxed: false)
+                }
+                break
+            case .channelParticipantBanned(let _data):
+                if boxed {
+                    buffer.appendInt32(-705647215)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                _data.peer.serialize(buffer, true)
+                serializeInt64(_data.kickedBy, buffer: buffer, boxed: false)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                _data.bannedRights.serialize(buffer, true)
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    serializeString(_data.rank!, buffer: buffer, boxed: false)
+                }
+                break
+            case .channelParticipantCreator(let _data):
+                if boxed {
+                    buffer.appendInt32(803602899)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                _data.adminRights.serialize(buffer, true)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeString(_data.rank!, buffer: buffer, boxed: false)
+                }
+                break
+            case .channelParticipantLeft(let _data):
+                if boxed {
+                    buffer.appendInt32(453242886)
+                }
+                _data.peer.serialize(buffer, true)
+                break
+            case .channelParticipantSelf(let _data):
+                if boxed {
+                    buffer.appendInt32(-1454929382)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                serializeInt64(_data.inviterId, buffer: buffer, boxed: false)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    serializeInt32(_data.subscriptionUntilDate!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    serializeString(_data.rank!, buffer: buffer, boxed: false)
+                }
                 break
             }
         }
 
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessGreetingMessage(let _data):
-                return ("businessGreetingMessage", [("shortcutId", ConstructorParameterDescription(_data.shortcutId)), ("recipients", ConstructorParameterDescription(_data.recipients)), ("noActivityDays", ConstructorParameterDescription(_data.noActivityDays))])
-            }
-        }
-
-        public static func parse_businessGreetingMessage(_ reader: BufferReader) -> BusinessGreetingMessage? {
+        static func parse_channelParticipant(_ reader: BufferReader) -> ChannelParticipant? {
             var _1: Int32?
             _1 = reader.readInt32()
-            var _2: Api.BusinessRecipients?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.BusinessRecipients
-            }
+            var _2: Int64?
+            _2 = reader.readInt64()
             var _3: Int32?
             _3 = reader.readInt32()
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.BusinessGreetingMessage.businessGreetingMessage(Cons_businessGreetingMessage(shortcutId: _1!, recipients: _2!, noActivityDays: _3!))
+            var _4: Int32?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _4 = reader.readInt32()
             }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BusinessIntro: TypeConstructorDescription {
-        public class Cons_businessIntro: TypeConstructorDescription {
-            public var flags: Int32
-            public var title: String
-            public var description: String
-            public var sticker: Api.Document?
-            public init(flags: Int32, title: String, description: String, sticker: Api.Document?) {
-                self.flags = flags
-                self.title = title
-                self.description = description
-                self.sticker = sticker
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessIntro", [("flags", ConstructorParameterDescription(self.flags)), ("title", ConstructorParameterDescription(self.title)), ("description", ConstructorParameterDescription(self.description)), ("sticker", ConstructorParameterDescription(self.sticker))])
-            }
-        }
-        case businessIntro(Cons_businessIntro)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessIntro(let _data):
-                if boxed {
-                    buffer.appendInt32(1510606445)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.title, buffer: buffer, boxed: false)
-                serializeString(_data.description, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    _data.sticker!.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessIntro(let _data):
-                return ("businessIntro", [("flags", ConstructorParameterDescription(_data.flags)), ("title", ConstructorParameterDescription(_data.title)), ("description", ConstructorParameterDescription(_data.description)), ("sticker", ConstructorParameterDescription(_data.sticker))])
-            }
-        }
-
-        public static func parse_businessIntro(_ reader: BufferReader) -> BusinessIntro? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: Api.Document?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                if let signature = reader.readInt32() {
-                    _4 = Api.parse(reader, signature: signature) as? Api.Document
-                }
+            var _5: String?
+            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
+                _5 = parseString(reader)
             }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             let _c3 = _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 0) == 0) || _4 != nil
-            if _c1 && _c2 && _c3 && _c4 {
-                return Api.BusinessIntro.businessIntro(Cons_businessIntro(flags: _1!, title: _2!, description: _3!, sticker: _4))
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _5 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 {
+                return Api.ChannelParticipant.channelParticipant(Cons_channelParticipant(flags: _1!, userId: _2!, date: _3!, subscriptionUntilDate: _4, rank: _5))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    enum BusinessLocation: TypeConstructorDescription {
-        public class Cons_businessLocation: TypeConstructorDescription {
-            public var flags: Int32
-            public var geoPoint: Api.GeoPoint?
-            public var address: String
-            public init(flags: Int32, geoPoint: Api.GeoPoint?, address: String) {
-                self.flags = flags
-                self.geoPoint = geoPoint
-                self.address = address
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessLocation", [("flags", ConstructorParameterDescription(self.flags)), ("geoPoint", ConstructorParameterDescription(self.geoPoint)), ("address", ConstructorParameterDescription(self.address))])
-            }
-        }
-        case businessLocation(Cons_businessLocation)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessLocation(let _data):
-                if boxed {
-                    buffer.appendInt32(-1403249929)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    _data.geoPoint!.serialize(buffer, true)
-                }
-                serializeString(_data.address, buffer: buffer, boxed: false)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessLocation(let _data):
-                return ("businessLocation", [("flags", ConstructorParameterDescription(_data.flags)), ("geoPoint", ConstructorParameterDescription(_data.geoPoint)), ("address", ConstructorParameterDescription(_data.address))])
-            }
-        }
-
-        public static func parse_businessLocation(_ reader: BufferReader) -> BusinessLocation? {
+        static func parse_channelParticipantAdmin(_ reader: BufferReader) -> ChannelParticipant? {
             var _1: Int32?
             _1 = reader.readInt32()
-            var _2: Api.GeoPoint?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                if let signature = reader.readInt32() {
-                    _2 = Api.parse(reader, signature: signature) as? Api.GeoPoint
-                }
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Int64?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                _3 = reader.readInt64()
             }
-            var _3: String?
-            _3 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = (Int(_1!) & Int(1 << 0) == 0) || _2 != nil
-            let _c3 = _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.BusinessLocation.businessLocation(Cons_businessLocation(flags: _1!, geoPoint: _2, address: _3!))
+            var _4: Int64?
+            _4 = reader.readInt64()
+            var _5: Int32?
+            _5 = reader.readInt32()
+            var _6: Api.ChatAdminRights?
+            if let signature = reader.readInt32() {
+                _6 = Api.parse(reader, signature: signature) as? Api.ChatAdminRights
             }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BusinessRecipients: TypeConstructorDescription {
-        public class Cons_businessRecipients: TypeConstructorDescription {
-            public var flags: Int32
-            public var users: [Int64]?
-            public init(flags: Int32, users: [Int64]?) {
-                self.flags = flags
-                self.users = users
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessRecipients", [("flags", ConstructorParameterDescription(self.flags)), ("users", ConstructorParameterDescription(self.users))])
-            }
-        }
-        case businessRecipients(Cons_businessRecipients)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessRecipients(let _data):
-                if boxed {
-                    buffer.appendInt32(554733559)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 4) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.users!.count))
-                    for item in _data.users! {
-                        serializeInt64(item, buffer: buffer, boxed: false)
-                    }
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessRecipients(let _data):
-                return ("businessRecipients", [("flags", ConstructorParameterDescription(_data.flags)), ("users", ConstructorParameterDescription(_data.users))])
-            }
-        }
-
-        public static func parse_businessRecipients(_ reader: BufferReader) -> BusinessRecipients? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: [Int64]?
-            if Int(_1!) & Int(1 << 4) != 0 {
-                if let _ = reader.readInt32() {
-                    _2 = Api.parseVector(reader, elementSignature: 570911930, elementType: Int64.self)
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = (Int(_1!) & Int(1 << 4) == 0) || _2 != nil
-            if _c1 && _c2 {
-                return Api.BusinessRecipients.businessRecipients(Cons_businessRecipients(flags: _1!, users: _2))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BusinessWeeklyOpen: TypeConstructorDescription {
-        public class Cons_businessWeeklyOpen: TypeConstructorDescription {
-            public var startMinute: Int32
-            public var endMinute: Int32
-            public init(startMinute: Int32, endMinute: Int32) {
-                self.startMinute = startMinute
-                self.endMinute = endMinute
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessWeeklyOpen", [("startMinute", ConstructorParameterDescription(self.startMinute)), ("endMinute", ConstructorParameterDescription(self.endMinute))])
-            }
-        }
-        case businessWeeklyOpen(Cons_businessWeeklyOpen)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessWeeklyOpen(let _data):
-                if boxed {
-                    buffer.appendInt32(302717625)
-                }
-                serializeInt32(_data.startMinute, buffer: buffer, boxed: false)
-                serializeInt32(_data.endMinute, buffer: buffer, boxed: false)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessWeeklyOpen(let _data):
-                return ("businessWeeklyOpen", [("startMinute", ConstructorParameterDescription(_data.startMinute)), ("endMinute", ConstructorParameterDescription(_data.endMinute))])
-            }
-        }
-
-        public static func parse_businessWeeklyOpen(_ reader: BufferReader) -> BusinessWeeklyOpen? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Int32?
-            _2 = reader.readInt32()
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.BusinessWeeklyOpen.businessWeeklyOpen(Cons_businessWeeklyOpen(startMinute: _1!, endMinute: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BusinessWorkHours: TypeConstructorDescription {
-        public class Cons_businessWorkHours: TypeConstructorDescription {
-            public var flags: Int32
-            public var timezoneId: String
-            public var weeklyOpen: [Api.BusinessWeeklyOpen]
-            public init(flags: Int32, timezoneId: String, weeklyOpen: [Api.BusinessWeeklyOpen]) {
-                self.flags = flags
-                self.timezoneId = timezoneId
-                self.weeklyOpen = weeklyOpen
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessWorkHours", [("flags", ConstructorParameterDescription(self.flags)), ("timezoneId", ConstructorParameterDescription(self.timezoneId)), ("weeklyOpen", ConstructorParameterDescription(self.weeklyOpen))])
-            }
-        }
-        case businessWorkHours(Cons_businessWorkHours)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessWorkHours(let _data):
-                if boxed {
-                    buffer.appendInt32(-1936543592)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.timezoneId, buffer: buffer, boxed: false)
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.weeklyOpen.count))
-                for item in _data.weeklyOpen {
-                    item.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessWorkHours(let _data):
-                return ("businessWorkHours", [("flags", ConstructorParameterDescription(_data.flags)), ("timezoneId", ConstructorParameterDescription(_data.timezoneId)), ("weeklyOpen", ConstructorParameterDescription(_data.weeklyOpen))])
-            }
-        }
-
-        public static func parse_businessWorkHours(_ reader: BufferReader) -> BusinessWorkHours? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: [Api.BusinessWeeklyOpen]?
-            if let _ = reader.readInt32() {
-                _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.BusinessWeeklyOpen.self)
+            var _7: String?
+            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
+                _7 = parseString(reader)
             }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.BusinessWorkHours.businessWorkHours(Cons_businessWorkHours(flags: _1!, timezoneId: _2!, weeklyOpen: _3!))
+            let _c3 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            let _c7 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _7 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 {
+                return Api.ChannelParticipant.channelParticipantAdmin(Cons_channelParticipantAdmin(flags: _1!, userId: _2!, inviterId: _3, promotedBy: _4!, date: _5!, adminRights: _6!, rank: _7))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    enum CdnConfig: TypeConstructorDescription {
-        public class Cons_cdnConfig: TypeConstructorDescription {
-            public var publicKeys: [Api.CdnPublicKey]
-            public init(publicKeys: [Api.CdnPublicKey]) {
-                self.publicKeys = publicKeys
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("cdnConfig", [("publicKeys", ConstructorParameterDescription(self.publicKeys))])
-            }
-        }
-        case cdnConfig(Cons_cdnConfig)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .cdnConfig(let _data):
-                if boxed {
-                    buffer.appendInt32(1462101002)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.publicKeys.count))
-                for item in _data.publicKeys {
-                    item.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .cdnConfig(let _data):
-                return ("cdnConfig", [("publicKeys", ConstructorParameterDescription(_data.publicKeys))])
-            }
-        }
-
-        public static func parse_cdnConfig(_ reader: BufferReader) -> CdnConfig? {
-            var _1: [Api.CdnPublicKey]?
-            if let _ = reader.readInt32() {
-                _1 = Api.parseVector(reader, elementSignature: 0, elementType: Api.CdnPublicKey.self)
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.CdnConfig.cdnConfig(Cons_cdnConfig(publicKeys: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum CdnPublicKey: TypeConstructorDescription {
-        public class Cons_cdnPublicKey: TypeConstructorDescription {
-            public var dcId: Int32
-            public var publicKey: String
-            public init(dcId: Int32, publicKey: String) {
-                self.dcId = dcId
-                self.publicKey = publicKey
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("cdnPublicKey", [("dcId", ConstructorParameterDescription(self.dcId)), ("publicKey", ConstructorParameterDescription(self.publicKey))])
-            }
-        }
-        case cdnPublicKey(Cons_cdnPublicKey)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .cdnPublicKey(let _data):
-                if boxed {
-                    buffer.appendInt32(-914167110)
-                }
-                serializeInt32(_data.dcId, buffer: buffer, boxed: false)
-                serializeString(_data.publicKey, buffer: buffer, boxed: false)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .cdnPublicKey(let _data):
-                return ("cdnPublicKey", [("dcId", ConstructorParameterDescription(_data.dcId)), ("publicKey", ConstructorParameterDescription(_data.publicKey))])
-            }
-        }
-
-        public static func parse_cdnPublicKey(_ reader: BufferReader) -> CdnPublicKey? {
+        static func parse_channelParticipantBanned(_ reader: BufferReader) -> ChannelParticipant? {
             var _1: Int32?
             _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.CdnPublicKey.cdnPublicKey(Cons_cdnPublicKey(dcId: _1!, publicKey: _2!))
+            var _2: Api.Peer?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.Peer
             }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    indirect enum ChannelAdminLogEvent: TypeConstructorDescription {
-        public class Cons_channelAdminLogEvent: TypeConstructorDescription {
-            public var id: Int64
-            public var date: Int32
-            public var userId: Int64
-            public var action: Api.ChannelAdminLogEventAction
-            public init(id: Int64, date: Int32, userId: Int64, action: Api.ChannelAdminLogEventAction) {
-                self.id = id
-                self.date = date
-                self.userId = userId
-                self.action = action
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEvent", [("id", ConstructorParameterDescription(self.id)), ("date", ConstructorParameterDescription(self.date)), ("userId", ConstructorParameterDescription(self.userId)), ("action", ConstructorParameterDescription(self.action))])
-            }
-        }
-        case channelAdminLogEvent(Cons_channelAdminLogEvent)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .channelAdminLogEvent(let _data):
-                if boxed {
-                    buffer.appendInt32(531458253)
-                }
-                serializeInt64(_data.id, buffer: buffer, boxed: false)
-                serializeInt32(_data.date, buffer: buffer, boxed: false)
-                serializeInt64(_data.userId, buffer: buffer, boxed: false)
-                _data.action.serialize(buffer, true)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .channelAdminLogEvent(let _data):
-                return ("channelAdminLogEvent", [("id", ConstructorParameterDescription(_data.id)), ("date", ConstructorParameterDescription(_data.date)), ("userId", ConstructorParameterDescription(_data.userId)), ("action", ConstructorParameterDescription(_data.action))])
-            }
-        }
-
-        public static func parse_channelAdminLogEvent(_ reader: BufferReader) -> ChannelAdminLogEvent? {
-            var _1: Int64?
-            _1 = reader.readInt64()
-            var _2: Int32?
-            _2 = reader.readInt32()
             var _3: Int64?
             _3 = reader.readInt64()
-            var _4: Api.ChannelAdminLogEventAction?
+            var _4: Int32?
+            _4 = reader.readInt32()
+            var _5: Api.ChatBannedRights?
             if let signature = reader.readInt32() {
-                _4 = Api.parse(reader, signature: signature) as? Api.ChannelAdminLogEventAction
+                _5 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
+            }
+            var _6: String?
+            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
+                _6 = parseString(reader)
             }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             let _c3 = _3 != nil
             let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _6 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
+                return Api.ChannelParticipant.channelParticipantBanned(Cons_channelParticipantBanned(flags: _1!, peer: _2!, kickedBy: _3!, date: _4!, bannedRights: _5!, rank: _6))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelParticipantCreator(_ reader: BufferReader) -> ChannelParticipant? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Api.ChatAdminRights?
+            if let signature = reader.readInt32() {
+                _3 = Api.parse(reader, signature: signature) as? Api.ChatAdminRights
+            }
+            var _4: String?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _4 = parseString(reader)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
             if _c1 && _c2 && _c3 && _c4 {
-                return Api.ChannelAdminLogEvent.channelAdminLogEvent(Cons_channelAdminLogEvent(id: _1!, date: _2!, userId: _3!, action: _4!))
+                return Api.ChannelParticipant.channelParticipantCreator(Cons_channelParticipantCreator(flags: _1!, userId: _2!, adminRights: _3!, rank: _4))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelParticipantLeft(_ reader: BufferReader) -> ChannelParticipant? {
+            var _1: Api.Peer?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Peer
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelParticipant.channelParticipantLeft(Cons_channelParticipantLeft(peer: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelParticipantSelf(_ reader: BufferReader) -> ChannelParticipant? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Int64?
+            _3 = reader.readInt64()
+            var _4: Int32?
+            _4 = reader.readInt32()
+            var _5: Int32?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                _5 = reader.readInt32()
+            }
+            var _6: String?
+            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
+                _6 = parseString(reader)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _6 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
+                return Api.ChannelParticipant.channelParticipantSelf(Cons_channelParticipantSelf(flags: _1!, userId: _2!, inviterId: _3!, date: _4!, subscriptionUntilDate: _5, rank: _6))
             }
             else {
                 return nil
@@ -522,1777 +332,687 @@ public extension Api {
         }
     }
 }
-public extension Api {
-    indirect enum ChannelAdminLogEventAction: TypeConstructorDescription {
-        public class Cons_channelAdminLogEventActionChangeAbout: TypeConstructorDescription {
-            public var prevValue: String
-            public var newValue: String
-            public init(prevValue: String, newValue: String) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeAbout", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeAvailableReactions: TypeConstructorDescription {
-            public var prevValue: Api.ChatReactions
-            public var newValue: Api.ChatReactions
-            public init(prevValue: Api.ChatReactions, newValue: Api.ChatReactions) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeAvailableReactions", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeEmojiStatus: TypeConstructorDescription {
-            public var prevValue: Api.EmojiStatus
-            public var newValue: Api.EmojiStatus
-            public init(prevValue: Api.EmojiStatus, newValue: Api.EmojiStatus) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeEmojiStatus", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeEmojiStickerSet: TypeConstructorDescription {
-            public var prevStickerset: Api.InputStickerSet
-            public var newStickerset: Api.InputStickerSet
-            public init(prevStickerset: Api.InputStickerSet, newStickerset: Api.InputStickerSet) {
-                self.prevStickerset = prevStickerset
-                self.newStickerset = newStickerset
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeEmojiStickerSet", [("prevStickerset", ConstructorParameterDescription(self.prevStickerset)), ("newStickerset", ConstructorParameterDescription(self.newStickerset))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeHistoryTTL: TypeConstructorDescription {
-            public var prevValue: Int32
-            public var newValue: Int32
-            public init(prevValue: Int32, newValue: Int32) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeHistoryTTL", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeLinkedChat: TypeConstructorDescription {
-            public var prevValue: Int64
-            public var newValue: Int64
-            public init(prevValue: Int64, newValue: Int64) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeLinkedChat", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeLocation: TypeConstructorDescription {
-            public var prevValue: Api.ChannelLocation
-            public var newValue: Api.ChannelLocation
-            public init(prevValue: Api.ChannelLocation, newValue: Api.ChannelLocation) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeLocation", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangePeerColor: TypeConstructorDescription {
-            public var prevValue: Api.PeerColor
-            public var newValue: Api.PeerColor
-            public init(prevValue: Api.PeerColor, newValue: Api.PeerColor) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangePeerColor", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangePhoto: TypeConstructorDescription {
-            public var prevPhoto: Api.Photo
-            public var newPhoto: Api.Photo
-            public init(prevPhoto: Api.Photo, newPhoto: Api.Photo) {
-                self.prevPhoto = prevPhoto
-                self.newPhoto = newPhoto
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangePhoto", [("prevPhoto", ConstructorParameterDescription(self.prevPhoto)), ("newPhoto", ConstructorParameterDescription(self.newPhoto))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeProfilePeerColor: TypeConstructorDescription {
-            public var prevValue: Api.PeerColor
-            public var newValue: Api.PeerColor
-            public init(prevValue: Api.PeerColor, newValue: Api.PeerColor) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeProfilePeerColor", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeStickerSet: TypeConstructorDescription {
-            public var prevStickerset: Api.InputStickerSet
-            public var newStickerset: Api.InputStickerSet
-            public init(prevStickerset: Api.InputStickerSet, newStickerset: Api.InputStickerSet) {
-                self.prevStickerset = prevStickerset
-                self.newStickerset = newStickerset
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeStickerSet", [("prevStickerset", ConstructorParameterDescription(self.prevStickerset)), ("newStickerset", ConstructorParameterDescription(self.newStickerset))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeTitle: TypeConstructorDescription {
-            public var prevValue: String
-            public var newValue: String
-            public init(prevValue: String, newValue: String) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeTitle", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeUsername: TypeConstructorDescription {
-            public var prevValue: String
-            public var newValue: String
-            public init(prevValue: String, newValue: String) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeUsername", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeUsernames: TypeConstructorDescription {
-            public var prevValue: [String]
-            public var newValue: [String]
-            public init(prevValue: [String], newValue: [String]) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeUsernames", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionChangeWallpaper: TypeConstructorDescription {
-            public var prevValue: Api.WallPaper
-            public var newValue: Api.WallPaper
-            public init(prevValue: Api.WallPaper, newValue: Api.WallPaper) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionChangeWallpaper", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionCreateTopic: TypeConstructorDescription {
-            public var topic: Api.ForumTopic
-            public init(topic: Api.ForumTopic) {
-                self.topic = topic
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionCreateTopic", [("topic", ConstructorParameterDescription(self.topic))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionDefaultBannedRights: TypeConstructorDescription {
-            public var prevBannedRights: Api.ChatBannedRights
-            public var newBannedRights: Api.ChatBannedRights
-            public init(prevBannedRights: Api.ChatBannedRights, newBannedRights: Api.ChatBannedRights) {
-                self.prevBannedRights = prevBannedRights
-                self.newBannedRights = newBannedRights
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionDefaultBannedRights", [("prevBannedRights", ConstructorParameterDescription(self.prevBannedRights)), ("newBannedRights", ConstructorParameterDescription(self.newBannedRights))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionDeleteMessage: TypeConstructorDescription {
-            public var message: Api.Message
-            public init(message: Api.Message) {
-                self.message = message
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionDeleteMessage", [("message", ConstructorParameterDescription(self.message))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionDeleteTopic: TypeConstructorDescription {
-            public var topic: Api.ForumTopic
-            public init(topic: Api.ForumTopic) {
-                self.topic = topic
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionDeleteTopic", [("topic", ConstructorParameterDescription(self.topic))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionDiscardGroupCall: TypeConstructorDescription {
-            public var call: Api.InputGroupCall
-            public init(call: Api.InputGroupCall) {
-                self.call = call
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionDiscardGroupCall", [("call", ConstructorParameterDescription(self.call))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionEditMessage: TypeConstructorDescription {
-            public var prevMessage: Api.Message
-            public var newMessage: Api.Message
-            public init(prevMessage: Api.Message, newMessage: Api.Message) {
-                self.prevMessage = prevMessage
-                self.newMessage = newMessage
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionEditMessage", [("prevMessage", ConstructorParameterDescription(self.prevMessage)), ("newMessage", ConstructorParameterDescription(self.newMessage))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionEditTopic: TypeConstructorDescription {
-            public var prevTopic: Api.ForumTopic
-            public var newTopic: Api.ForumTopic
-            public init(prevTopic: Api.ForumTopic, newTopic: Api.ForumTopic) {
-                self.prevTopic = prevTopic
-                self.newTopic = newTopic
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionEditTopic", [("prevTopic", ConstructorParameterDescription(self.prevTopic)), ("newTopic", ConstructorParameterDescription(self.newTopic))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionExportedInviteDelete: TypeConstructorDescription {
-            public var invite: Api.ExportedChatInvite
-            public init(invite: Api.ExportedChatInvite) {
-                self.invite = invite
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionExportedInviteDelete", [("invite", ConstructorParameterDescription(self.invite))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionExportedInviteEdit: TypeConstructorDescription {
-            public var prevInvite: Api.ExportedChatInvite
-            public var newInvite: Api.ExportedChatInvite
-            public init(prevInvite: Api.ExportedChatInvite, newInvite: Api.ExportedChatInvite) {
-                self.prevInvite = prevInvite
-                self.newInvite = newInvite
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionExportedInviteEdit", [("prevInvite", ConstructorParameterDescription(self.prevInvite)), ("newInvite", ConstructorParameterDescription(self.newInvite))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionExportedInviteRevoke: TypeConstructorDescription {
-            public var invite: Api.ExportedChatInvite
-            public init(invite: Api.ExportedChatInvite) {
-                self.invite = invite
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionExportedInviteRevoke", [("invite", ConstructorParameterDescription(self.invite))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantEditRank: TypeConstructorDescription {
-            public var userId: Int64
-            public var prevRank: String
-            public var newRank: String
-            public init(userId: Int64, prevRank: String, newRank: String) {
-                self.userId = userId
-                self.prevRank = prevRank
-                self.newRank = newRank
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantEditRank", [("userId", ConstructorParameterDescription(self.userId)), ("prevRank", ConstructorParameterDescription(self.prevRank)), ("newRank", ConstructorParameterDescription(self.newRank))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantInvite: TypeConstructorDescription {
-            public var participant: Api.ChannelParticipant
-            public init(participant: Api.ChannelParticipant) {
-                self.participant = participant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantInvite", [("participant", ConstructorParameterDescription(self.participant))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantJoinByInvite: TypeConstructorDescription {
-            public var flags: Int32
-            public var invite: Api.ExportedChatInvite
-            public init(flags: Int32, invite: Api.ExportedChatInvite) {
+extension Api {
+    indirect enum Chat: TypeConstructorDescription {
+        class Cons_channel: TypeConstructorDescription {
+            var flags: Int32
+            var flags2: Int32
+            var id: Int64
+            var accessHash: Int64?
+            var title: String
+            var username: String?
+            var photo: Api.ChatPhoto
+            var date: Int32
+            var restrictionReason: [Api.RestrictionReason]?
+            var adminRights: Api.ChatAdminRights?
+            var bannedRights: Api.ChatBannedRights?
+            var defaultBannedRights: Api.ChatBannedRights?
+            var participantsCount: Int32?
+            var usernames: [Api.Username]?
+            var storiesMaxId: Api.RecentStory?
+            var color: Api.PeerColor?
+            var profileColor: Api.PeerColor?
+            var emojiStatus: Api.EmojiStatus?
+            var level: Int32?
+            var subscriptionUntilDate: Int32?
+            var botVerificationIcon: Int64?
+            var sendPaidMessagesStars: Int64?
+            var linkedMonoforumId: Int64?
+            var linkedCommunityId: Int64?
+            var pinnedMsgId: Int32?
+            init(flags: Int32, flags2: Int32, id: Int64, accessHash: Int64?, title: String, username: String?, photo: Api.ChatPhoto, date: Int32, restrictionReason: [Api.RestrictionReason]?, adminRights: Api.ChatAdminRights?, bannedRights: Api.ChatBannedRights?, defaultBannedRights: Api.ChatBannedRights?, participantsCount: Int32?, usernames: [Api.Username]?, storiesMaxId: Api.RecentStory?, color: Api.PeerColor?, profileColor: Api.PeerColor?, emojiStatus: Api.EmojiStatus?, level: Int32?, subscriptionUntilDate: Int32?, botVerificationIcon: Int64?, sendPaidMessagesStars: Int64?, linkedMonoforumId: Int64?, linkedCommunityId: Int64?, pinnedMsgId: Int32?) {
                 self.flags = flags
-                self.invite = invite
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantJoinByInvite", [("flags", ConstructorParameterDescription(self.flags)), ("invite", ConstructorParameterDescription(self.invite))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantJoinByRequest: TypeConstructorDescription {
-            public var invite: Api.ExportedChatInvite
-            public var approvedBy: Int64
-            public init(invite: Api.ExportedChatInvite, approvedBy: Int64) {
-                self.invite = invite
-                self.approvedBy = approvedBy
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantJoinByRequest", [("invite", ConstructorParameterDescription(self.invite)), ("approvedBy", ConstructorParameterDescription(self.approvedBy))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantMute: TypeConstructorDescription {
-            public var participant: Api.GroupCallParticipant
-            public init(participant: Api.GroupCallParticipant) {
-                self.participant = participant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantMute", [("participant", ConstructorParameterDescription(self.participant))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantSubExtend: TypeConstructorDescription {
-            public var prevParticipant: Api.ChannelParticipant
-            public var newParticipant: Api.ChannelParticipant
-            public init(prevParticipant: Api.ChannelParticipant, newParticipant: Api.ChannelParticipant) {
-                self.prevParticipant = prevParticipant
-                self.newParticipant = newParticipant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantSubExtend", [("prevParticipant", ConstructorParameterDescription(self.prevParticipant)), ("newParticipant", ConstructorParameterDescription(self.newParticipant))])
+                self.flags2 = flags2
+                self.id = id
+                self.accessHash = accessHash
+                self.title = title
+                self.username = username
+                self.photo = photo
+                self.date = date
+                self.restrictionReason = restrictionReason
+                self.adminRights = adminRights
+                self.bannedRights = bannedRights
+                self.defaultBannedRights = defaultBannedRights
+                self.participantsCount = participantsCount
+                self.usernames = usernames
+                self.storiesMaxId = storiesMaxId
+                self.color = color
+                self.profileColor = profileColor
+                self.emojiStatus = emojiStatus
+                self.level = level
+                self.subscriptionUntilDate = subscriptionUntilDate
+                self.botVerificationIcon = botVerificationIcon
+                self.sendPaidMessagesStars = sendPaidMessagesStars
+                self.linkedMonoforumId = linkedMonoforumId
+                self.linkedCommunityId = linkedCommunityId
+                self.pinnedMsgId = pinnedMsgId
             }
         }
-        public class Cons_channelAdminLogEventActionParticipantToggleAdmin: TypeConstructorDescription {
-            public var prevParticipant: Api.ChannelParticipant
-            public var newParticipant: Api.ChannelParticipant
-            public init(prevParticipant: Api.ChannelParticipant, newParticipant: Api.ChannelParticipant) {
-                self.prevParticipant = prevParticipant
-                self.newParticipant = newParticipant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantToggleAdmin", [("prevParticipant", ConstructorParameterDescription(self.prevParticipant)), ("newParticipant", ConstructorParameterDescription(self.newParticipant))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantToggleBan: TypeConstructorDescription {
-            public var prevParticipant: Api.ChannelParticipant
-            public var newParticipant: Api.ChannelParticipant
-            public init(prevParticipant: Api.ChannelParticipant, newParticipant: Api.ChannelParticipant) {
-                self.prevParticipant = prevParticipant
-                self.newParticipant = newParticipant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantToggleBan", [("prevParticipant", ConstructorParameterDescription(self.prevParticipant)), ("newParticipant", ConstructorParameterDescription(self.newParticipant))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantUnmute: TypeConstructorDescription {
-            public var participant: Api.GroupCallParticipant
-            public init(participant: Api.GroupCallParticipant) {
-                self.participant = participant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantUnmute", [("participant", ConstructorParameterDescription(self.participant))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionParticipantVolume: TypeConstructorDescription {
-            public var participant: Api.GroupCallParticipant
-            public init(participant: Api.GroupCallParticipant) {
-                self.participant = participant
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionParticipantVolume", [("participant", ConstructorParameterDescription(self.participant))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionPinTopic: TypeConstructorDescription {
-            public var flags: Int32
-            public var prevTopic: Api.ForumTopic?
-            public var newTopic: Api.ForumTopic?
-            public init(flags: Int32, prevTopic: Api.ForumTopic?, newTopic: Api.ForumTopic?) {
+        class Cons_channelForbidden: TypeConstructorDescription {
+            var flags: Int32
+            var id: Int64
+            var accessHash: Int64
+            var title: String
+            var untilDate: Int32?
+            init(flags: Int32, id: Int64, accessHash: Int64, title: String, untilDate: Int32?) {
                 self.flags = flags
-                self.prevTopic = prevTopic
-                self.newTopic = newTopic
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionPinTopic", [("flags", ConstructorParameterDescription(self.flags)), ("prevTopic", ConstructorParameterDescription(self.prevTopic)), ("newTopic", ConstructorParameterDescription(self.newTopic))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionSendMessage: TypeConstructorDescription {
-            public var message: Api.Message
-            public init(message: Api.Message) {
-                self.message = message
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionSendMessage", [("message", ConstructorParameterDescription(self.message))])
+                self.id = id
+                self.accessHash = accessHash
+                self.title = title
+                self.untilDate = untilDate
             }
         }
-        public class Cons_channelAdminLogEventActionStartGroupCall: TypeConstructorDescription {
-            public var call: Api.InputGroupCall
-            public init(call: Api.InputGroupCall) {
-                self.call = call
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionStartGroupCall", [("call", ConstructorParameterDescription(self.call))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionStopPoll: TypeConstructorDescription {
-            public var message: Api.Message
-            public init(message: Api.Message) {
-                self.message = message
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionStopPoll", [("message", ConstructorParameterDescription(self.message))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionToggleAntiSpam: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleAntiSpam", [("newValue", ConstructorParameterDescription(self.newValue))])
+        class Cons_chat: TypeConstructorDescription {
+            var flags: Int32
+            var id: Int64
+            var title: String
+            var photo: Api.ChatPhoto
+            var participantsCount: Int32
+            var date: Int32
+            var version: Int32
+            var migratedTo: Api.InputChannel?
+            var adminRights: Api.ChatAdminRights?
+            var defaultBannedRights: Api.ChatBannedRights?
+            init(flags: Int32, id: Int64, title: String, photo: Api.ChatPhoto, participantsCount: Int32, date: Int32, version: Int32, migratedTo: Api.InputChannel?, adminRights: Api.ChatAdminRights?, defaultBannedRights: Api.ChatBannedRights?) {
+                self.flags = flags
+                self.id = id
+                self.title = title
+                self.photo = photo
+                self.participantsCount = participantsCount
+                self.date = date
+                self.version = version
+                self.migratedTo = migratedTo
+                self.adminRights = adminRights
+                self.defaultBannedRights = defaultBannedRights
             }
         }
-        public class Cons_channelAdminLogEventActionToggleAutotranslation: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleAutotranslation", [("newValue", ConstructorParameterDescription(self.newValue))])
+        class Cons_chatEmpty: TypeConstructorDescription {
+            var id: Int64
+            init(id: Int64) {
+                self.id = id
             }
         }
-        public class Cons_channelAdminLogEventActionToggleForum: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleForum", [("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionToggleGroupCallSetting: TypeConstructorDescription {
-            public var joinMuted: Api.Bool
-            public init(joinMuted: Api.Bool) {
-                self.joinMuted = joinMuted
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleGroupCallSetting", [("joinMuted", ConstructorParameterDescription(self.joinMuted))])
+        class Cons_chatForbidden: TypeConstructorDescription {
+            var id: Int64
+            var title: String
+            init(id: Int64, title: String) {
+                self.id = id
+                self.title = title
             }
         }
-        public class Cons_channelAdminLogEventActionToggleInvites: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleInvites", [("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionToggleNoForwards: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleNoForwards", [("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionTogglePreHistoryHidden: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionTogglePreHistoryHidden", [("newValue", ConstructorParameterDescription(self.newValue))])
+        class Cons_community: TypeConstructorDescription {
+            var flags: Int32
+            var flags2: Int32
+            var id: Int64
+            var accessHash: Int64?
+            var title: String
+            var photo: Api.ChatPhoto
+            var date: Int32
+            var adminRights: Api.ChatAdminRights?
+            var defaultBannedRights: Api.ChatBannedRights?
+            init(flags: Int32, flags2: Int32, id: Int64, accessHash: Int64?, title: String, photo: Api.ChatPhoto, date: Int32, adminRights: Api.ChatAdminRights?, defaultBannedRights: Api.ChatBannedRights?) {
+                self.flags = flags
+                self.flags2 = flags2
+                self.id = id
+                self.accessHash = accessHash
+                self.title = title
+                self.photo = photo
+                self.date = date
+                self.adminRights = adminRights
+                self.defaultBannedRights = defaultBannedRights
             }
         }
-        public class Cons_channelAdminLogEventActionToggleSignatureProfiles: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleSignatureProfiles", [("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionToggleSignatures: TypeConstructorDescription {
-            public var newValue: Api.Bool
-            public init(newValue: Api.Bool) {
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleSignatures", [("newValue", ConstructorParameterDescription(self.newValue))])
+        class Cons_communityForbidden: TypeConstructorDescription {
+            var flags: Int32
+            var id: Int64
+            var accessHash: Int64?
+            var title: String
+            init(flags: Int32, id: Int64, accessHash: Int64?, title: String) {
+                self.flags = flags
+                self.id = id
+                self.accessHash = accessHash
+                self.title = title
             }
         }
-        public class Cons_channelAdminLogEventActionToggleSlowMode: TypeConstructorDescription {
-            public var prevValue: Int32
-            public var newValue: Int32
-            public init(prevValue: Int32, newValue: Int32) {
-                self.prevValue = prevValue
-                self.newValue = newValue
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionToggleSlowMode", [("prevValue", ConstructorParameterDescription(self.prevValue)), ("newValue", ConstructorParameterDescription(self.newValue))])
-            }
-        }
-        public class Cons_channelAdminLogEventActionUpdatePinned: TypeConstructorDescription {
-            public var message: Api.Message
-            public init(message: Api.Message) {
-                self.message = message
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("channelAdminLogEventActionUpdatePinned", [("message", ConstructorParameterDescription(self.message))])
-            }
-        }
-        case channelAdminLogEventActionChangeAbout(Cons_channelAdminLogEventActionChangeAbout)
-        case channelAdminLogEventActionChangeAvailableReactions(Cons_channelAdminLogEventActionChangeAvailableReactions)
-        case channelAdminLogEventActionChangeEmojiStatus(Cons_channelAdminLogEventActionChangeEmojiStatus)
-        case channelAdminLogEventActionChangeEmojiStickerSet(Cons_channelAdminLogEventActionChangeEmojiStickerSet)
-        case channelAdminLogEventActionChangeHistoryTTL(Cons_channelAdminLogEventActionChangeHistoryTTL)
-        case channelAdminLogEventActionChangeLinkedChat(Cons_channelAdminLogEventActionChangeLinkedChat)
-        case channelAdminLogEventActionChangeLocation(Cons_channelAdminLogEventActionChangeLocation)
-        case channelAdminLogEventActionChangePeerColor(Cons_channelAdminLogEventActionChangePeerColor)
-        case channelAdminLogEventActionChangePhoto(Cons_channelAdminLogEventActionChangePhoto)
-        case channelAdminLogEventActionChangeProfilePeerColor(Cons_channelAdminLogEventActionChangeProfilePeerColor)
-        case channelAdminLogEventActionChangeStickerSet(Cons_channelAdminLogEventActionChangeStickerSet)
-        case channelAdminLogEventActionChangeTitle(Cons_channelAdminLogEventActionChangeTitle)
-        case channelAdminLogEventActionChangeUsername(Cons_channelAdminLogEventActionChangeUsername)
-        case channelAdminLogEventActionChangeUsernames(Cons_channelAdminLogEventActionChangeUsernames)
-        case channelAdminLogEventActionChangeWallpaper(Cons_channelAdminLogEventActionChangeWallpaper)
-        case channelAdminLogEventActionCreateTopic(Cons_channelAdminLogEventActionCreateTopic)
-        case channelAdminLogEventActionDefaultBannedRights(Cons_channelAdminLogEventActionDefaultBannedRights)
-        case channelAdminLogEventActionDeleteMessage(Cons_channelAdminLogEventActionDeleteMessage)
-        case channelAdminLogEventActionDeleteTopic(Cons_channelAdminLogEventActionDeleteTopic)
-        case channelAdminLogEventActionDiscardGroupCall(Cons_channelAdminLogEventActionDiscardGroupCall)
-        case channelAdminLogEventActionEditMessage(Cons_channelAdminLogEventActionEditMessage)
-        case channelAdminLogEventActionEditTopic(Cons_channelAdminLogEventActionEditTopic)
-        case channelAdminLogEventActionExportedInviteDelete(Cons_channelAdminLogEventActionExportedInviteDelete)
-        case channelAdminLogEventActionExportedInviteEdit(Cons_channelAdminLogEventActionExportedInviteEdit)
-        case channelAdminLogEventActionExportedInviteRevoke(Cons_channelAdminLogEventActionExportedInviteRevoke)
-        case channelAdminLogEventActionParticipantEditRank(Cons_channelAdminLogEventActionParticipantEditRank)
-        case channelAdminLogEventActionParticipantInvite(Cons_channelAdminLogEventActionParticipantInvite)
-        case channelAdminLogEventActionParticipantJoin
-        case channelAdminLogEventActionParticipantJoinByInvite(Cons_channelAdminLogEventActionParticipantJoinByInvite)
-        case channelAdminLogEventActionParticipantJoinByRequest(Cons_channelAdminLogEventActionParticipantJoinByRequest)
-        case channelAdminLogEventActionParticipantLeave
-        case channelAdminLogEventActionParticipantMute(Cons_channelAdminLogEventActionParticipantMute)
-        case channelAdminLogEventActionParticipantSubExtend(Cons_channelAdminLogEventActionParticipantSubExtend)
-        case channelAdminLogEventActionParticipantToggleAdmin(Cons_channelAdminLogEventActionParticipantToggleAdmin)
-        case channelAdminLogEventActionParticipantToggleBan(Cons_channelAdminLogEventActionParticipantToggleBan)
-        case channelAdminLogEventActionParticipantUnmute(Cons_channelAdminLogEventActionParticipantUnmute)
-        case channelAdminLogEventActionParticipantVolume(Cons_channelAdminLogEventActionParticipantVolume)
-        case channelAdminLogEventActionPinTopic(Cons_channelAdminLogEventActionPinTopic)
-        case channelAdminLogEventActionSendMessage(Cons_channelAdminLogEventActionSendMessage)
-        case channelAdminLogEventActionStartGroupCall(Cons_channelAdminLogEventActionStartGroupCall)
-        case channelAdminLogEventActionStopPoll(Cons_channelAdminLogEventActionStopPoll)
-        case channelAdminLogEventActionToggleAntiSpam(Cons_channelAdminLogEventActionToggleAntiSpam)
-        case channelAdminLogEventActionToggleAutotranslation(Cons_channelAdminLogEventActionToggleAutotranslation)
-        case channelAdminLogEventActionToggleForum(Cons_channelAdminLogEventActionToggleForum)
-        case channelAdminLogEventActionToggleGroupCallSetting(Cons_channelAdminLogEventActionToggleGroupCallSetting)
-        case channelAdminLogEventActionToggleInvites(Cons_channelAdminLogEventActionToggleInvites)
-        case channelAdminLogEventActionToggleNoForwards(Cons_channelAdminLogEventActionToggleNoForwards)
-        case channelAdminLogEventActionTogglePreHistoryHidden(Cons_channelAdminLogEventActionTogglePreHistoryHidden)
-        case channelAdminLogEventActionToggleSignatureProfiles(Cons_channelAdminLogEventActionToggleSignatureProfiles)
-        case channelAdminLogEventActionToggleSignatures(Cons_channelAdminLogEventActionToggleSignatures)
-        case channelAdminLogEventActionToggleSlowMode(Cons_channelAdminLogEventActionToggleSlowMode)
-        case channelAdminLogEventActionUpdatePinned(Cons_channelAdminLogEventActionUpdatePinned)
+        case channel(Cons_channel)
+        case channelForbidden(Cons_channelForbidden)
+        case chat(Cons_chat)
+        case chatEmpty(Cons_chatEmpty)
+        case chatForbidden(Cons_chatForbidden)
+        case community(Cons_community)
+        case communityForbidden(Cons_communityForbidden)
 
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
             switch self {
-            case .channelAdminLogEventActionChangeAbout(let _data):
+            case .channel(let _data):
                 if boxed {
-                    buffer.appendInt32(1427671598)
-                }
-                serializeString(_data.prevValue, buffer: buffer, boxed: false)
-                serializeString(_data.newValue, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionChangeAvailableReactions(let _data):
-                if boxed {
-                    buffer.appendInt32(-1102180616)
-                }
-                _data.prevValue.serialize(buffer, true)
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangeEmojiStatus(let _data):
-                if boxed {
-                    buffer.appendInt32(1051328177)
-                }
-                _data.prevValue.serialize(buffer, true)
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangeEmojiStickerSet(let _data):
-                if boxed {
-                    buffer.appendInt32(1188577451)
-                }
-                _data.prevStickerset.serialize(buffer, true)
-                _data.newStickerset.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangeHistoryTTL(let _data):
-                if boxed {
-                    buffer.appendInt32(1855199800)
-                }
-                serializeInt32(_data.prevValue, buffer: buffer, boxed: false)
-                serializeInt32(_data.newValue, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionChangeLinkedChat(let _data):
-                if boxed {
-                    buffer.appendInt32(84703944)
-                }
-                serializeInt64(_data.prevValue, buffer: buffer, boxed: false)
-                serializeInt64(_data.newValue, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionChangeLocation(let _data):
-                if boxed {
-                    buffer.appendInt32(241923758)
-                }
-                _data.prevValue.serialize(buffer, true)
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangePeerColor(let _data):
-                if boxed {
-                    buffer.appendInt32(1469507456)
-                }
-                _data.prevValue.serialize(buffer, true)
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangePhoto(let _data):
-                if boxed {
-                    buffer.appendInt32(1129042607)
-                }
-                _data.prevPhoto.serialize(buffer, true)
-                _data.newPhoto.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangeProfilePeerColor(let _data):
-                if boxed {
-                    buffer.appendInt32(1581742885)
-                }
-                _data.prevValue.serialize(buffer, true)
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangeStickerSet(let _data):
-                if boxed {
-                    buffer.appendInt32(-1312568665)
-                }
-                _data.prevStickerset.serialize(buffer, true)
-                _data.newStickerset.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionChangeTitle(let _data):
-                if boxed {
-                    buffer.appendInt32(-421545947)
-                }
-                serializeString(_data.prevValue, buffer: buffer, boxed: false)
-                serializeString(_data.newValue, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionChangeUsername(let _data):
-                if boxed {
-                    buffer.appendInt32(1783299128)
-                }
-                serializeString(_data.prevValue, buffer: buffer, boxed: false)
-                serializeString(_data.newValue, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionChangeUsernames(let _data):
-                if boxed {
-                    buffer.appendInt32(-263212119)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.prevValue.count))
-                for item in _data.prevValue {
-                    serializeString(item, buffer: buffer, boxed: false)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.newValue.count))
-                for item in _data.newValue {
-                    serializeString(item, buffer: buffer, boxed: false)
-                }
-                break
-            case .channelAdminLogEventActionChangeWallpaper(let _data):
-                if boxed {
-                    buffer.appendInt32(834362706)
-                }
-                _data.prevValue.serialize(buffer, true)
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionCreateTopic(let _data):
-                if boxed {
-                    buffer.appendInt32(1483767080)
-                }
-                _data.topic.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionDefaultBannedRights(let _data):
-                if boxed {
-                    buffer.appendInt32(771095562)
-                }
-                _data.prevBannedRights.serialize(buffer, true)
-                _data.newBannedRights.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionDeleteMessage(let _data):
-                if boxed {
-                    buffer.appendInt32(1121994683)
-                }
-                _data.message.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionDeleteTopic(let _data):
-                if boxed {
-                    buffer.appendInt32(-1374254839)
-                }
-                _data.topic.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionDiscardGroupCall(let _data):
-                if boxed {
-                    buffer.appendInt32(-610299584)
-                }
-                _data.call.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionEditMessage(let _data):
-                if boxed {
-                    buffer.appendInt32(1889215493)
-                }
-                _data.prevMessage.serialize(buffer, true)
-                _data.newMessage.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionEditTopic(let _data):
-                if boxed {
-                    buffer.appendInt32(-261103096)
-                }
-                _data.prevTopic.serialize(buffer, true)
-                _data.newTopic.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionExportedInviteDelete(let _data):
-                if boxed {
-                    buffer.appendInt32(1515256996)
-                }
-                _data.invite.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionExportedInviteEdit(let _data):
-                if boxed {
-                    buffer.appendInt32(-384910503)
-                }
-                _data.prevInvite.serialize(buffer, true)
-                _data.newInvite.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionExportedInviteRevoke(let _data):
-                if boxed {
-                    buffer.appendInt32(1091179342)
-                }
-                _data.invite.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantEditRank(let _data):
-                if boxed {
-                    buffer.appendInt32(1476834540)
-                }
-                serializeInt64(_data.userId, buffer: buffer, boxed: false)
-                serializeString(_data.prevRank, buffer: buffer, boxed: false)
-                serializeString(_data.newRank, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionParticipantInvite(let _data):
-                if boxed {
-                    buffer.appendInt32(-484690728)
-                }
-                _data.participant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantJoin:
-                if boxed {
-                    buffer.appendInt32(405815507)
-                }
-                break
-            case .channelAdminLogEventActionParticipantJoinByInvite(let _data):
-                if boxed {
-                    buffer.appendInt32(-23084712)
+                    buffer.appendInt32(2060538432)
                 }
                 serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                _data.invite.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantJoinByRequest(let _data):
-                if boxed {
-                    buffer.appendInt32(-1347021750)
+                serializeInt32(_data.flags2, buffer: buffer, boxed: false)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 13) != 0 {
+                    serializeInt64(_data.accessHash!, buffer: buffer, boxed: false)
                 }
-                _data.invite.serialize(buffer, true)
-                serializeInt64(_data.approvedBy, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionParticipantLeave:
-                if boxed {
-                    buffer.appendInt32(-124291086)
+                serializeString(_data.title, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 6) != 0 {
+                    serializeString(_data.username!, buffer: buffer, boxed: false)
+                }
+                _data.photo.serialize(buffer, true)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 9) != 0 {
+                    buffer.appendInt32(481674261)
+                    buffer.appendInt32(Int32(_data.restrictionReason!.count))
+                    for item in _data.restrictionReason! {
+                        item.serialize(buffer, true)
+                    }
+                }
+                if Int(_data.flags) & Int(1 << 14) != 0 {
+                    _data.adminRights!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 15) != 0 {
+                    _data.bannedRights!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 18) != 0 {
+                    _data.defaultBannedRights!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 17) != 0 {
+                    serializeInt32(_data.participantsCount!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 0) != 0 {
+                    buffer.appendInt32(481674261)
+                    buffer.appendInt32(Int32(_data.usernames!.count))
+                    for item in _data.usernames! {
+                        item.serialize(buffer, true)
+                    }
+                }
+                if Int(_data.flags2) & Int(1 << 4) != 0 {
+                    _data.storiesMaxId!.serialize(buffer, true)
+                }
+                if Int(_data.flags2) & Int(1 << 7) != 0 {
+                    _data.color!.serialize(buffer, true)
+                }
+                if Int(_data.flags2) & Int(1 << 8) != 0 {
+                    _data.profileColor!.serialize(buffer, true)
+                }
+                if Int(_data.flags2) & Int(1 << 9) != 0 {
+                    _data.emojiStatus!.serialize(buffer, true)
+                }
+                if Int(_data.flags2) & Int(1 << 10) != 0 {
+                    serializeInt32(_data.level!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 11) != 0 {
+                    serializeInt32(_data.subscriptionUntilDate!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 13) != 0 {
+                    serializeInt64(_data.botVerificationIcon!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 14) != 0 {
+                    serializeInt64(_data.sendPaidMessagesStars!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 18) != 0 {
+                    serializeInt64(_data.linkedMonoforumId!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 20) != 0 {
+                    serializeInt64(_data.linkedCommunityId!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags2) & Int(1 << 22) != 0 {
+                    serializeInt32(_data.pinnedMsgId!, buffer: buffer, boxed: false)
                 }
                 break
-            case .channelAdminLogEventActionParticipantMute(let _data):
+            case .channelForbidden(let _data):
                 if boxed {
-                    buffer.appendInt32(-115071790)
-                }
-                _data.participant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantSubExtend(let _data):
-                if boxed {
-                    buffer.appendInt32(1684286899)
-                }
-                _data.prevParticipant.serialize(buffer, true)
-                _data.newParticipant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantToggleAdmin(let _data):
-                if boxed {
-                    buffer.appendInt32(-714643696)
-                }
-                _data.prevParticipant.serialize(buffer, true)
-                _data.newParticipant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantToggleBan(let _data):
-                if boxed {
-                    buffer.appendInt32(-422036098)
-                }
-                _data.prevParticipant.serialize(buffer, true)
-                _data.newParticipant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantUnmute(let _data):
-                if boxed {
-                    buffer.appendInt32(-431740480)
-                }
-                _data.participant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionParticipantVolume(let _data):
-                if boxed {
-                    buffer.appendInt32(1048537159)
-                }
-                _data.participant.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionPinTopic(let _data):
-                if boxed {
-                    buffer.appendInt32(1569535291)
+                    buffer.appendInt32(399807445)
                 }
                 serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    _data.prevTopic!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    _data.newTopic!.serialize(buffer, true)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                serializeInt64(_data.accessHash, buffer: buffer, boxed: false)
+                serializeString(_data.title, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 16) != 0 {
+                    serializeInt32(_data.untilDate!, buffer: buffer, boxed: false)
                 }
                 break
-            case .channelAdminLogEventActionSendMessage(let _data):
+            case .chat(let _data):
                 if boxed {
-                    buffer.appendInt32(663693416)
+                    buffer.appendInt32(1103884886)
                 }
-                _data.message.serialize(buffer, true)
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                serializeString(_data.title, buffer: buffer, boxed: false)
+                _data.photo.serialize(buffer, true)
+                serializeInt32(_data.participantsCount, buffer: buffer, boxed: false)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                serializeInt32(_data.version, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 6) != 0 {
+                    _data.migratedTo!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 14) != 0 {
+                    _data.adminRights!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 18) != 0 {
+                    _data.defaultBannedRights!.serialize(buffer, true)
+                }
                 break
-            case .channelAdminLogEventActionStartGroupCall(let _data):
+            case .chatEmpty(let _data):
                 if boxed {
-                    buffer.appendInt32(589338437)
+                    buffer.appendInt32(693512293)
                 }
-                _data.call.serialize(buffer, true)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
                 break
-            case .channelAdminLogEventActionStopPoll(let _data):
+            case .chatForbidden(let _data):
                 if boxed {
-                    buffer.appendInt32(-1895328189)
+                    buffer.appendInt32(1704108455)
                 }
-                _data.message.serialize(buffer, true)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                serializeString(_data.title, buffer: buffer, boxed: false)
                 break
-            case .channelAdminLogEventActionToggleAntiSpam(let _data):
+            case .community(let _data):
                 if boxed {
-                    buffer.appendInt32(1693675004)
+                    buffer.appendInt32(1710221652)
                 }
-                _data.newValue.serialize(buffer, true)
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt32(_data.flags2, buffer: buffer, boxed: false)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 13) != 0 {
+                    serializeInt64(_data.accessHash!, buffer: buffer, boxed: false)
+                }
+                serializeString(_data.title, buffer: buffer, boxed: false)
+                _data.photo.serialize(buffer, true)
+                serializeInt32(_data.date, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 14) != 0 {
+                    _data.adminRights!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 18) != 0 {
+                    _data.defaultBannedRights!.serialize(buffer, true)
+                }
                 break
-            case .channelAdminLogEventActionToggleAutotranslation(let _data):
+            case .communityForbidden(let _data):
                 if boxed {
-                    buffer.appendInt32(-988285058)
+                    buffer.appendInt32(-46343496)
                 }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleForum(let _data):
-                if boxed {
-                    buffer.appendInt32(46949251)
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 13) != 0 {
+                    serializeInt64(_data.accessHash!, buffer: buffer, boxed: false)
                 }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleGroupCallSetting(let _data):
-                if boxed {
-                    buffer.appendInt32(1456906823)
-                }
-                _data.joinMuted.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleInvites(let _data):
-                if boxed {
-                    buffer.appendInt32(460916654)
-                }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleNoForwards(let _data):
-                if boxed {
-                    buffer.appendInt32(-886388890)
-                }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionTogglePreHistoryHidden(let _data):
-                if boxed {
-                    buffer.appendInt32(1599903217)
-                }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleSignatureProfiles(let _data):
-                if boxed {
-                    buffer.appendInt32(1621597305)
-                }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleSignatures(let _data):
-                if boxed {
-                    buffer.appendInt32(648939889)
-                }
-                _data.newValue.serialize(buffer, true)
-                break
-            case .channelAdminLogEventActionToggleSlowMode(let _data):
-                if boxed {
-                    buffer.appendInt32(1401984889)
-                }
-                serializeInt32(_data.prevValue, buffer: buffer, boxed: false)
-                serializeInt32(_data.newValue, buffer: buffer, boxed: false)
-                break
-            case .channelAdminLogEventActionUpdatePinned(let _data):
-                if boxed {
-                    buffer.appendInt32(-370660328)
-                }
-                _data.message.serialize(buffer, true)
+                serializeString(_data.title, buffer: buffer, boxed: false)
                 break
             }
         }
 
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .channelAdminLogEventActionChangeAbout(let _data):
-                return ("channelAdminLogEventActionChangeAbout", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeAvailableReactions(let _data):
-                return ("channelAdminLogEventActionChangeAvailableReactions", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeEmojiStatus(let _data):
-                return ("channelAdminLogEventActionChangeEmojiStatus", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeEmojiStickerSet(let _data):
-                return ("channelAdminLogEventActionChangeEmojiStickerSet", [("prevStickerset", ConstructorParameterDescription(_data.prevStickerset)), ("newStickerset", ConstructorParameterDescription(_data.newStickerset))])
-            case .channelAdminLogEventActionChangeHistoryTTL(let _data):
-                return ("channelAdminLogEventActionChangeHistoryTTL", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeLinkedChat(let _data):
-                return ("channelAdminLogEventActionChangeLinkedChat", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeLocation(let _data):
-                return ("channelAdminLogEventActionChangeLocation", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangePeerColor(let _data):
-                return ("channelAdminLogEventActionChangePeerColor", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangePhoto(let _data):
-                return ("channelAdminLogEventActionChangePhoto", [("prevPhoto", ConstructorParameterDescription(_data.prevPhoto)), ("newPhoto", ConstructorParameterDescription(_data.newPhoto))])
-            case .channelAdminLogEventActionChangeProfilePeerColor(let _data):
-                return ("channelAdminLogEventActionChangeProfilePeerColor", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeStickerSet(let _data):
-                return ("channelAdminLogEventActionChangeStickerSet", [("prevStickerset", ConstructorParameterDescription(_data.prevStickerset)), ("newStickerset", ConstructorParameterDescription(_data.newStickerset))])
-            case .channelAdminLogEventActionChangeTitle(let _data):
-                return ("channelAdminLogEventActionChangeTitle", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeUsername(let _data):
-                return ("channelAdminLogEventActionChangeUsername", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeUsernames(let _data):
-                return ("channelAdminLogEventActionChangeUsernames", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionChangeWallpaper(let _data):
-                return ("channelAdminLogEventActionChangeWallpaper", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionCreateTopic(let _data):
-                return ("channelAdminLogEventActionCreateTopic", [("topic", ConstructorParameterDescription(_data.topic))])
-            case .channelAdminLogEventActionDefaultBannedRights(let _data):
-                return ("channelAdminLogEventActionDefaultBannedRights", [("prevBannedRights", ConstructorParameterDescription(_data.prevBannedRights)), ("newBannedRights", ConstructorParameterDescription(_data.newBannedRights))])
-            case .channelAdminLogEventActionDeleteMessage(let _data):
-                return ("channelAdminLogEventActionDeleteMessage", [("message", ConstructorParameterDescription(_data.message))])
-            case .channelAdminLogEventActionDeleteTopic(let _data):
-                return ("channelAdminLogEventActionDeleteTopic", [("topic", ConstructorParameterDescription(_data.topic))])
-            case .channelAdminLogEventActionDiscardGroupCall(let _data):
-                return ("channelAdminLogEventActionDiscardGroupCall", [("call", ConstructorParameterDescription(_data.call))])
-            case .channelAdminLogEventActionEditMessage(let _data):
-                return ("channelAdminLogEventActionEditMessage", [("prevMessage", ConstructorParameterDescription(_data.prevMessage)), ("newMessage", ConstructorParameterDescription(_data.newMessage))])
-            case .channelAdminLogEventActionEditTopic(let _data):
-                return ("channelAdminLogEventActionEditTopic", [("prevTopic", ConstructorParameterDescription(_data.prevTopic)), ("newTopic", ConstructorParameterDescription(_data.newTopic))])
-            case .channelAdminLogEventActionExportedInviteDelete(let _data):
-                return ("channelAdminLogEventActionExportedInviteDelete", [("invite", ConstructorParameterDescription(_data.invite))])
-            case .channelAdminLogEventActionExportedInviteEdit(let _data):
-                return ("channelAdminLogEventActionExportedInviteEdit", [("prevInvite", ConstructorParameterDescription(_data.prevInvite)), ("newInvite", ConstructorParameterDescription(_data.newInvite))])
-            case .channelAdminLogEventActionExportedInviteRevoke(let _data):
-                return ("channelAdminLogEventActionExportedInviteRevoke", [("invite", ConstructorParameterDescription(_data.invite))])
-            case .channelAdminLogEventActionParticipantEditRank(let _data):
-                return ("channelAdminLogEventActionParticipantEditRank", [("userId", ConstructorParameterDescription(_data.userId)), ("prevRank", ConstructorParameterDescription(_data.prevRank)), ("newRank", ConstructorParameterDescription(_data.newRank))])
-            case .channelAdminLogEventActionParticipantInvite(let _data):
-                return ("channelAdminLogEventActionParticipantInvite", [("participant", ConstructorParameterDescription(_data.participant))])
-            case .channelAdminLogEventActionParticipantJoin:
-                return ("channelAdminLogEventActionParticipantJoin", [])
-            case .channelAdminLogEventActionParticipantJoinByInvite(let _data):
-                return ("channelAdminLogEventActionParticipantJoinByInvite", [("flags", ConstructorParameterDescription(_data.flags)), ("invite", ConstructorParameterDescription(_data.invite))])
-            case .channelAdminLogEventActionParticipantJoinByRequest(let _data):
-                return ("channelAdminLogEventActionParticipantJoinByRequest", [("invite", ConstructorParameterDescription(_data.invite)), ("approvedBy", ConstructorParameterDescription(_data.approvedBy))])
-            case .channelAdminLogEventActionParticipantLeave:
-                return ("channelAdminLogEventActionParticipantLeave", [])
-            case .channelAdminLogEventActionParticipantMute(let _data):
-                return ("channelAdminLogEventActionParticipantMute", [("participant", ConstructorParameterDescription(_data.participant))])
-            case .channelAdminLogEventActionParticipantSubExtend(let _data):
-                return ("channelAdminLogEventActionParticipantSubExtend", [("prevParticipant", ConstructorParameterDescription(_data.prevParticipant)), ("newParticipant", ConstructorParameterDescription(_data.newParticipant))])
-            case .channelAdminLogEventActionParticipantToggleAdmin(let _data):
-                return ("channelAdminLogEventActionParticipantToggleAdmin", [("prevParticipant", ConstructorParameterDescription(_data.prevParticipant)), ("newParticipant", ConstructorParameterDescription(_data.newParticipant))])
-            case .channelAdminLogEventActionParticipantToggleBan(let _data):
-                return ("channelAdminLogEventActionParticipantToggleBan", [("prevParticipant", ConstructorParameterDescription(_data.prevParticipant)), ("newParticipant", ConstructorParameterDescription(_data.newParticipant))])
-            case .channelAdminLogEventActionParticipantUnmute(let _data):
-                return ("channelAdminLogEventActionParticipantUnmute", [("participant", ConstructorParameterDescription(_data.participant))])
-            case .channelAdminLogEventActionParticipantVolume(let _data):
-                return ("channelAdminLogEventActionParticipantVolume", [("participant", ConstructorParameterDescription(_data.participant))])
-            case .channelAdminLogEventActionPinTopic(let _data):
-                return ("channelAdminLogEventActionPinTopic", [("flags", ConstructorParameterDescription(_data.flags)), ("prevTopic", ConstructorParameterDescription(_data.prevTopic)), ("newTopic", ConstructorParameterDescription(_data.newTopic))])
-            case .channelAdminLogEventActionSendMessage(let _data):
-                return ("channelAdminLogEventActionSendMessage", [("message", ConstructorParameterDescription(_data.message))])
-            case .channelAdminLogEventActionStartGroupCall(let _data):
-                return ("channelAdminLogEventActionStartGroupCall", [("call", ConstructorParameterDescription(_data.call))])
-            case .channelAdminLogEventActionStopPoll(let _data):
-                return ("channelAdminLogEventActionStopPoll", [("message", ConstructorParameterDescription(_data.message))])
-            case .channelAdminLogEventActionToggleAntiSpam(let _data):
-                return ("channelAdminLogEventActionToggleAntiSpam", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleAutotranslation(let _data):
-                return ("channelAdminLogEventActionToggleAutotranslation", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleForum(let _data):
-                return ("channelAdminLogEventActionToggleForum", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleGroupCallSetting(let _data):
-                return ("channelAdminLogEventActionToggleGroupCallSetting", [("joinMuted", ConstructorParameterDescription(_data.joinMuted))])
-            case .channelAdminLogEventActionToggleInvites(let _data):
-                return ("channelAdminLogEventActionToggleInvites", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleNoForwards(let _data):
-                return ("channelAdminLogEventActionToggleNoForwards", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionTogglePreHistoryHidden(let _data):
-                return ("channelAdminLogEventActionTogglePreHistoryHidden", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleSignatureProfiles(let _data):
-                return ("channelAdminLogEventActionToggleSignatureProfiles", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleSignatures(let _data):
-                return ("channelAdminLogEventActionToggleSignatures", [("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionToggleSlowMode(let _data):
-                return ("channelAdminLogEventActionToggleSlowMode", [("prevValue", ConstructorParameterDescription(_data.prevValue)), ("newValue", ConstructorParameterDescription(_data.newValue))])
-            case .channelAdminLogEventActionUpdatePinned(let _data):
-                return ("channelAdminLogEventActionUpdatePinned", [("message", ConstructorParameterDescription(_data.message))])
-            }
-        }
-
-        public static func parse_channelAdminLogEventActionChangeAbout(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: String?
-            _1 = parseString(reader)
-            var _2: String?
-            _2 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeAbout(Cons_channelAdminLogEventActionChangeAbout(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeAvailableReactions(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChatReactions?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChatReactions
-            }
-            var _2: Api.ChatReactions?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ChatReactions
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeAvailableReactions(Cons_channelAdminLogEventActionChangeAvailableReactions(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeEmojiStatus(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.EmojiStatus?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.EmojiStatus
-            }
-            var _2: Api.EmojiStatus?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.EmojiStatus
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeEmojiStatus(Cons_channelAdminLogEventActionChangeEmojiStatus(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeEmojiStickerSet(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.InputStickerSet?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
-            }
-            var _2: Api.InputStickerSet?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeEmojiStickerSet(Cons_channelAdminLogEventActionChangeEmojiStickerSet(prevStickerset: _1!, newStickerset: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeHistoryTTL(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+        static func parse_channel(_ reader: BufferReader) -> Chat? {
             var _1: Int32?
             _1 = reader.readInt32()
             var _2: Int32?
             _2 = reader.readInt32()
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeHistoryTTL(Cons_channelAdminLogEventActionChangeHistoryTTL(prevValue: _1!, newValue: _2!))
+            var _3: Int64?
+            _3 = reader.readInt64()
+            var _4: Int64?
+            if Int(_1 ?? 0) & Int(1 << 13) != 0 {
+                _4 = reader.readInt64()
             }
-            else {
-                return nil
+            var _5: String?
+            _5 = parseString(reader)
+            var _6: String?
+            if Int(_1 ?? 0) & Int(1 << 6) != 0 {
+                _6 = parseString(reader)
             }
-        }
-        public static func parse_channelAdminLogEventActionChangeLinkedChat(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Int64?
-            _1 = reader.readInt64()
-            var _2: Int64?
-            _2 = reader.readInt64()
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeLinkedChat(Cons_channelAdminLogEventActionChangeLinkedChat(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeLocation(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChannelLocation?
+            var _7: Api.ChatPhoto?
             if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChannelLocation
-            }
-            var _2: Api.ChannelLocation?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ChannelLocation
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeLocation(Cons_channelAdminLogEventActionChangeLocation(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangePeerColor(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.PeerColor?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.PeerColor
-            }
-            var _2: Api.PeerColor?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.PeerColor
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangePeerColor(Cons_channelAdminLogEventActionChangePeerColor(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangePhoto(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Photo?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Photo
-            }
-            var _2: Api.Photo?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.Photo
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangePhoto(Cons_channelAdminLogEventActionChangePhoto(prevPhoto: _1!, newPhoto: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeProfilePeerColor(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.PeerColor?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.PeerColor
-            }
-            var _2: Api.PeerColor?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.PeerColor
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeProfilePeerColor(Cons_channelAdminLogEventActionChangeProfilePeerColor(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeStickerSet(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.InputStickerSet?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
-            }
-            var _2: Api.InputStickerSet?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeStickerSet(Cons_channelAdminLogEventActionChangeStickerSet(prevStickerset: _1!, newStickerset: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeTitle(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: String?
-            _1 = parseString(reader)
-            var _2: String?
-            _2 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeTitle(Cons_channelAdminLogEventActionChangeTitle(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeUsername(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: String?
-            _1 = parseString(reader)
-            var _2: String?
-            _2 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeUsername(Cons_channelAdminLogEventActionChangeUsername(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeUsernames(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: [String]?
-            if let _ = reader.readInt32() {
-                _1 = Api.parseVector(reader, elementSignature: -1255641564, elementType: String.self)
-            }
-            var _2: [String]?
-            if let _ = reader.readInt32() {
-                _2 = Api.parseVector(reader, elementSignature: -1255641564, elementType: String.self)
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeUsernames(Cons_channelAdminLogEventActionChangeUsernames(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionChangeWallpaper(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.WallPaper?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.WallPaper
-            }
-            var _2: Api.WallPaper?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.WallPaper
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeWallpaper(Cons_channelAdminLogEventActionChangeWallpaper(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionCreateTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ForumTopic?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ForumTopic
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionCreateTopic(Cons_channelAdminLogEventActionCreateTopic(topic: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionDefaultBannedRights(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChatBannedRights?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
-            }
-            var _2: Api.ChatBannedRights?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDefaultBannedRights(Cons_channelAdminLogEventActionDefaultBannedRights(prevBannedRights: _1!, newBannedRights: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionDeleteMessage(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Message?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Message
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDeleteMessage(Cons_channelAdminLogEventActionDeleteMessage(message: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionDeleteTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ForumTopic?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ForumTopic
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDeleteTopic(Cons_channelAdminLogEventActionDeleteTopic(topic: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionDiscardGroupCall(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.InputGroupCall?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputGroupCall
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDiscardGroupCall(Cons_channelAdminLogEventActionDiscardGroupCall(call: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionEditMessage(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Message?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Message
-            }
-            var _2: Api.Message?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.Message
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionEditMessage(Cons_channelAdminLogEventActionEditMessage(prevMessage: _1!, newMessage: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionEditTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ForumTopic?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ForumTopic
-            }
-            var _2: Api.ForumTopic?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ForumTopic
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionEditTopic(Cons_channelAdminLogEventActionEditTopic(prevTopic: _1!, newTopic: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionExportedInviteDelete(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ExportedChatInvite?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionExportedInviteDelete(Cons_channelAdminLogEventActionExportedInviteDelete(invite: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionExportedInviteEdit(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ExportedChatInvite?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
-            }
-            var _2: Api.ExportedChatInvite?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionExportedInviteEdit(Cons_channelAdminLogEventActionExportedInviteEdit(prevInvite: _1!, newInvite: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionExportedInviteRevoke(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ExportedChatInvite?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionExportedInviteRevoke(Cons_channelAdminLogEventActionExportedInviteRevoke(invite: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantEditRank(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Int64?
-            _1 = reader.readInt64()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
+                _7 = Api.parse(reader, signature: signature) as? Api.ChatPhoto
+            }
+            var _8: Int32?
+            _8 = reader.readInt32()
+            var _9: [Api.RestrictionReason]?
+            if Int(_1 ?? 0) & Int(1 << 9) != 0 {
+                if let _ = reader.readInt32() {
+                    _9 = Api.parseVector(reader, elementSignature: 0, elementType: Api.RestrictionReason.self)
+                }
+            }
+            var _10: Api.ChatAdminRights?
+            if Int(_1 ?? 0) & Int(1 << 14) != 0 {
+                if let signature = reader.readInt32() {
+                    _10 = Api.parse(reader, signature: signature) as? Api.ChatAdminRights
+                }
+            }
+            var _11: Api.ChatBannedRights?
+            if Int(_1 ?? 0) & Int(1 << 15) != 0 {
+                if let signature = reader.readInt32() {
+                    _11 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
+                }
+            }
+            var _12: Api.ChatBannedRights?
+            if Int(_1 ?? 0) & Int(1 << 18) != 0 {
+                if let signature = reader.readInt32() {
+                    _12 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
+                }
+            }
+            var _13: Int32?
+            if Int(_1 ?? 0) & Int(1 << 17) != 0 {
+                _13 = reader.readInt32()
+            }
+            var _14: [Api.Username]?
+            if Int(_2 ?? 0) & Int(1 << 0) != 0 {
+                if let _ = reader.readInt32() {
+                    _14 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Username.self)
+                }
+            }
+            var _15: Api.RecentStory?
+            if Int(_2 ?? 0) & Int(1 << 4) != 0 {
+                if let signature = reader.readInt32() {
+                    _15 = Api.parse(reader, signature: signature) as? Api.RecentStory
+                }
+            }
+            var _16: Api.PeerColor?
+            if Int(_2 ?? 0) & Int(1 << 7) != 0 {
+                if let signature = reader.readInt32() {
+                    _16 = Api.parse(reader, signature: signature) as? Api.PeerColor
+                }
+            }
+            var _17: Api.PeerColor?
+            if Int(_2 ?? 0) & Int(1 << 8) != 0 {
+                if let signature = reader.readInt32() {
+                    _17 = Api.parse(reader, signature: signature) as? Api.PeerColor
+                }
+            }
+            var _18: Api.EmojiStatus?
+            if Int(_2 ?? 0) & Int(1 << 9) != 0 {
+                if let signature = reader.readInt32() {
+                    _18 = Api.parse(reader, signature: signature) as? Api.EmojiStatus
+                }
+            }
+            var _19: Int32?
+            if Int(_2 ?? 0) & Int(1 << 10) != 0 {
+                _19 = reader.readInt32()
+            }
+            var _20: Int32?
+            if Int(_2 ?? 0) & Int(1 << 11) != 0 {
+                _20 = reader.readInt32()
+            }
+            var _21: Int64?
+            if Int(_2 ?? 0) & Int(1 << 13) != 0 {
+                _21 = reader.readInt64()
+            }
+            var _22: Int64?
+            if Int(_2 ?? 0) & Int(1 << 14) != 0 {
+                _22 = reader.readInt64()
+            }
+            var _23: Int64?
+            if Int(_2 ?? 0) & Int(1 << 18) != 0 {
+                _23 = reader.readInt64()
+            }
+            var _24: Int64?
+            if Int(_2 ?? 0) & Int(1 << 20) != 0 {
+                _24 = reader.readInt64()
+            }
+            var _25: Int32?
+            if Int(_2 ?? 0) & Int(1 << 22) != 0 {
+                _25 = reader.readInt32()
+            }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             let _c3 = _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantEditRank(Cons_channelAdminLogEventActionParticipantEditRank(userId: _1!, prevRank: _2!, newRank: _3!))
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 13) == 0) || _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 6) == 0) || _6 != nil
+            let _c7 = _7 != nil
+            let _c8 = _8 != nil
+            let _c9 = (Int(_1 ?? 0) & Int(1 << 9) == 0) || _9 != nil
+            let _c10 = (Int(_1 ?? 0) & Int(1 << 14) == 0) || _10 != nil
+            let _c11 = (Int(_1 ?? 0) & Int(1 << 15) == 0) || _11 != nil
+            let _c12 = (Int(_1 ?? 0) & Int(1 << 18) == 0) || _12 != nil
+            let _c13 = (Int(_1 ?? 0) & Int(1 << 17) == 0) || _13 != nil
+            let _c14 = (Int(_2 ?? 0) & Int(1 << 0) == 0) || _14 != nil
+            let _c15 = (Int(_2 ?? 0) & Int(1 << 4) == 0) || _15 != nil
+            let _c16 = (Int(_2 ?? 0) & Int(1 << 7) == 0) || _16 != nil
+            let _c17 = (Int(_2 ?? 0) & Int(1 << 8) == 0) || _17 != nil
+            let _c18 = (Int(_2 ?? 0) & Int(1 << 9) == 0) || _18 != nil
+            let _c19 = (Int(_2 ?? 0) & Int(1 << 10) == 0) || _19 != nil
+            let _c20 = (Int(_2 ?? 0) & Int(1 << 11) == 0) || _20 != nil
+            let _c21 = (Int(_2 ?? 0) & Int(1 << 13) == 0) || _21 != nil
+            let _c22 = (Int(_2 ?? 0) & Int(1 << 14) == 0) || _22 != nil
+            let _c23 = (Int(_2 ?? 0) & Int(1 << 18) == 0) || _23 != nil
+            let _c24 = (Int(_2 ?? 0) & Int(1 << 20) == 0) || _24 != nil
+            let _c25 = (Int(_2 ?? 0) & Int(1 << 22) == 0) || _25 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 && _c10 && _c11 && _c12 && _c13 && _c14 && _c15 && _c16 && _c17 && _c18 && _c19 && _c20 && _c21 && _c22 && _c23 && _c24 && _c25 {
+                return Api.Chat.channel(Cons_channel(flags: _1!, flags2: _2!, id: _3!, accessHash: _4, title: _5!, username: _6, photo: _7!, date: _8!, restrictionReason: _9, adminRights: _10, bannedRights: _11, defaultBannedRights: _12, participantsCount: _13, usernames: _14, storiesMaxId: _15, color: _16, profileColor: _17, emojiStatus: _18, level: _19, subscriptionUntilDate: _20, botVerificationIcon: _21, sendPaidMessagesStars: _22, linkedMonoforumId: _23, linkedCommunityId: _24, pinnedMsgId: _25))
             }
             else {
                 return nil
             }
         }
-        public static func parse_channelAdminLogEventActionParticipantInvite(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantInvite(Cons_channelAdminLogEventActionParticipantInvite(participant: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantJoin(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantJoin
-        }
-        public static func parse_channelAdminLogEventActionParticipantJoinByInvite(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+        static func parse_channelForbidden(_ reader: BufferReader) -> Chat? {
             var _1: Int32?
             _1 = reader.readInt32()
-            var _2: Api.ExportedChatInvite?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantJoinByInvite(Cons_channelAdminLogEventActionParticipantJoinByInvite(flags: _1!, invite: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantJoinByRequest(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ExportedChatInvite?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
-            }
             var _2: Int64?
             _2 = reader.readInt64()
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantJoinByRequest(Cons_channelAdminLogEventActionParticipantJoinByRequest(invite: _1!, approvedBy: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantLeave(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantLeave
-        }
-        public static func parse_channelAdminLogEventActionParticipantMute(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.GroupCallParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.GroupCallParticipant
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantMute(Cons_channelAdminLogEventActionParticipantMute(participant: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantSubExtend(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
-            }
-            var _2: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            var _3: Int64?
+            _3 = reader.readInt64()
+            var _4: String?
+            _4 = parseString(reader)
+            var _5: Int32?
+            if Int(_1 ?? 0) & Int(1 << 16) != 0 {
+                _5 = reader.readInt32()
             }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantSubExtend(Cons_channelAdminLogEventActionParticipantSubExtend(prevParticipant: _1!, newParticipant: _2!))
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 16) == 0) || _5 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 {
+                return Api.Chat.channelForbidden(Cons_channelForbidden(flags: _1!, id: _2!, accessHash: _3!, title: _4!, untilDate: _5))
             }
             else {
                 return nil
             }
         }
-        public static func parse_channelAdminLogEventActionParticipantToggleAdmin(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
-            }
-            var _2: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantToggleAdmin(Cons_channelAdminLogEventActionParticipantToggleAdmin(prevParticipant: _1!, newParticipant: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantToggleBan(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
-            }
-            var _2: Api.ChannelParticipant?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantToggleBan(Cons_channelAdminLogEventActionParticipantToggleBan(prevParticipant: _1!, newParticipant: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantUnmute(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.GroupCallParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.GroupCallParticipant
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantUnmute(Cons_channelAdminLogEventActionParticipantUnmute(participant: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionParticipantVolume(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.GroupCallParticipant?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.GroupCallParticipant
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantVolume(Cons_channelAdminLogEventActionParticipantVolume(participant: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionPinTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+        static func parse_chat(_ reader: BufferReader) -> Chat? {
             var _1: Int32?
             _1 = reader.readInt32()
-            var _2: Api.ForumTopic?
-            if Int(_1!) & Int(1 << 0) != 0 {
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: String?
+            _3 = parseString(reader)
+            var _4: Api.ChatPhoto?
+            if let signature = reader.readInt32() {
+                _4 = Api.parse(reader, signature: signature) as? Api.ChatPhoto
+            }
+            var _5: Int32?
+            _5 = reader.readInt32()
+            var _6: Int32?
+            _6 = reader.readInt32()
+            var _7: Int32?
+            _7 = reader.readInt32()
+            var _8: Api.InputChannel?
+            if Int(_1 ?? 0) & Int(1 << 6) != 0 {
                 if let signature = reader.readInt32() {
-                    _2 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+                    _8 = Api.parse(reader, signature: signature) as? Api.InputChannel
                 }
             }
-            var _3: Api.ForumTopic?
-            if Int(_1!) & Int(1 << 1) != 0 {
+            var _9: Api.ChatAdminRights?
+            if Int(_1 ?? 0) & Int(1 << 14) != 0 {
                 if let signature = reader.readInt32() {
-                    _3 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+                    _9 = Api.parse(reader, signature: signature) as? Api.ChatAdminRights
+                }
+            }
+            var _10: Api.ChatBannedRights?
+            if Int(_1 ?? 0) & Int(1 << 18) != 0 {
+                if let signature = reader.readInt32() {
+                    _10 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
                 }
             }
             let _c1 = _1 != nil
-            let _c2 = (Int(_1!) & Int(1 << 0) == 0) || _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 1) == 0) || _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionPinTopic(Cons_channelAdminLogEventActionPinTopic(flags: _1!, prevTopic: _2, newTopic: _3))
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            let _c7 = _7 != nil
+            let _c8 = (Int(_1 ?? 0) & Int(1 << 6) == 0) || _8 != nil
+            let _c9 = (Int(_1 ?? 0) & Int(1 << 14) == 0) || _9 != nil
+            let _c10 = (Int(_1 ?? 0) & Int(1 << 18) == 0) || _10 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 && _c10 {
+                return Api.Chat.chat(Cons_chat(flags: _1!, id: _2!, title: _3!, photo: _4!, participantsCount: _5!, date: _6!, version: _7!, migratedTo: _8, adminRights: _9, defaultBannedRights: _10))
             }
             else {
                 return nil
             }
         }
-        public static func parse_channelAdminLogEventActionSendMessage(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Message?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Message
-            }
+        static func parse_chatEmpty(_ reader: BufferReader) -> Chat? {
+            var _1: Int64?
+            _1 = reader.readInt64()
             let _c1 = _1 != nil
             if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionSendMessage(Cons_channelAdminLogEventActionSendMessage(message: _1!))
+                return Api.Chat.chatEmpty(Cons_chatEmpty(id: _1!))
             }
             else {
                 return nil
             }
         }
-        public static func parse_channelAdminLogEventActionStartGroupCall(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.InputGroupCall?
+        static func parse_chatForbidden(_ reader: BufferReader) -> Chat? {
+            var _1: Int64?
+            _1 = reader.readInt64()
+            var _2: String?
+            _2 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.Chat.chatForbidden(Cons_chatForbidden(id: _1!, title: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_community(_ reader: BufferReader) -> Chat? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int32?
+            _2 = reader.readInt32()
+            var _3: Int64?
+            _3 = reader.readInt64()
+            var _4: Int64?
+            if Int(_1 ?? 0) & Int(1 << 13) != 0 {
+                _4 = reader.readInt64()
+            }
+            var _5: String?
+            _5 = parseString(reader)
+            var _6: Api.ChatPhoto?
             if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputGroupCall
+                _6 = Api.parse(reader, signature: signature) as? Api.ChatPhoto
+            }
+            var _7: Int32?
+            _7 = reader.readInt32()
+            var _8: Api.ChatAdminRights?
+            if Int(_1 ?? 0) & Int(1 << 14) != 0 {
+                if let signature = reader.readInt32() {
+                    _8 = Api.parse(reader, signature: signature) as? Api.ChatAdminRights
+                }
+            }
+            var _9: Api.ChatBannedRights?
+            if Int(_1 ?? 0) & Int(1 << 18) != 0 {
+                if let signature = reader.readInt32() {
+                    _9 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
+                }
             }
             let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionStartGroupCall(Cons_channelAdminLogEventActionStartGroupCall(call: _1!))
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 13) == 0) || _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            let _c7 = _7 != nil
+            let _c8 = (Int(_1 ?? 0) & Int(1 << 14) == 0) || _8 != nil
+            let _c9 = (Int(_1 ?? 0) & Int(1 << 18) == 0) || _9 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 {
+                return Api.Chat.community(Cons_community(flags: _1!, flags2: _2!, id: _3!, accessHash: _4, title: _5!, photo: _6!, date: _7!, adminRights: _8, defaultBannedRights: _9))
             }
             else {
                 return nil
             }
         }
-        public static func parse_channelAdminLogEventActionStopPoll(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Message?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Message
+        static func parse_communityForbidden(_ reader: BufferReader) -> Chat? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Int64?
+            if Int(_1 ?? 0) & Int(1 << 13) != 0 {
+                _3 = reader.readInt64()
             }
+            var _4: String?
+            _4 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = (Int(_1 ?? 0) & Int(1 << 13) == 0) || _3 != nil
+            let _c4 = _4 != nil
+            if _c1 && _c2 && _c3 && _c4 {
+                return Api.Chat.communityForbidden(Cons_communityForbidden(flags: _1!, id: _2!, accessHash: _3, title: _4!))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
+extension Api {
+    enum ChatAdminRights: TypeConstructorDescription {
+        class Cons_chatAdminRights: TypeConstructorDescription {
+            var flags: Int32
+            init(flags: Int32) {
+                self.flags = flags
+            }
+        }
+        case chatAdminRights(Cons_chatAdminRights)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .chatAdminRights(let _data):
+                if boxed {
+                    buffer.appendInt32(1605510357)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                break
+            }
+        }
+
+        static func parse_chatAdminRights(_ reader: BufferReader) -> ChatAdminRights? {
+            var _1: Int32?
+            _1 = reader.readInt32()
             let _c1 = _1 != nil
             if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionStopPoll(Cons_channelAdminLogEventActionStopPoll(message: _1!))
+                return Api.ChatAdminRights.chatAdminRights(Cons_chatAdminRights(flags: _1!))
             }
             else {
                 return nil
             }
         }
-        public static func parse_channelAdminLogEventActionToggleAntiSpam(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleAntiSpam(Cons_channelAdminLogEventActionToggleAntiSpam(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionToggleAutotranslation(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleAutotranslation(Cons_channelAdminLogEventActionToggleAutotranslation(newValue: _1!))
-            }
-            else {
-                return nil
+    }
+}
+extension Api {
+    enum ChatBannedRights: TypeConstructorDescription {
+        class Cons_chatBannedRights: TypeConstructorDescription {
+            var flags: Int32
+            var untilDate: Int32
+            init(flags: Int32, untilDate: Int32) {
+                self.flags = flags
+                self.untilDate = untilDate
             }
         }
-        public static func parse_channelAdminLogEventActionToggleForum(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleForum(Cons_channelAdminLogEventActionToggleForum(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionToggleGroupCallSetting(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleGroupCallSetting(Cons_channelAdminLogEventActionToggleGroupCallSetting(joinMuted: _1!))
-            }
-            else {
-                return nil
+        case chatBannedRights(Cons_chatBannedRights)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .chatBannedRights(let _data):
+                if boxed {
+                    buffer.appendInt32(-1626209256)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt32(_data.untilDate, buffer: buffer, boxed: false)
+                break
             }
         }
-        public static func parse_channelAdminLogEventActionToggleInvites(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleInvites(Cons_channelAdminLogEventActionToggleInvites(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionToggleNoForwards(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleNoForwards(Cons_channelAdminLogEventActionToggleNoForwards(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionTogglePreHistoryHidden(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionTogglePreHistoryHidden(Cons_channelAdminLogEventActionTogglePreHistoryHidden(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionToggleSignatureProfiles(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleSignatureProfiles(Cons_channelAdminLogEventActionToggleSignatureProfiles(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionToggleSignatures(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Bool?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Bool
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleSignatures(Cons_channelAdminLogEventActionToggleSignatures(newValue: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionToggleSlowMode(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+
+        static func parse_chatBannedRights(_ reader: BufferReader) -> ChatBannedRights? {
             var _1: Int32?
             _1 = reader.readInt32()
             var _2: Int32?
@@ -2300,20 +1020,7 @@ public extension Api {
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             if _c1 && _c2 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleSlowMode(Cons_channelAdminLogEventActionToggleSlowMode(prevValue: _1!, newValue: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_channelAdminLogEventActionUpdatePinned(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
-            var _1: Api.Message?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.Message
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionUpdatePinned(Cons_channelAdminLogEventActionUpdatePinned(message: _1!))
+                return Api.ChatBannedRights.chatBannedRights(Cons_chatBannedRights(flags: _1!, untilDate: _2!))
             }
             else {
                 return nil

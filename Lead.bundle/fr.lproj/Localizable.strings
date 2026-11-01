@@ -110,3 +110,5 @@
 "CANCEL" = "Annuler";
 
 "AUTHOR_MESSAGE" = "Ce tweak Telegram est uniquement destiné à un usage personnel et éducatif. Nous ne sommes en aucun cas affiliés à Telegram. Toutes les marques, y compris le nom et le logo de Telegram, appartiennent à leurs propriétaires respectifs. N'utilisez pas ceci pour enfreindre les règles, faire des choses louches ou violer les conditions d'utilisation de Telegram — nous ne sommes pas responsables en cas de problème. Utilisez-le à vos risques et périls.\n\nAussi… si ça vous plaît, dites-le. Sérieusement, je vis pour la validation.\n\nEt… si vous voulez me soutenir avec un ou deux euros, contactez-moi sur Telegram.";
+"SHOW_IOS_RESTRICTED_TITLE" = "Afficher les chats bloqués par l'App Store";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "Ouvre les canaux et publications masqués uniquement sur iPhone par les règles de l'App Store. Redémarrez l'app après l'activation.";

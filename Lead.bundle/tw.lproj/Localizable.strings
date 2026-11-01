@@ -111,3 +111,6 @@
 "DISCLAIMER" = "免責聲明";
 
 "AUTHOR_MESSAGE" = "本Telegram調整工具僅限於個人及教育用途。我們與Telegram無任何關聯。所有商標，包括Telegram名稱及標誌，皆屬其各自所有者所有。請勿使用本工具違反規則、進行不當行為或違反Telegram的服務條款。若因使用本工具而產生任何問題，我們概不負責，使用者須自行承擔風險。\n \n此外，若您對本工具感到滿意，歡迎提供意見或反饋，您的支持對我們至關重要。\n \n如有意透過小額捐款支持我，請透過Telegram與我聯繫。";
+
+"SHOW_IOS_RESTRICTED_TITLE" = "顯示被 App Store 封鎖的聊天";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "開啟僅因 App Store 規則在 iPhone 上被隱藏的頻道和貼文。開啟後請重新啟動 App。";

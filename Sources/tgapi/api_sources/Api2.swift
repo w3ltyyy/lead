@@ -1,118 +1,773 @@
-public extension Api {
-    enum BotBusinessConnection: TypeConstructorDescription {
-        public class Cons_botBusinessConnection: TypeConstructorDescription {
-            public var flags: Int32
-            public var connectionId: String
-            public var userId: Int64
-            public var dcId: Int32
-            public var date: Int32
-            public var rights: Api.BusinessBotRights?
-            public init(flags: Int32, connectionId: String, userId: Int64, dcId: Int32, date: Int32, rights: Api.BusinessBotRights?) {
-                self.flags = flags
-                self.connectionId = connectionId
-                self.userId = userId
-                self.dcId = dcId
-                self.date = date
-                self.rights = rights
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botBusinessConnection", [("flags", ConstructorParameterDescription(self.flags)), ("connectionId", ConstructorParameterDescription(self.connectionId)), ("userId", ConstructorParameterDescription(self.userId)), ("dcId", ConstructorParameterDescription(self.dcId)), ("date", ConstructorParameterDescription(self.date)), ("rights", ConstructorParameterDescription(self.rights))])
+extension Api {
+    enum ChannelAdminLogEventAction: TypeConstructorDescription {
+        class Cons_channelAdminLogEventActionChangeAbout: TypeConstructorDescription {
+            var prevValue: String
+            var newValue: String
+            init(prevValue: String, newValue: String) {
+                self.prevValue = prevValue
+                self.newValue = newValue
             }
         }
-        case botBusinessConnection(Cons_botBusinessConnection)
+        class Cons_channelAdminLogEventActionChangeAvailableReactions: TypeConstructorDescription {
+            var prevValue: Api.ChatReactions
+            var newValue: Api.ChatReactions
+            init(prevValue: Api.ChatReactions, newValue: Api.ChatReactions) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeEmojiStatus: TypeConstructorDescription {
+            var prevValue: Api.EmojiStatus
+            var newValue: Api.EmojiStatus
+            init(prevValue: Api.EmojiStatus, newValue: Api.EmojiStatus) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeEmojiStickerSet: TypeConstructorDescription {
+            var prevStickerset: Api.InputStickerSet
+            var newStickerset: Api.InputStickerSet
+            init(prevStickerset: Api.InputStickerSet, newStickerset: Api.InputStickerSet) {
+                self.prevStickerset = prevStickerset
+                self.newStickerset = newStickerset
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeHistoryTTL: TypeConstructorDescription {
+            var prevValue: Int32
+            var newValue: Int32
+            init(prevValue: Int32, newValue: Int32) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeLinkedChat: TypeConstructorDescription {
+            var prevValue: Int64
+            var newValue: Int64
+            init(prevValue: Int64, newValue: Int64) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeLocation: TypeConstructorDescription {
+            var prevValue: Api.ChannelLocation
+            var newValue: Api.ChannelLocation
+            init(prevValue: Api.ChannelLocation, newValue: Api.ChannelLocation) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangePeerColor: TypeConstructorDescription {
+            var prevValue: Api.PeerColor
+            var newValue: Api.PeerColor
+            init(prevValue: Api.PeerColor, newValue: Api.PeerColor) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangePhoto: TypeConstructorDescription {
+            var prevPhoto: Api.Photo
+            var newPhoto: Api.Photo
+            init(prevPhoto: Api.Photo, newPhoto: Api.Photo) {
+                self.prevPhoto = prevPhoto
+                self.newPhoto = newPhoto
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeProfilePeerColor: TypeConstructorDescription {
+            var prevValue: Api.PeerColor
+            var newValue: Api.PeerColor
+            init(prevValue: Api.PeerColor, newValue: Api.PeerColor) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeStickerSet: TypeConstructorDescription {
+            var prevStickerset: Api.InputStickerSet
+            var newStickerset: Api.InputStickerSet
+            init(prevStickerset: Api.InputStickerSet, newStickerset: Api.InputStickerSet) {
+                self.prevStickerset = prevStickerset
+                self.newStickerset = newStickerset
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeTitle: TypeConstructorDescription {
+            var prevValue: String
+            var newValue: String
+            init(prevValue: String, newValue: String) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeUsername: TypeConstructorDescription {
+            var prevValue: String
+            var newValue: String
+            init(prevValue: String, newValue: String) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeUsernames: TypeConstructorDescription {
+            var prevValue: [String]
+            var newValue: [String]
+            init(prevValue: [String], newValue: [String]) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionChangeWallpaper: TypeConstructorDescription {
+            var prevValue: Api.WallPaper
+            var newValue: Api.WallPaper
+            init(prevValue: Api.WallPaper, newValue: Api.WallPaper) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionCreateTopic: TypeConstructorDescription {
+            var topic: Api.ForumTopic
+            init(topic: Api.ForumTopic) {
+                self.topic = topic
+            }
+        }
+        class Cons_channelAdminLogEventActionDefaultBannedRights: TypeConstructorDescription {
+            var prevBannedRights: Api.ChatBannedRights
+            var newBannedRights: Api.ChatBannedRights
+            init(prevBannedRights: Api.ChatBannedRights, newBannedRights: Api.ChatBannedRights) {
+                self.prevBannedRights = prevBannedRights
+                self.newBannedRights = newBannedRights
+            }
+        }
+        class Cons_channelAdminLogEventActionDeleteMessage: TypeConstructorDescription {
+            var message: Api.Message
+            init(message: Api.Message) {
+                self.message = message
+            }
+        }
+        class Cons_channelAdminLogEventActionDeleteTopic: TypeConstructorDescription {
+            var topic: Api.ForumTopic
+            init(topic: Api.ForumTopic) {
+                self.topic = topic
+            }
+        }
+        class Cons_channelAdminLogEventActionDiscardGroupCall: TypeConstructorDescription {
+            var call: Api.InputGroupCall
+            init(call: Api.InputGroupCall) {
+                self.call = call
+            }
+        }
+        class Cons_channelAdminLogEventActionEditMessage: TypeConstructorDescription {
+            var prevMessage: Api.Message
+            var newMessage: Api.Message
+            init(prevMessage: Api.Message, newMessage: Api.Message) {
+                self.prevMessage = prevMessage
+                self.newMessage = newMessage
+            }
+        }
+        class Cons_channelAdminLogEventActionEditTopic: TypeConstructorDescription {
+            var prevTopic: Api.ForumTopic
+            var newTopic: Api.ForumTopic
+            init(prevTopic: Api.ForumTopic, newTopic: Api.ForumTopic) {
+                self.prevTopic = prevTopic
+                self.newTopic = newTopic
+            }
+        }
+        class Cons_channelAdminLogEventActionExportedInviteDelete: TypeConstructorDescription {
+            var invite: Api.ExportedChatInvite
+            init(invite: Api.ExportedChatInvite) {
+                self.invite = invite
+            }
+        }
+        class Cons_channelAdminLogEventActionExportedInviteEdit: TypeConstructorDescription {
+            var prevInvite: Api.ExportedChatInvite
+            var newInvite: Api.ExportedChatInvite
+            init(prevInvite: Api.ExportedChatInvite, newInvite: Api.ExportedChatInvite) {
+                self.prevInvite = prevInvite
+                self.newInvite = newInvite
+            }
+        }
+        class Cons_channelAdminLogEventActionExportedInviteRevoke: TypeConstructorDescription {
+            var invite: Api.ExportedChatInvite
+            init(invite: Api.ExportedChatInvite) {
+                self.invite = invite
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantEditRank: TypeConstructorDescription {
+            var userId: Int64
+            var prevRank: String
+            var newRank: String
+            init(userId: Int64, prevRank: String, newRank: String) {
+                self.userId = userId
+                self.prevRank = prevRank
+                self.newRank = newRank
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantInvite: TypeConstructorDescription {
+            var participant: Api.ChannelParticipant
+            init(participant: Api.ChannelParticipant) {
+                self.participant = participant
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantJoinByInvite: TypeConstructorDescription {
+            var flags: Int32
+            var invite: Api.ExportedChatInvite
+            init(flags: Int32, invite: Api.ExportedChatInvite) {
+                self.flags = flags
+                self.invite = invite
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantJoinByRequest: TypeConstructorDescription {
+            var invite: Api.ExportedChatInvite
+            var approvedBy: Int64
+            init(invite: Api.ExportedChatInvite, approvedBy: Int64) {
+                self.invite = invite
+                self.approvedBy = approvedBy
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantMute: TypeConstructorDescription {
+            var participant: Api.GroupCallParticipant
+            init(participant: Api.GroupCallParticipant) {
+                self.participant = participant
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantSubExtend: TypeConstructorDescription {
+            var prevParticipant: Api.ChannelParticipant
+            var newParticipant: Api.ChannelParticipant
+            init(prevParticipant: Api.ChannelParticipant, newParticipant: Api.ChannelParticipant) {
+                self.prevParticipant = prevParticipant
+                self.newParticipant = newParticipant
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantToggleAdmin: TypeConstructorDescription {
+            var prevParticipant: Api.ChannelParticipant
+            var newParticipant: Api.ChannelParticipant
+            init(prevParticipant: Api.ChannelParticipant, newParticipant: Api.ChannelParticipant) {
+                self.prevParticipant = prevParticipant
+                self.newParticipant = newParticipant
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantToggleBan: TypeConstructorDescription {
+            var prevParticipant: Api.ChannelParticipant
+            var newParticipant: Api.ChannelParticipant
+            init(prevParticipant: Api.ChannelParticipant, newParticipant: Api.ChannelParticipant) {
+                self.prevParticipant = prevParticipant
+                self.newParticipant = newParticipant
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantUnmute: TypeConstructorDescription {
+            var participant: Api.GroupCallParticipant
+            init(participant: Api.GroupCallParticipant) {
+                self.participant = participant
+            }
+        }
+        class Cons_channelAdminLogEventActionParticipantVolume: TypeConstructorDescription {
+            var participant: Api.GroupCallParticipant
+            init(participant: Api.GroupCallParticipant) {
+                self.participant = participant
+            }
+        }
+        class Cons_channelAdminLogEventActionPinTopic: TypeConstructorDescription {
+            var flags: Int32
+            var prevTopic: Api.ForumTopic?
+            var newTopic: Api.ForumTopic?
+            init(flags: Int32, prevTopic: Api.ForumTopic?, newTopic: Api.ForumTopic?) {
+                self.flags = flags
+                self.prevTopic = prevTopic
+                self.newTopic = newTopic
+            }
+        }
+        class Cons_channelAdminLogEventActionSendMessage: TypeConstructorDescription {
+            var message: Api.Message
+            init(message: Api.Message) {
+                self.message = message
+            }
+        }
+        class Cons_channelAdminLogEventActionStartGroupCall: TypeConstructorDescription {
+            var call: Api.InputGroupCall
+            init(call: Api.InputGroupCall) {
+                self.call = call
+            }
+        }
+        class Cons_channelAdminLogEventActionStopPoll: TypeConstructorDescription {
+            var message: Api.Message
+            init(message: Api.Message) {
+                self.message = message
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleAntiSpam: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleAutotranslation: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleForum: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleGroupCallSetting: TypeConstructorDescription {
+            var joinMuted: Api.Bool
+            init(joinMuted: Api.Bool) {
+                self.joinMuted = joinMuted
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleInvites: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleNoForwards: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionTogglePreHistoryHidden: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleSignatureProfiles: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleSignatures: TypeConstructorDescription {
+            var newValue: Api.Bool
+            init(newValue: Api.Bool) {
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionToggleSlowMode: TypeConstructorDescription {
+            var prevValue: Int32
+            var newValue: Int32
+            init(prevValue: Int32, newValue: Int32) {
+                self.prevValue = prevValue
+                self.newValue = newValue
+            }
+        }
+        class Cons_channelAdminLogEventActionUpdatePinned: TypeConstructorDescription {
+            var message: Api.Message
+            init(message: Api.Message) {
+                self.message = message
+            }
+        }
+        case channelAdminLogEventActionChangeAbout(Cons_channelAdminLogEventActionChangeAbout)
+        case channelAdminLogEventActionChangeAvailableReactions(Cons_channelAdminLogEventActionChangeAvailableReactions)
+        case channelAdminLogEventActionChangeEmojiStatus(Cons_channelAdminLogEventActionChangeEmojiStatus)
+        case channelAdminLogEventActionChangeEmojiStickerSet(Cons_channelAdminLogEventActionChangeEmojiStickerSet)
+        case channelAdminLogEventActionChangeHistoryTTL(Cons_channelAdminLogEventActionChangeHistoryTTL)
+        case channelAdminLogEventActionChangeLinkedChat(Cons_channelAdminLogEventActionChangeLinkedChat)
+        case channelAdminLogEventActionChangeLocation(Cons_channelAdminLogEventActionChangeLocation)
+        case channelAdminLogEventActionChangePeerColor(Cons_channelAdminLogEventActionChangePeerColor)
+        case channelAdminLogEventActionChangePhoto(Cons_channelAdminLogEventActionChangePhoto)
+        case channelAdminLogEventActionChangeProfilePeerColor(Cons_channelAdminLogEventActionChangeProfilePeerColor)
+        case channelAdminLogEventActionChangeStickerSet(Cons_channelAdminLogEventActionChangeStickerSet)
+        case channelAdminLogEventActionChangeTitle(Cons_channelAdminLogEventActionChangeTitle)
+        case channelAdminLogEventActionChangeUsername(Cons_channelAdminLogEventActionChangeUsername)
+        case channelAdminLogEventActionChangeUsernames(Cons_channelAdminLogEventActionChangeUsernames)
+        case channelAdminLogEventActionChangeWallpaper(Cons_channelAdminLogEventActionChangeWallpaper)
+        case channelAdminLogEventActionCreateTopic(Cons_channelAdminLogEventActionCreateTopic)
+        case channelAdminLogEventActionDefaultBannedRights(Cons_channelAdminLogEventActionDefaultBannedRights)
+        case channelAdminLogEventActionDeleteMessage(Cons_channelAdminLogEventActionDeleteMessage)
+        case channelAdminLogEventActionDeleteTopic(Cons_channelAdminLogEventActionDeleteTopic)
+        case channelAdminLogEventActionDiscardGroupCall(Cons_channelAdminLogEventActionDiscardGroupCall)
+        case channelAdminLogEventActionEditMessage(Cons_channelAdminLogEventActionEditMessage)
+        case channelAdminLogEventActionEditTopic(Cons_channelAdminLogEventActionEditTopic)
+        case channelAdminLogEventActionExportedInviteDelete(Cons_channelAdminLogEventActionExportedInviteDelete)
+        case channelAdminLogEventActionExportedInviteEdit(Cons_channelAdminLogEventActionExportedInviteEdit)
+        case channelAdminLogEventActionExportedInviteRevoke(Cons_channelAdminLogEventActionExportedInviteRevoke)
+        case channelAdminLogEventActionParticipantEditRank(Cons_channelAdminLogEventActionParticipantEditRank)
+        case channelAdminLogEventActionParticipantInvite(Cons_channelAdminLogEventActionParticipantInvite)
+        case channelAdminLogEventActionParticipantJoin
+        case channelAdminLogEventActionParticipantJoinByInvite(Cons_channelAdminLogEventActionParticipantJoinByInvite)
+        case channelAdminLogEventActionParticipantJoinByRequest(Cons_channelAdminLogEventActionParticipantJoinByRequest)
+        case channelAdminLogEventActionParticipantLeave
+        case channelAdminLogEventActionParticipantMute(Cons_channelAdminLogEventActionParticipantMute)
+        case channelAdminLogEventActionParticipantSubExtend(Cons_channelAdminLogEventActionParticipantSubExtend)
+        case channelAdminLogEventActionParticipantToggleAdmin(Cons_channelAdminLogEventActionParticipantToggleAdmin)
+        case channelAdminLogEventActionParticipantToggleBan(Cons_channelAdminLogEventActionParticipantToggleBan)
+        case channelAdminLogEventActionParticipantUnmute(Cons_channelAdminLogEventActionParticipantUnmute)
+        case channelAdminLogEventActionParticipantVolume(Cons_channelAdminLogEventActionParticipantVolume)
+        case channelAdminLogEventActionPinTopic(Cons_channelAdminLogEventActionPinTopic)
+        case channelAdminLogEventActionSendMessage(Cons_channelAdminLogEventActionSendMessage)
+        case channelAdminLogEventActionStartGroupCall(Cons_channelAdminLogEventActionStartGroupCall)
+        case channelAdminLogEventActionStopPoll(Cons_channelAdminLogEventActionStopPoll)
+        case channelAdminLogEventActionToggleAntiSpam(Cons_channelAdminLogEventActionToggleAntiSpam)
+        case channelAdminLogEventActionToggleAutotranslation(Cons_channelAdminLogEventActionToggleAutotranslation)
+        case channelAdminLogEventActionToggleForum(Cons_channelAdminLogEventActionToggleForum)
+        case channelAdminLogEventActionToggleGroupCallSetting(Cons_channelAdminLogEventActionToggleGroupCallSetting)
+        case channelAdminLogEventActionToggleInvites(Cons_channelAdminLogEventActionToggleInvites)
+        case channelAdminLogEventActionToggleNoForwards(Cons_channelAdminLogEventActionToggleNoForwards)
+        case channelAdminLogEventActionTogglePreHistoryHidden(Cons_channelAdminLogEventActionTogglePreHistoryHidden)
+        case channelAdminLogEventActionToggleSignatureProfiles(Cons_channelAdminLogEventActionToggleSignatureProfiles)
+        case channelAdminLogEventActionToggleSignatures(Cons_channelAdminLogEventActionToggleSignatures)
+        case channelAdminLogEventActionToggleSlowMode(Cons_channelAdminLogEventActionToggleSlowMode)
+        case channelAdminLogEventActionUpdatePinned(Cons_channelAdminLogEventActionUpdatePinned)
 
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
             switch self {
-            case .botBusinessConnection(let _data):
+            case .channelAdminLogEventActionChangeAbout(let _data):
                 if boxed {
-                    buffer.appendInt32(-1892371723)
+                    buffer.appendInt32(1427671598)
                 }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.connectionId, buffer: buffer, boxed: false)
+                serializeString(_data.prevValue, buffer: buffer, boxed: false)
+                serializeString(_data.newValue, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionChangeAvailableReactions(let _data):
+                if boxed {
+                    buffer.appendInt32(-1102180616)
+                }
+                _data.prevValue.serialize(buffer, true)
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangeEmojiStatus(let _data):
+                if boxed {
+                    buffer.appendInt32(1051328177)
+                }
+                _data.prevValue.serialize(buffer, true)
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangeEmojiStickerSet(let _data):
+                if boxed {
+                    buffer.appendInt32(1188577451)
+                }
+                _data.prevStickerset.serialize(buffer, true)
+                _data.newStickerset.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangeHistoryTTL(let _data):
+                if boxed {
+                    buffer.appendInt32(1855199800)
+                }
+                serializeInt32(_data.prevValue, buffer: buffer, boxed: false)
+                serializeInt32(_data.newValue, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionChangeLinkedChat(let _data):
+                if boxed {
+                    buffer.appendInt32(84703944)
+                }
+                serializeInt64(_data.prevValue, buffer: buffer, boxed: false)
+                serializeInt64(_data.newValue, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionChangeLocation(let _data):
+                if boxed {
+                    buffer.appendInt32(241923758)
+                }
+                _data.prevValue.serialize(buffer, true)
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangePeerColor(let _data):
+                if boxed {
+                    buffer.appendInt32(1469507456)
+                }
+                _data.prevValue.serialize(buffer, true)
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangePhoto(let _data):
+                if boxed {
+                    buffer.appendInt32(1129042607)
+                }
+                _data.prevPhoto.serialize(buffer, true)
+                _data.newPhoto.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangeProfilePeerColor(let _data):
+                if boxed {
+                    buffer.appendInt32(1581742885)
+                }
+                _data.prevValue.serialize(buffer, true)
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangeStickerSet(let _data):
+                if boxed {
+                    buffer.appendInt32(-1312568665)
+                }
+                _data.prevStickerset.serialize(buffer, true)
+                _data.newStickerset.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionChangeTitle(let _data):
+                if boxed {
+                    buffer.appendInt32(-421545947)
+                }
+                serializeString(_data.prevValue, buffer: buffer, boxed: false)
+                serializeString(_data.newValue, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionChangeUsername(let _data):
+                if boxed {
+                    buffer.appendInt32(1783299128)
+                }
+                serializeString(_data.prevValue, buffer: buffer, boxed: false)
+                serializeString(_data.newValue, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionChangeUsernames(let _data):
+                if boxed {
+                    buffer.appendInt32(-263212119)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.prevValue.count))
+                for item in _data.prevValue {
+                    serializeString(item, buffer: buffer, boxed: false)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.newValue.count))
+                for item in _data.newValue {
+                    serializeString(item, buffer: buffer, boxed: false)
+                }
+                break
+            case .channelAdminLogEventActionChangeWallpaper(let _data):
+                if boxed {
+                    buffer.appendInt32(834362706)
+                }
+                _data.prevValue.serialize(buffer, true)
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionCreateTopic(let _data):
+                if boxed {
+                    buffer.appendInt32(1483767080)
+                }
+                _data.topic.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionDefaultBannedRights(let _data):
+                if boxed {
+                    buffer.appendInt32(771095562)
+                }
+                _data.prevBannedRights.serialize(buffer, true)
+                _data.newBannedRights.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionDeleteMessage(let _data):
+                if boxed {
+                    buffer.appendInt32(1121994683)
+                }
+                _data.message.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionDeleteTopic(let _data):
+                if boxed {
+                    buffer.appendInt32(-1374254839)
+                }
+                _data.topic.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionDiscardGroupCall(let _data):
+                if boxed {
+                    buffer.appendInt32(-610299584)
+                }
+                _data.call.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionEditMessage(let _data):
+                if boxed {
+                    buffer.appendInt32(1889215493)
+                }
+                _data.prevMessage.serialize(buffer, true)
+                _data.newMessage.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionEditTopic(let _data):
+                if boxed {
+                    buffer.appendInt32(-261103096)
+                }
+                _data.prevTopic.serialize(buffer, true)
+                _data.newTopic.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionExportedInviteDelete(let _data):
+                if boxed {
+                    buffer.appendInt32(1515256996)
+                }
+                _data.invite.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionExportedInviteEdit(let _data):
+                if boxed {
+                    buffer.appendInt32(-384910503)
+                }
+                _data.prevInvite.serialize(buffer, true)
+                _data.newInvite.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionExportedInviteRevoke(let _data):
+                if boxed {
+                    buffer.appendInt32(1091179342)
+                }
+                _data.invite.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantEditRank(let _data):
+                if boxed {
+                    buffer.appendInt32(1476834540)
+                }
                 serializeInt64(_data.userId, buffer: buffer, boxed: false)
-                serializeInt32(_data.dcId, buffer: buffer, boxed: false)
-                serializeInt32(_data.date, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.rights!.serialize(buffer, true)
-                }
+                serializeString(_data.prevRank, buffer: buffer, boxed: false)
+                serializeString(_data.newRank, buffer: buffer, boxed: false)
                 break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botBusinessConnection(let _data):
-                return ("botBusinessConnection", [("flags", ConstructorParameterDescription(_data.flags)), ("connectionId", ConstructorParameterDescription(_data.connectionId)), ("userId", ConstructorParameterDescription(_data.userId)), ("dcId", ConstructorParameterDescription(_data.dcId)), ("date", ConstructorParameterDescription(_data.date)), ("rights", ConstructorParameterDescription(_data.rights))])
-            }
-        }
-
-        public static func parse_botBusinessConnection(_ reader: BufferReader) -> BotBusinessConnection? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: Int64?
-            _3 = reader.readInt64()
-            var _4: Int32?
-            _4 = reader.readInt32()
-            var _5: Int32?
-            _5 = reader.readInt32()
-            var _6: Api.BusinessBotRights?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _6 = Api.parse(reader, signature: signature) as? Api.BusinessBotRights
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = (Int(_1!) & Int(1 << 2) == 0) || _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.BotBusinessConnection.botBusinessConnection(Cons_botBusinessConnection(flags: _1!, connectionId: _2!, userId: _3!, dcId: _4!, date: _5!, rights: _6))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BotCommand: TypeConstructorDescription {
-        public class Cons_botCommand: TypeConstructorDescription {
-            public var command: String
-            public var description: String
-            public init(command: String, description: String) {
-                self.command = command
-                self.description = description
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botCommand", [("command", ConstructorParameterDescription(self.command)), ("description", ConstructorParameterDescription(self.description))])
-            }
-        }
-        case botCommand(Cons_botCommand)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botCommand(let _data):
+            case .channelAdminLogEventActionParticipantInvite(let _data):
                 if boxed {
-                    buffer.appendInt32(-1032140601)
+                    buffer.appendInt32(-484690728)
                 }
-                serializeString(_data.command, buffer: buffer, boxed: false)
-                serializeString(_data.description, buffer: buffer, boxed: false)
+                _data.participant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantJoin:
+                if boxed {
+                    buffer.appendInt32(405815507)
+                }
+                break
+            case .channelAdminLogEventActionParticipantJoinByInvite(let _data):
+                if boxed {
+                    buffer.appendInt32(-23084712)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                _data.invite.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantJoinByRequest(let _data):
+                if boxed {
+                    buffer.appendInt32(-1347021750)
+                }
+                _data.invite.serialize(buffer, true)
+                serializeInt64(_data.approvedBy, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionParticipantLeave:
+                if boxed {
+                    buffer.appendInt32(-124291086)
+                }
+                break
+            case .channelAdminLogEventActionParticipantMute(let _data):
+                if boxed {
+                    buffer.appendInt32(-115071790)
+                }
+                _data.participant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantSubExtend(let _data):
+                if boxed {
+                    buffer.appendInt32(1684286899)
+                }
+                _data.prevParticipant.serialize(buffer, true)
+                _data.newParticipant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantToggleAdmin(let _data):
+                if boxed {
+                    buffer.appendInt32(-714643696)
+                }
+                _data.prevParticipant.serialize(buffer, true)
+                _data.newParticipant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantToggleBan(let _data):
+                if boxed {
+                    buffer.appendInt32(-422036098)
+                }
+                _data.prevParticipant.serialize(buffer, true)
+                _data.newParticipant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantUnmute(let _data):
+                if boxed {
+                    buffer.appendInt32(-431740480)
+                }
+                _data.participant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionParticipantVolume(let _data):
+                if boxed {
+                    buffer.appendInt32(1048537159)
+                }
+                _data.participant.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionPinTopic(let _data):
+                if boxed {
+                    buffer.appendInt32(1569535291)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    _data.prevTopic!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    _data.newTopic!.serialize(buffer, true)
+                }
+                break
+            case .channelAdminLogEventActionSendMessage(let _data):
+                if boxed {
+                    buffer.appendInt32(663693416)
+                }
+                _data.message.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionStartGroupCall(let _data):
+                if boxed {
+                    buffer.appendInt32(589338437)
+                }
+                _data.call.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionStopPoll(let _data):
+                if boxed {
+                    buffer.appendInt32(-1895328189)
+                }
+                _data.message.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleAntiSpam(let _data):
+                if boxed {
+                    buffer.appendInt32(1693675004)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleAutotranslation(let _data):
+                if boxed {
+                    buffer.appendInt32(-988285058)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleForum(let _data):
+                if boxed {
+                    buffer.appendInt32(46949251)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleGroupCallSetting(let _data):
+                if boxed {
+                    buffer.appendInt32(1456906823)
+                }
+                _data.joinMuted.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleInvites(let _data):
+                if boxed {
+                    buffer.appendInt32(460916654)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleNoForwards(let _data):
+                if boxed {
+                    buffer.appendInt32(-886388890)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionTogglePreHistoryHidden(let _data):
+                if boxed {
+                    buffer.appendInt32(1599903217)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleSignatureProfiles(let _data):
+                if boxed {
+                    buffer.appendInt32(1621597305)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleSignatures(let _data):
+                if boxed {
+                    buffer.appendInt32(648939889)
+                }
+                _data.newValue.serialize(buffer, true)
+                break
+            case .channelAdminLogEventActionToggleSlowMode(let _data):
+                if boxed {
+                    buffer.appendInt32(1401984889)
+                }
+                serializeInt32(_data.prevValue, buffer: buffer, boxed: false)
+                serializeInt32(_data.newValue, buffer: buffer, boxed: false)
+                break
+            case .channelAdminLogEventActionUpdatePinned(let _data):
+                if boxed {
+                    buffer.appendInt32(-370660328)
+                }
+                _data.message.serialize(buffer, true)
                 break
             }
         }
 
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botCommand(let _data):
-                return ("botCommand", [("command", ConstructorParameterDescription(_data.command)), ("description", ConstructorParameterDescription(_data.description))])
-            }
-        }
-
-        public static func parse_botCommand(_ reader: BufferReader) -> BotCommand? {
+        static func parse_channelAdminLogEventActionChangeAbout(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
             var _1: String?
             _1 = parseString(reader)
             var _2: String?
@@ -120,1411 +775,741 @@ public extension Api {
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             if _c1 && _c2 {
-                return Api.BotCommand.botCommand(Cons_botCommand(command: _1!, description: _2!))
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeAbout(Cons_channelAdminLogEventActionChangeAbout(prevValue: _1!, newValue: _2!))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    indirect enum BotCommandScope: TypeConstructorDescription {
-        public class Cons_botCommandScopePeer: TypeConstructorDescription {
-            public var peer: Api.InputPeer
-            public init(peer: Api.InputPeer) {
-                self.peer = peer
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botCommandScopePeer", [("peer", ConstructorParameterDescription(self.peer))])
-            }
-        }
-        public class Cons_botCommandScopePeerAdmins: TypeConstructorDescription {
-            public var peer: Api.InputPeer
-            public init(peer: Api.InputPeer) {
-                self.peer = peer
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botCommandScopePeerAdmins", [("peer", ConstructorParameterDescription(self.peer))])
-            }
-        }
-        public class Cons_botCommandScopePeerUser: TypeConstructorDescription {
-            public var peer: Api.InputPeer
-            public var userId: Api.InputUser
-            public init(peer: Api.InputPeer, userId: Api.InputUser) {
-                self.peer = peer
-                self.userId = userId
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botCommandScopePeerUser", [("peer", ConstructorParameterDescription(self.peer)), ("userId", ConstructorParameterDescription(self.userId))])
-            }
-        }
-        case botCommandScopeChatAdmins
-        case botCommandScopeChats
-        case botCommandScopeDefault
-        case botCommandScopePeer(Cons_botCommandScopePeer)
-        case botCommandScopePeerAdmins(Cons_botCommandScopePeerAdmins)
-        case botCommandScopePeerUser(Cons_botCommandScopePeerUser)
-        case botCommandScopeUsers
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botCommandScopeChatAdmins:
-                if boxed {
-                    buffer.appendInt32(-1180016534)
-                }
-                break
-            case .botCommandScopeChats:
-                if boxed {
-                    buffer.appendInt32(1877059713)
-                }
-                break
-            case .botCommandScopeDefault:
-                if boxed {
-                    buffer.appendInt32(795652779)
-                }
-                break
-            case .botCommandScopePeer(let _data):
-                if boxed {
-                    buffer.appendInt32(-610432643)
-                }
-                _data.peer.serialize(buffer, true)
-                break
-            case .botCommandScopePeerAdmins(let _data):
-                if boxed {
-                    buffer.appendInt32(1071145937)
-                }
-                _data.peer.serialize(buffer, true)
-                break
-            case .botCommandScopePeerUser(let _data):
-                if boxed {
-                    buffer.appendInt32(169026035)
-                }
-                _data.peer.serialize(buffer, true)
-                _data.userId.serialize(buffer, true)
-                break
-            case .botCommandScopeUsers:
-                if boxed {
-                    buffer.appendInt32(1011811544)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botCommandScopeChatAdmins:
-                return ("botCommandScopeChatAdmins", [])
-            case .botCommandScopeChats:
-                return ("botCommandScopeChats", [])
-            case .botCommandScopeDefault:
-                return ("botCommandScopeDefault", [])
-            case .botCommandScopePeer(let _data):
-                return ("botCommandScopePeer", [("peer", ConstructorParameterDescription(_data.peer))])
-            case .botCommandScopePeerAdmins(let _data):
-                return ("botCommandScopePeerAdmins", [("peer", ConstructorParameterDescription(_data.peer))])
-            case .botCommandScopePeerUser(let _data):
-                return ("botCommandScopePeerUser", [("peer", ConstructorParameterDescription(_data.peer)), ("userId", ConstructorParameterDescription(_data.userId))])
-            case .botCommandScopeUsers:
-                return ("botCommandScopeUsers", [])
-            }
-        }
-
-        public static func parse_botCommandScopeChatAdmins(_ reader: BufferReader) -> BotCommandScope? {
-            return Api.BotCommandScope.botCommandScopeChatAdmins
-        }
-        public static func parse_botCommandScopeChats(_ reader: BufferReader) -> BotCommandScope? {
-            return Api.BotCommandScope.botCommandScopeChats
-        }
-        public static func parse_botCommandScopeDefault(_ reader: BufferReader) -> BotCommandScope? {
-            return Api.BotCommandScope.botCommandScopeDefault
-        }
-        public static func parse_botCommandScopePeer(_ reader: BufferReader) -> BotCommandScope? {
-            var _1: Api.InputPeer?
+        static func parse_channelAdminLogEventActionChangeAvailableReactions(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChatReactions?
             if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputPeer
+                _1 = Api.parse(reader, signature: signature) as? Api.ChatReactions
             }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.BotCommandScope.botCommandScopePeer(Cons_botCommandScopePeer(peer: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botCommandScopePeerAdmins(_ reader: BufferReader) -> BotCommandScope? {
-            var _1: Api.InputPeer?
+            var _2: Api.ChatReactions?
             if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputPeer
-            }
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.BotCommandScope.botCommandScopePeerAdmins(Cons_botCommandScopePeerAdmins(peer: _1!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botCommandScopePeerUser(_ reader: BufferReader) -> BotCommandScope? {
-            var _1: Api.InputPeer?
-            if let signature = reader.readInt32() {
-                _1 = Api.parse(reader, signature: signature) as? Api.InputPeer
-            }
-            var _2: Api.InputUser?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.InputUser
+                _2 = Api.parse(reader, signature: signature) as? Api.ChatReactions
             }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             if _c1 && _c2 {
-                return Api.BotCommandScope.botCommandScopePeerUser(Cons_botCommandScopePeerUser(peer: _1!, userId: _2!))
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeAvailableReactions(Cons_channelAdminLogEventActionChangeAvailableReactions(prevValue: _1!, newValue: _2!))
             }
             else {
                 return nil
             }
         }
-        public static func parse_botCommandScopeUsers(_ reader: BufferReader) -> BotCommandScope? {
-            return Api.BotCommandScope.botCommandScopeUsers
-        }
-    }
-}
-public extension Api {
-    enum BotInfo: TypeConstructorDescription {
-        public class Cons_botInfo: TypeConstructorDescription {
-            public var flags: Int32
-            public var userId: Int64?
-            public var description: String?
-            public var descriptionPhoto: Api.Photo?
-            public var descriptionDocument: Api.Document?
-            public var commands: [Api.BotCommand]?
-            public var menuButton: Api.BotMenuButton?
-            public var privacyPolicyUrl: String?
-            public var appSettings: Api.BotAppSettings?
-            public var verifierSettings: Api.BotVerifierSettings?
-            public init(flags: Int32, userId: Int64?, description: String?, descriptionPhoto: Api.Photo?, descriptionDocument: Api.Document?, commands: [Api.BotCommand]?, menuButton: Api.BotMenuButton?, privacyPolicyUrl: String?, appSettings: Api.BotAppSettings?, verifierSettings: Api.BotVerifierSettings?) {
-                self.flags = flags
-                self.userId = userId
-                self.description = description
-                self.descriptionPhoto = descriptionPhoto
-                self.descriptionDocument = descriptionDocument
-                self.commands = commands
-                self.menuButton = menuButton
-                self.privacyPolicyUrl = privacyPolicyUrl
-                self.appSettings = appSettings
-                self.verifierSettings = verifierSettings
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInfo", [("flags", ConstructorParameterDescription(self.flags)), ("userId", ConstructorParameterDescription(self.userId)), ("description", ConstructorParameterDescription(self.description)), ("descriptionPhoto", ConstructorParameterDescription(self.descriptionPhoto)), ("descriptionDocument", ConstructorParameterDescription(self.descriptionDocument)), ("commands", ConstructorParameterDescription(self.commands)), ("menuButton", ConstructorParameterDescription(self.menuButton)), ("privacyPolicyUrl", ConstructorParameterDescription(self.privacyPolicyUrl)), ("appSettings", ConstructorParameterDescription(self.appSettings)), ("verifierSettings", ConstructorParameterDescription(self.verifierSettings))])
-            }
-        }
-        case botInfo(Cons_botInfo)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botInfo(let _data):
-                if boxed {
-                    buffer.appendInt32(1300890265)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    serializeInt64(_data.userId!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    serializeString(_data.description!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 4) != 0 {
-                    _data.descriptionPhoto!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 5) != 0 {
-                    _data.descriptionDocument!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.commands!.count))
-                    for item in _data.commands! {
-                        item.serialize(buffer, true)
-                    }
-                }
-                if Int(_data.flags) & Int(1 << 3) != 0 {
-                    _data.menuButton!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 7) != 0 {
-                    serializeString(_data.privacyPolicyUrl!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 8) != 0 {
-                    _data.appSettings!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 9) != 0 {
-                    _data.verifierSettings!.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botInfo(let _data):
-                return ("botInfo", [("flags", ConstructorParameterDescription(_data.flags)), ("userId", ConstructorParameterDescription(_data.userId)), ("description", ConstructorParameterDescription(_data.description)), ("descriptionPhoto", ConstructorParameterDescription(_data.descriptionPhoto)), ("descriptionDocument", ConstructorParameterDescription(_data.descriptionDocument)), ("commands", ConstructorParameterDescription(_data.commands)), ("menuButton", ConstructorParameterDescription(_data.menuButton)), ("privacyPolicyUrl", ConstructorParameterDescription(_data.privacyPolicyUrl)), ("appSettings", ConstructorParameterDescription(_data.appSettings)), ("verifierSettings", ConstructorParameterDescription(_data.verifierSettings))])
-            }
-        }
-
-        public static func parse_botInfo(_ reader: BufferReader) -> BotInfo? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Int64?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                _2 = reader.readInt64()
-            }
-            var _3: String?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                _3 = parseString(reader)
-            }
-            var _4: Api.Photo?
-            if Int(_1!) & Int(1 << 4) != 0 {
-                if let signature = reader.readInt32() {
-                    _4 = Api.parse(reader, signature: signature) as? Api.Photo
-                }
-            }
-            var _5: Api.Document?
-            if Int(_1!) & Int(1 << 5) != 0 {
-                if let signature = reader.readInt32() {
-                    _5 = Api.parse(reader, signature: signature) as? Api.Document
-                }
-            }
-            var _6: [Api.BotCommand]?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let _ = reader.readInt32() {
-                    _6 = Api.parseVector(reader, elementSignature: 0, elementType: Api.BotCommand.self)
-                }
-            }
-            var _7: Api.BotMenuButton?
-            if Int(_1!) & Int(1 << 3) != 0 {
-                if let signature = reader.readInt32() {
-                    _7 = Api.parse(reader, signature: signature) as? Api.BotMenuButton
-                }
-            }
-            var _8: String?
-            if Int(_1!) & Int(1 << 7) != 0 {
-                _8 = parseString(reader)
-            }
-            var _9: Api.BotAppSettings?
-            if Int(_1!) & Int(1 << 8) != 0 {
-                if let signature = reader.readInt32() {
-                    _9 = Api.parse(reader, signature: signature) as? Api.BotAppSettings
-                }
-            }
-            var _10: Api.BotVerifierSettings?
-            if Int(_1!) & Int(1 << 9) != 0 {
-                if let signature = reader.readInt32() {
-                    _10 = Api.parse(reader, signature: signature) as? Api.BotVerifierSettings
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = (Int(_1!) & Int(1 << 0) == 0) || _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 1) == 0) || _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 4) == 0) || _4 != nil
-            let _c5 = (Int(_1!) & Int(1 << 5) == 0) || _5 != nil
-            let _c6 = (Int(_1!) & Int(1 << 2) == 0) || _6 != nil
-            let _c7 = (Int(_1!) & Int(1 << 3) == 0) || _7 != nil
-            let _c8 = (Int(_1!) & Int(1 << 7) == 0) || _8 != nil
-            let _c9 = (Int(_1!) & Int(1 << 8) == 0) || _9 != nil
-            let _c10 = (Int(_1!) & Int(1 << 9) == 0) || _10 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 && _c10 {
-                return Api.BotInfo.botInfo(Cons_botInfo(flags: _1!, userId: _2, description: _3, descriptionPhoto: _4, descriptionDocument: _5, commands: _6, menuButton: _7, privacyPolicyUrl: _8, appSettings: _9, verifierSettings: _10))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BotInlineMessage: TypeConstructorDescription {
-        public class Cons_botInlineMessageMediaAuto: TypeConstructorDescription {
-            public var flags: Int32
-            public var message: String
-            public var entities: [Api.MessageEntity]?
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, message: String, entities: [Api.MessageEntity]?, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.message = message
-                self.entities = entities
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageMediaAuto", [("flags", ConstructorParameterDescription(self.flags)), ("message", ConstructorParameterDescription(self.message)), ("entities", ConstructorParameterDescription(self.entities)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        public class Cons_botInlineMessageMediaContact: TypeConstructorDescription {
-            public var flags: Int32
-            public var phoneNumber: String
-            public var firstName: String
-            public var lastName: String
-            public var vcard: String
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, phoneNumber: String, firstName: String, lastName: String, vcard: String, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.phoneNumber = phoneNumber
-                self.firstName = firstName
-                self.lastName = lastName
-                self.vcard = vcard
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageMediaContact", [("flags", ConstructorParameterDescription(self.flags)), ("phoneNumber", ConstructorParameterDescription(self.phoneNumber)), ("firstName", ConstructorParameterDescription(self.firstName)), ("lastName", ConstructorParameterDescription(self.lastName)), ("vcard", ConstructorParameterDescription(self.vcard)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        public class Cons_botInlineMessageMediaGeo: TypeConstructorDescription {
-            public var flags: Int32
-            public var geo: Api.GeoPoint
-            public var heading: Int32?
-            public var period: Int32?
-            public var proximityNotificationRadius: Int32?
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, geo: Api.GeoPoint, heading: Int32?, period: Int32?, proximityNotificationRadius: Int32?, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.geo = geo
-                self.heading = heading
-                self.period = period
-                self.proximityNotificationRadius = proximityNotificationRadius
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageMediaGeo", [("flags", ConstructorParameterDescription(self.flags)), ("geo", ConstructorParameterDescription(self.geo)), ("heading", ConstructorParameterDescription(self.heading)), ("period", ConstructorParameterDescription(self.period)), ("proximityNotificationRadius", ConstructorParameterDescription(self.proximityNotificationRadius)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        public class Cons_botInlineMessageMediaInvoice: TypeConstructorDescription {
-            public var flags: Int32
-            public var title: String
-            public var description: String
-            public var photo: Api.WebDocument?
-            public var currency: String
-            public var totalAmount: Int64
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, title: String, description: String, photo: Api.WebDocument?, currency: String, totalAmount: Int64, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.title = title
-                self.description = description
-                self.photo = photo
-                self.currency = currency
-                self.totalAmount = totalAmount
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageMediaInvoice", [("flags", ConstructorParameterDescription(self.flags)), ("title", ConstructorParameterDescription(self.title)), ("description", ConstructorParameterDescription(self.description)), ("photo", ConstructorParameterDescription(self.photo)), ("currency", ConstructorParameterDescription(self.currency)), ("totalAmount", ConstructorParameterDescription(self.totalAmount)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        public class Cons_botInlineMessageMediaVenue: TypeConstructorDescription {
-            public var flags: Int32
-            public var geo: Api.GeoPoint
-            public var title: String
-            public var address: String
-            public var provider: String
-            public var venueId: String
-            public var venueType: String
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, geo: Api.GeoPoint, title: String, address: String, provider: String, venueId: String, venueType: String, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.geo = geo
-                self.title = title
-                self.address = address
-                self.provider = provider
-                self.venueId = venueId
-                self.venueType = venueType
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageMediaVenue", [("flags", ConstructorParameterDescription(self.flags)), ("geo", ConstructorParameterDescription(self.geo)), ("title", ConstructorParameterDescription(self.title)), ("address", ConstructorParameterDescription(self.address)), ("provider", ConstructorParameterDescription(self.provider)), ("venueId", ConstructorParameterDescription(self.venueId)), ("venueType", ConstructorParameterDescription(self.venueType)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        public class Cons_botInlineMessageMediaWebPage: TypeConstructorDescription {
-            public var flags: Int32
-            public var message: String
-            public var entities: [Api.MessageEntity]?
-            public var url: String
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, message: String, entities: [Api.MessageEntity]?, url: String, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.message = message
-                self.entities = entities
-                self.url = url
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageMediaWebPage", [("flags", ConstructorParameterDescription(self.flags)), ("message", ConstructorParameterDescription(self.message)), ("entities", ConstructorParameterDescription(self.entities)), ("url", ConstructorParameterDescription(self.url)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        public class Cons_botInlineMessageText: TypeConstructorDescription {
-            public var flags: Int32
-            public var message: String
-            public var entities: [Api.MessageEntity]?
-            public var replyMarkup: Api.ReplyMarkup?
-            public init(flags: Int32, message: String, entities: [Api.MessageEntity]?, replyMarkup: Api.ReplyMarkup?) {
-                self.flags = flags
-                self.message = message
-                self.entities = entities
-                self.replyMarkup = replyMarkup
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMessageText", [("flags", ConstructorParameterDescription(self.flags)), ("message", ConstructorParameterDescription(self.message)), ("entities", ConstructorParameterDescription(self.entities)), ("replyMarkup", ConstructorParameterDescription(self.replyMarkup))])
-            }
-        }
-        case botInlineMessageMediaAuto(Cons_botInlineMessageMediaAuto)
-        case botInlineMessageMediaContact(Cons_botInlineMessageMediaContact)
-        case botInlineMessageMediaGeo(Cons_botInlineMessageMediaGeo)
-        case botInlineMessageMediaInvoice(Cons_botInlineMessageMediaInvoice)
-        case botInlineMessageMediaVenue(Cons_botInlineMessageMediaVenue)
-        case botInlineMessageMediaWebPage(Cons_botInlineMessageMediaWebPage)
-        case botInlineMessageText(Cons_botInlineMessageText)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botInlineMessageMediaAuto(let _data):
-                if boxed {
-                    buffer.appendInt32(1984755728)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.message, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.entities!.count))
-                    for item in _data.entities! {
-                        item.serialize(buffer, true)
-                    }
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            case .botInlineMessageMediaContact(let _data):
-                if boxed {
-                    buffer.appendInt32(416402882)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.phoneNumber, buffer: buffer, boxed: false)
-                serializeString(_data.firstName, buffer: buffer, boxed: false)
-                serializeString(_data.lastName, buffer: buffer, boxed: false)
-                serializeString(_data.vcard, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            case .botInlineMessageMediaGeo(let _data):
-                if boxed {
-                    buffer.appendInt32(85477117)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                _data.geo.serialize(buffer, true)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    serializeInt32(_data.heading!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    serializeInt32(_data.period!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 3) != 0 {
-                    serializeInt32(_data.proximityNotificationRadius!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            case .botInlineMessageMediaInvoice(let _data):
-                if boxed {
-                    buffer.appendInt32(894081801)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.title, buffer: buffer, boxed: false)
-                serializeString(_data.description, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    _data.photo!.serialize(buffer, true)
-                }
-                serializeString(_data.currency, buffer: buffer, boxed: false)
-                serializeInt64(_data.totalAmount, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            case .botInlineMessageMediaVenue(let _data):
-                if boxed {
-                    buffer.appendInt32(-1970903652)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                _data.geo.serialize(buffer, true)
-                serializeString(_data.title, buffer: buffer, boxed: false)
-                serializeString(_data.address, buffer: buffer, boxed: false)
-                serializeString(_data.provider, buffer: buffer, boxed: false)
-                serializeString(_data.venueId, buffer: buffer, boxed: false)
-                serializeString(_data.venueType, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            case .botInlineMessageMediaWebPage(let _data):
-                if boxed {
-                    buffer.appendInt32(-2137335386)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.message, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.entities!.count))
-                    for item in _data.entities! {
-                        item.serialize(buffer, true)
-                    }
-                }
-                serializeString(_data.url, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            case .botInlineMessageText(let _data):
-                if boxed {
-                    buffer.appendInt32(-1937807902)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.message, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.entities!.count))
-                    for item in _data.entities! {
-                        item.serialize(buffer, true)
-                    }
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.replyMarkup!.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botInlineMessageMediaAuto(let _data):
-                return ("botInlineMessageMediaAuto", [("flags", ConstructorParameterDescription(_data.flags)), ("message", ConstructorParameterDescription(_data.message)), ("entities", ConstructorParameterDescription(_data.entities)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            case .botInlineMessageMediaContact(let _data):
-                return ("botInlineMessageMediaContact", [("flags", ConstructorParameterDescription(_data.flags)), ("phoneNumber", ConstructorParameterDescription(_data.phoneNumber)), ("firstName", ConstructorParameterDescription(_data.firstName)), ("lastName", ConstructorParameterDescription(_data.lastName)), ("vcard", ConstructorParameterDescription(_data.vcard)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            case .botInlineMessageMediaGeo(let _data):
-                return ("botInlineMessageMediaGeo", [("flags", ConstructorParameterDescription(_data.flags)), ("geo", ConstructorParameterDescription(_data.geo)), ("heading", ConstructorParameterDescription(_data.heading)), ("period", ConstructorParameterDescription(_data.period)), ("proximityNotificationRadius", ConstructorParameterDescription(_data.proximityNotificationRadius)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            case .botInlineMessageMediaInvoice(let _data):
-                return ("botInlineMessageMediaInvoice", [("flags", ConstructorParameterDescription(_data.flags)), ("title", ConstructorParameterDescription(_data.title)), ("description", ConstructorParameterDescription(_data.description)), ("photo", ConstructorParameterDescription(_data.photo)), ("currency", ConstructorParameterDescription(_data.currency)), ("totalAmount", ConstructorParameterDescription(_data.totalAmount)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            case .botInlineMessageMediaVenue(let _data):
-                return ("botInlineMessageMediaVenue", [("flags", ConstructorParameterDescription(_data.flags)), ("geo", ConstructorParameterDescription(_data.geo)), ("title", ConstructorParameterDescription(_data.title)), ("address", ConstructorParameterDescription(_data.address)), ("provider", ConstructorParameterDescription(_data.provider)), ("venueId", ConstructorParameterDescription(_data.venueId)), ("venueType", ConstructorParameterDescription(_data.venueType)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            case .botInlineMessageMediaWebPage(let _data):
-                return ("botInlineMessageMediaWebPage", [("flags", ConstructorParameterDescription(_data.flags)), ("message", ConstructorParameterDescription(_data.message)), ("entities", ConstructorParameterDescription(_data.entities)), ("url", ConstructorParameterDescription(_data.url)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            case .botInlineMessageText(let _data):
-                return ("botInlineMessageText", [("flags", ConstructorParameterDescription(_data.flags)), ("message", ConstructorParameterDescription(_data.message)), ("entities", ConstructorParameterDescription(_data.entities)), ("replyMarkup", ConstructorParameterDescription(_data.replyMarkup))])
-            }
-        }
-
-        public static func parse_botInlineMessageMediaAuto(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: [Api.MessageEntity]?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                if let _ = reader.readInt32() {
-                    _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.MessageEntity.self)
-                }
-            }
-            var _4: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _4 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 1) == 0) || _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 2) == 0) || _4 != nil
-            if _c1 && _c2 && _c3 && _c4 {
-                return Api.BotInlineMessage.botInlineMessageMediaAuto(Cons_botInlineMessageMediaAuto(flags: _1!, message: _2!, entities: _3, replyMarkup: _4))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineMessageMediaContact(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: String?
-            _4 = parseString(reader)
-            var _5: String?
-            _5 = parseString(reader)
-            var _6: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _6 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = (Int(_1!) & Int(1 << 2) == 0) || _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.BotInlineMessage.botInlineMessageMediaContact(Cons_botInlineMessageMediaContact(flags: _1!, phoneNumber: _2!, firstName: _3!, lastName: _4!, vcard: _5!, replyMarkup: _6))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineMessageMediaGeo(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Api.GeoPoint?
+        static func parse_channelAdminLogEventActionChangeEmojiStatus(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.EmojiStatus?
             if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.GeoPoint
+                _1 = Api.parse(reader, signature: signature) as? Api.EmojiStatus
             }
-            var _3: Int32?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                _3 = reader.readInt32()
-            }
-            var _4: Int32?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                _4 = reader.readInt32()
-            }
-            var _5: Int32?
-            if Int(_1!) & Int(1 << 3) != 0 {
-                _5 = reader.readInt32()
-            }
-            var _6: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _6 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 0) == 0) || _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 1) == 0) || _4 != nil
-            let _c5 = (Int(_1!) & Int(1 << 3) == 0) || _5 != nil
-            let _c6 = (Int(_1!) & Int(1 << 2) == 0) || _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.BotInlineMessage.botInlineMessageMediaGeo(Cons_botInlineMessageMediaGeo(flags: _1!, geo: _2!, heading: _3, period: _4, proximityNotificationRadius: _5, replyMarkup: _6))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineMessageMediaInvoice(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: Api.WebDocument?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                if let signature = reader.readInt32() {
-                    _4 = Api.parse(reader, signature: signature) as? Api.WebDocument
-                }
-            }
-            var _5: String?
-            _5 = parseString(reader)
-            var _6: Int64?
-            _6 = reader.readInt64()
-            var _7: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _7 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 0) == 0) || _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = _6 != nil
-            let _c7 = (Int(_1!) & Int(1 << 2) == 0) || _7 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 {
-                return Api.BotInlineMessage.botInlineMessageMediaInvoice(Cons_botInlineMessageMediaInvoice(flags: _1!, title: _2!, description: _3!, photo: _4, currency: _5!, totalAmount: _6!, replyMarkup: _7))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineMessageMediaVenue(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Api.GeoPoint?
+            var _2: Api.EmojiStatus?
             if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.GeoPoint
-            }
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: String?
-            _4 = parseString(reader)
-            var _5: String?
-            _5 = parseString(reader)
-            var _6: String?
-            _6 = parseString(reader)
-            var _7: String?
-            _7 = parseString(reader)
-            var _8: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _8 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = _6 != nil
-            let _c7 = _7 != nil
-            let _c8 = (Int(_1!) & Int(1 << 2) == 0) || _8 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 {
-                return Api.BotInlineMessage.botInlineMessageMediaVenue(Cons_botInlineMessageMediaVenue(flags: _1!, geo: _2!, title: _3!, address: _4!, provider: _5!, venueId: _6!, venueType: _7!, replyMarkup: _8))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineMessageMediaWebPage(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: [Api.MessageEntity]?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                if let _ = reader.readInt32() {
-                    _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.MessageEntity.self)
-                }
-            }
-            var _4: String?
-            _4 = parseString(reader)
-            var _5: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _5 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 1) == 0) || _3 != nil
-            let _c4 = _4 != nil
-            let _c5 = (Int(_1!) & Int(1 << 2) == 0) || _5 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 {
-                return Api.BotInlineMessage.botInlineMessageMediaWebPage(Cons_botInlineMessageMediaWebPage(flags: _1!, message: _2!, entities: _3, url: _4!, replyMarkup: _5))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineMessageText(_ reader: BufferReader) -> BotInlineMessage? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: [Api.MessageEntity]?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                if let _ = reader.readInt32() {
-                    _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.MessageEntity.self)
-                }
-            }
-            var _4: Api.ReplyMarkup?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _4 = Api.parse(reader, signature: signature) as? Api.ReplyMarkup
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 1) == 0) || _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 2) == 0) || _4 != nil
-            if _c1 && _c2 && _c3 && _c4 {
-                return Api.BotInlineMessage.botInlineMessageText(Cons_botInlineMessageText(flags: _1!, message: _2!, entities: _3, replyMarkup: _4))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BotInlineResult: TypeConstructorDescription {
-        public class Cons_botInlineMediaResult: TypeConstructorDescription {
-            public var flags: Int32
-            public var id: String
-            public var type: String
-            public var photo: Api.Photo?
-            public var document: Api.Document?
-            public var title: String?
-            public var description: String?
-            public var sendMessage: Api.BotInlineMessage
-            public init(flags: Int32, id: String, type: String, photo: Api.Photo?, document: Api.Document?, title: String?, description: String?, sendMessage: Api.BotInlineMessage) {
-                self.flags = flags
-                self.id = id
-                self.type = type
-                self.photo = photo
-                self.document = document
-                self.title = title
-                self.description = description
-                self.sendMessage = sendMessage
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineMediaResult", [("flags", ConstructorParameterDescription(self.flags)), ("id", ConstructorParameterDescription(self.id)), ("type", ConstructorParameterDescription(self.type)), ("photo", ConstructorParameterDescription(self.photo)), ("document", ConstructorParameterDescription(self.document)), ("title", ConstructorParameterDescription(self.title)), ("description", ConstructorParameterDescription(self.description)), ("sendMessage", ConstructorParameterDescription(self.sendMessage))])
-            }
-        }
-        public class Cons_botInlineResult: TypeConstructorDescription {
-            public var flags: Int32
-            public var id: String
-            public var type: String
-            public var title: String?
-            public var description: String?
-            public var url: String?
-            public var thumb: Api.WebDocument?
-            public var content: Api.WebDocument?
-            public var sendMessage: Api.BotInlineMessage
-            public init(flags: Int32, id: String, type: String, title: String?, description: String?, url: String?, thumb: Api.WebDocument?, content: Api.WebDocument?, sendMessage: Api.BotInlineMessage) {
-                self.flags = flags
-                self.id = id
-                self.type = type
-                self.title = title
-                self.description = description
-                self.url = url
-                self.thumb = thumb
-                self.content = content
-                self.sendMessage = sendMessage
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botInlineResult", [("flags", ConstructorParameterDescription(self.flags)), ("id", ConstructorParameterDescription(self.id)), ("type", ConstructorParameterDescription(self.type)), ("title", ConstructorParameterDescription(self.title)), ("description", ConstructorParameterDescription(self.description)), ("url", ConstructorParameterDescription(self.url)), ("thumb", ConstructorParameterDescription(self.thumb)), ("content", ConstructorParameterDescription(self.content)), ("sendMessage", ConstructorParameterDescription(self.sendMessage))])
-            }
-        }
-        case botInlineMediaResult(Cons_botInlineMediaResult)
-        case botInlineResult(Cons_botInlineResult)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botInlineMediaResult(let _data):
-                if boxed {
-                    buffer.appendInt32(400266251)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.id, buffer: buffer, boxed: false)
-                serializeString(_data.type, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    _data.photo!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    _data.document!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    serializeString(_data.title!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 3) != 0 {
-                    serializeString(_data.description!, buffer: buffer, boxed: false)
-                }
-                _data.sendMessage.serialize(buffer, true)
-                break
-            case .botInlineResult(let _data):
-                if boxed {
-                    buffer.appendInt32(295067450)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.id, buffer: buffer, boxed: false)
-                serializeString(_data.type, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    serializeString(_data.title!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    serializeString(_data.description!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 3) != 0 {
-                    serializeString(_data.url!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 4) != 0 {
-                    _data.thumb!.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 5) != 0 {
-                    _data.content!.serialize(buffer, true)
-                }
-                _data.sendMessage.serialize(buffer, true)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botInlineMediaResult(let _data):
-                return ("botInlineMediaResult", [("flags", ConstructorParameterDescription(_data.flags)), ("id", ConstructorParameterDescription(_data.id)), ("type", ConstructorParameterDescription(_data.type)), ("photo", ConstructorParameterDescription(_data.photo)), ("document", ConstructorParameterDescription(_data.document)), ("title", ConstructorParameterDescription(_data.title)), ("description", ConstructorParameterDescription(_data.description)), ("sendMessage", ConstructorParameterDescription(_data.sendMessage))])
-            case .botInlineResult(let _data):
-                return ("botInlineResult", [("flags", ConstructorParameterDescription(_data.flags)), ("id", ConstructorParameterDescription(_data.id)), ("type", ConstructorParameterDescription(_data.type)), ("title", ConstructorParameterDescription(_data.title)), ("description", ConstructorParameterDescription(_data.description)), ("url", ConstructorParameterDescription(_data.url)), ("thumb", ConstructorParameterDescription(_data.thumb)), ("content", ConstructorParameterDescription(_data.content)), ("sendMessage", ConstructorParameterDescription(_data.sendMessage))])
-            }
-        }
-
-        public static func parse_botInlineMediaResult(_ reader: BufferReader) -> BotInlineResult? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: Api.Photo?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                if let signature = reader.readInt32() {
-                    _4 = Api.parse(reader, signature: signature) as? Api.Photo
-                }
-            }
-            var _5: Api.Document?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                if let signature = reader.readInt32() {
-                    _5 = Api.parse(reader, signature: signature) as? Api.Document
-                }
-            }
-            var _6: String?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                _6 = parseString(reader)
-            }
-            var _7: String?
-            if Int(_1!) & Int(1 << 3) != 0 {
-                _7 = parseString(reader)
-            }
-            var _8: Api.BotInlineMessage?
-            if let signature = reader.readInt32() {
-                _8 = Api.parse(reader, signature: signature) as? Api.BotInlineMessage
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 0) == 0) || _4 != nil
-            let _c5 = (Int(_1!) & Int(1 << 1) == 0) || _5 != nil
-            let _c6 = (Int(_1!) & Int(1 << 2) == 0) || _6 != nil
-            let _c7 = (Int(_1!) & Int(1 << 3) == 0) || _7 != nil
-            let _c8 = _8 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 {
-                return Api.BotInlineResult.botInlineMediaResult(Cons_botInlineMediaResult(flags: _1!, id: _2!, type: _3!, photo: _4, document: _5, title: _6, description: _7, sendMessage: _8!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botInlineResult(_ reader: BufferReader) -> BotInlineResult? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: String?
-            _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: String?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                _4 = parseString(reader)
-            }
-            var _5: String?
-            if Int(_1!) & Int(1 << 2) != 0 {
-                _5 = parseString(reader)
-            }
-            var _6: String?
-            if Int(_1!) & Int(1 << 3) != 0 {
-                _6 = parseString(reader)
-            }
-            var _7: Api.WebDocument?
-            if Int(_1!) & Int(1 << 4) != 0 {
-                if let signature = reader.readInt32() {
-                    _7 = Api.parse(reader, signature: signature) as? Api.WebDocument
-                }
-            }
-            var _8: Api.WebDocument?
-            if Int(_1!) & Int(1 << 5) != 0 {
-                if let signature = reader.readInt32() {
-                    _8 = Api.parse(reader, signature: signature) as? Api.WebDocument
-                }
-            }
-            var _9: Api.BotInlineMessage?
-            if let signature = reader.readInt32() {
-                _9 = Api.parse(reader, signature: signature) as? Api.BotInlineMessage
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 1) == 0) || _4 != nil
-            let _c5 = (Int(_1!) & Int(1 << 2) == 0) || _5 != nil
-            let _c6 = (Int(_1!) & Int(1 << 3) == 0) || _6 != nil
-            let _c7 = (Int(_1!) & Int(1 << 4) == 0) || _7 != nil
-            let _c8 = (Int(_1!) & Int(1 << 5) == 0) || _8 != nil
-            let _c9 = _9 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 {
-                return Api.BotInlineResult.botInlineResult(Cons_botInlineResult(flags: _1!, id: _2!, type: _3!, title: _4, description: _5, url: _6, thumb: _7, content: _8, sendMessage: _9!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BotMenuButton: TypeConstructorDescription {
-        public class Cons_botMenuButton: TypeConstructorDescription {
-            public var text: String
-            public var url: String
-            public init(text: String, url: String) {
-                self.text = text
-                self.url = url
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botMenuButton", [("text", ConstructorParameterDescription(self.text)), ("url", ConstructorParameterDescription(self.url))])
-            }
-        }
-        case botMenuButton(Cons_botMenuButton)
-        case botMenuButtonCommands
-        case botMenuButtonDefault
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botMenuButton(let _data):
-                if boxed {
-                    buffer.appendInt32(-944407322)
-                }
-                serializeString(_data.text, buffer: buffer, boxed: false)
-                serializeString(_data.url, buffer: buffer, boxed: false)
-                break
-            case .botMenuButtonCommands:
-                if boxed {
-                    buffer.appendInt32(1113113093)
-                }
-                break
-            case .botMenuButtonDefault:
-                if boxed {
-                    buffer.appendInt32(1966318984)
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botMenuButton(let _data):
-                return ("botMenuButton", [("text", ConstructorParameterDescription(_data.text)), ("url", ConstructorParameterDescription(_data.url))])
-            case .botMenuButtonCommands:
-                return ("botMenuButtonCommands", [])
-            case .botMenuButtonDefault:
-                return ("botMenuButtonDefault", [])
-            }
-        }
-
-        public static func parse_botMenuButton(_ reader: BufferReader) -> BotMenuButton? {
-            var _1: String?
-            _1 = parseString(reader)
-            var _2: String?
-            _2 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.BotMenuButton.botMenuButton(Cons_botMenuButton(text: _1!, url: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        public static func parse_botMenuButtonCommands(_ reader: BufferReader) -> BotMenuButton? {
-            return Api.BotMenuButton.botMenuButtonCommands
-        }
-        public static func parse_botMenuButtonDefault(_ reader: BufferReader) -> BotMenuButton? {
-            return Api.BotMenuButton.botMenuButtonDefault
-        }
-    }
-}
-public extension Api {
-    indirect enum BotPreviewMedia: TypeConstructorDescription {
-        public class Cons_botPreviewMedia: TypeConstructorDescription {
-            public var date: Int32
-            public var media: Api.MessageMedia
-            public init(date: Int32, media: Api.MessageMedia) {
-                self.date = date
-                self.media = media
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botPreviewMedia", [("date", ConstructorParameterDescription(self.date)), ("media", ConstructorParameterDescription(self.media))])
-            }
-        }
-        case botPreviewMedia(Cons_botPreviewMedia)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botPreviewMedia(let _data):
-                if boxed {
-                    buffer.appendInt32(602479523)
-                }
-                serializeInt32(_data.date, buffer: buffer, boxed: false)
-                _data.media.serialize(buffer, true)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botPreviewMedia(let _data):
-                return ("botPreviewMedia", [("date", ConstructorParameterDescription(_data.date)), ("media", ConstructorParameterDescription(_data.media))])
-            }
-        }
-
-        public static func parse_botPreviewMedia(_ reader: BufferReader) -> BotPreviewMedia? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Api.MessageMedia?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.MessageMedia
+                _2 = Api.parse(reader, signature: signature) as? Api.EmojiStatus
             }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             if _c1 && _c2 {
-                return Api.BotPreviewMedia.botPreviewMedia(Cons_botPreviewMedia(date: _1!, media: _2!))
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeEmojiStatus(Cons_channelAdminLogEventActionChangeEmojiStatus(prevValue: _1!, newValue: _2!))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    enum BotVerification: TypeConstructorDescription {
-        public class Cons_botVerification: TypeConstructorDescription {
-            public var botId: Int64
-            public var icon: Int64
-            public var description: String
-            public init(botId: Int64, icon: Int64, description: String) {
-                self.botId = botId
-                self.icon = icon
-                self.description = description
+        static func parse_channelAdminLogEventActionChangeEmojiStickerSet(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.InputStickerSet?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
             }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botVerification", [("botId", ConstructorParameterDescription(self.botId)), ("icon", ConstructorParameterDescription(self.icon)), ("description", ConstructorParameterDescription(self.description))])
+            var _2: Api.InputStickerSet?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
             }
-        }
-        case botVerification(Cons_botVerification)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botVerification(let _data):
-                if boxed {
-                    buffer.appendInt32(-113453988)
-                }
-                serializeInt64(_data.botId, buffer: buffer, boxed: false)
-                serializeInt64(_data.icon, buffer: buffer, boxed: false)
-                serializeString(_data.description, buffer: buffer, boxed: false)
-                break
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeEmojiStickerSet(Cons_channelAdminLogEventActionChangeEmojiStickerSet(prevStickerset: _1!, newStickerset: _2!))
+            }
+            else {
+                return nil
             }
         }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botVerification(let _data):
-                return ("botVerification", [("botId", ConstructorParameterDescription(_data.botId)), ("icon", ConstructorParameterDescription(_data.icon)), ("description", ConstructorParameterDescription(_data.description))])
+        static func parse_channelAdminLogEventActionChangeHistoryTTL(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int32?
+            _2 = reader.readInt32()
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeHistoryTTL(Cons_channelAdminLogEventActionChangeHistoryTTL(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
             }
         }
-
-        public static func parse_botVerification(_ reader: BufferReader) -> BotVerification? {
+        static func parse_channelAdminLogEventActionChangeLinkedChat(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
             var _1: Int64?
             _1 = reader.readInt64()
             var _2: Int64?
             _2 = reader.readInt64()
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeLinkedChat(Cons_channelAdminLogEventActionChangeLinkedChat(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeLocation(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChannelLocation?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ChannelLocation
+            }
+            var _2: Api.ChannelLocation?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ChannelLocation
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeLocation(Cons_channelAdminLogEventActionChangeLocation(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangePeerColor(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.PeerColor?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.PeerColor
+            }
+            var _2: Api.PeerColor?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.PeerColor
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangePeerColor(Cons_channelAdminLogEventActionChangePeerColor(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangePhoto(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Photo?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Photo
+            }
+            var _2: Api.Photo?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.Photo
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangePhoto(Cons_channelAdminLogEventActionChangePhoto(prevPhoto: _1!, newPhoto: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeProfilePeerColor(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.PeerColor?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.PeerColor
+            }
+            var _2: Api.PeerColor?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.PeerColor
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeProfilePeerColor(Cons_channelAdminLogEventActionChangeProfilePeerColor(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeStickerSet(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.InputStickerSet?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
+            }
+            var _2: Api.InputStickerSet?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.InputStickerSet
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeStickerSet(Cons_channelAdminLogEventActionChangeStickerSet(prevStickerset: _1!, newStickerset: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeTitle(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: String?
+            _1 = parseString(reader)
+            var _2: String?
+            _2 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeTitle(Cons_channelAdminLogEventActionChangeTitle(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeUsername(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: String?
+            _1 = parseString(reader)
+            var _2: String?
+            _2 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeUsername(Cons_channelAdminLogEventActionChangeUsername(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeUsernames(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: [String]?
+            if let _ = reader.readInt32() {
+                _1 = Api.parseVector(reader, elementSignature: -1255641564, elementType: String.self)
+            }
+            var _2: [String]?
+            if let _ = reader.readInt32() {
+                _2 = Api.parseVector(reader, elementSignature: -1255641564, elementType: String.self)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeUsernames(Cons_channelAdminLogEventActionChangeUsernames(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionChangeWallpaper(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.WallPaper?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.WallPaper
+            }
+            var _2: Api.WallPaper?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.WallPaper
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionChangeWallpaper(Cons_channelAdminLogEventActionChangeWallpaper(prevValue: _1!, newValue: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionCreateTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ForumTopic?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionCreateTopic(Cons_channelAdminLogEventActionCreateTopic(topic: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionDefaultBannedRights(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChatBannedRights?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
+            }
+            var _2: Api.ChatBannedRights?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ChatBannedRights
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDefaultBannedRights(Cons_channelAdminLogEventActionDefaultBannedRights(prevBannedRights: _1!, newBannedRights: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionDeleteMessage(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Message?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Message
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDeleteMessage(Cons_channelAdminLogEventActionDeleteMessage(message: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionDeleteTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ForumTopic?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDeleteTopic(Cons_channelAdminLogEventActionDeleteTopic(topic: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionDiscardGroupCall(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.InputGroupCall?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.InputGroupCall
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionDiscardGroupCall(Cons_channelAdminLogEventActionDiscardGroupCall(call: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionEditMessage(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Message?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Message
+            }
+            var _2: Api.Message?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.Message
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionEditMessage(Cons_channelAdminLogEventActionEditMessage(prevMessage: _1!, newMessage: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionEditTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ForumTopic?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+            }
+            var _2: Api.ForumTopic?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionEditTopic(Cons_channelAdminLogEventActionEditTopic(prevTopic: _1!, newTopic: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionExportedInviteDelete(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ExportedChatInvite?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionExportedInviteDelete(Cons_channelAdminLogEventActionExportedInviteDelete(invite: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionExportedInviteEdit(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ExportedChatInvite?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
+            }
+            var _2: Api.ExportedChatInvite?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionExportedInviteEdit(Cons_channelAdminLogEventActionExportedInviteEdit(prevInvite: _1!, newInvite: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionExportedInviteRevoke(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ExportedChatInvite?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionExportedInviteRevoke(Cons_channelAdminLogEventActionExportedInviteRevoke(invite: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionParticipantEditRank(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Int64?
+            _1 = reader.readInt64()
+            var _2: String?
+            _2 = parseString(reader)
             var _3: String?
             _3 = parseString(reader)
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             let _c3 = _3 != nil
             if _c1 && _c2 && _c3 {
-                return Api.BotVerification.botVerification(Cons_botVerification(botId: _1!, icon: _2!, description: _3!))
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantEditRank(Cons_channelAdminLogEventActionParticipantEditRank(userId: _1!, prevRank: _2!, newRank: _3!))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    enum BotVerifierSettings: TypeConstructorDescription {
-        public class Cons_botVerifierSettings: TypeConstructorDescription {
-            public var flags: Int32
-            public var icon: Int64
-            public var company: String
-            public var customDescription: String?
-            public init(flags: Int32, icon: Int64, company: String, customDescription: String?) {
-                self.flags = flags
-                self.icon = icon
-                self.company = company
-                self.customDescription = customDescription
+        static func parse_channelAdminLogEventActionParticipantInvite(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
             }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("botVerifierSettings", [("flags", ConstructorParameterDescription(self.flags)), ("icon", ConstructorParameterDescription(self.icon)), ("company", ConstructorParameterDescription(self.company)), ("customDescription", ConstructorParameterDescription(self.customDescription))])
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantInvite(Cons_channelAdminLogEventActionParticipantInvite(participant: _1!))
+            }
+            else {
+                return nil
             }
         }
-        case botVerifierSettings(Cons_botVerifierSettings)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .botVerifierSettings(let _data):
-                if boxed {
-                    buffer.appendInt32(-1328716265)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeInt64(_data.icon, buffer: buffer, boxed: false)
-                serializeString(_data.company, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    serializeString(_data.customDescription!, buffer: buffer, boxed: false)
-                }
-                break
-            }
+        static func parse_channelAdminLogEventActionParticipantJoin(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantJoin
         }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .botVerifierSettings(let _data):
-                return ("botVerifierSettings", [("flags", ConstructorParameterDescription(_data.flags)), ("icon", ConstructorParameterDescription(_data.icon)), ("company", ConstructorParameterDescription(_data.company)), ("customDescription", ConstructorParameterDescription(_data.customDescription))])
-            }
-        }
-
-        public static func parse_botVerifierSettings(_ reader: BufferReader) -> BotVerifierSettings? {
+        static func parse_channelAdminLogEventActionParticipantJoinByInvite(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
             var _1: Int32?
             _1 = reader.readInt32()
+            var _2: Api.ExportedChatInvite?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantJoinByInvite(Cons_channelAdminLogEventActionParticipantJoinByInvite(flags: _1!, invite: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionParticipantJoinByRequest(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ExportedChatInvite?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ExportedChatInvite
+            }
             var _2: Int64?
             _2 = reader.readInt64()
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: String?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                _4 = parseString(reader)
-            }
             let _c1 = _1 != nil
             let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 0) == 0) || _4 != nil
-            if _c1 && _c2 && _c3 && _c4 {
-                return Api.BotVerifierSettings.botVerifierSettings(Cons_botVerifierSettings(flags: _1!, icon: _2!, company: _3!, customDescription: _4))
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantJoinByRequest(Cons_channelAdminLogEventActionParticipantJoinByRequest(invite: _1!, approvedBy: _2!))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    enum BusinessAwayMessage: TypeConstructorDescription {
-        public class Cons_businessAwayMessage: TypeConstructorDescription {
-            public var flags: Int32
-            public var shortcutId: Int32
-            public var schedule: Api.BusinessAwayMessageSchedule
-            public var recipients: Api.BusinessRecipients
-            public init(flags: Int32, shortcutId: Int32, schedule: Api.BusinessAwayMessageSchedule, recipients: Api.BusinessRecipients) {
-                self.flags = flags
-                self.shortcutId = shortcutId
-                self.schedule = schedule
-                self.recipients = recipients
+        static func parse_channelAdminLogEventActionParticipantLeave(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantLeave
+        }
+        static func parse_channelAdminLogEventActionParticipantMute(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.GroupCallParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.GroupCallParticipant
             }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessAwayMessage", [("flags", ConstructorParameterDescription(self.flags)), ("shortcutId", ConstructorParameterDescription(self.shortcutId)), ("schedule", ConstructorParameterDescription(self.schedule)), ("recipients", ConstructorParameterDescription(self.recipients))])
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantMute(Cons_channelAdminLogEventActionParticipantMute(participant: _1!))
+            }
+            else {
+                return nil
             }
         }
-        case businessAwayMessage(Cons_businessAwayMessage)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessAwayMessage(let _data):
-                if boxed {
-                    buffer.appendInt32(-283809188)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeInt32(_data.shortcutId, buffer: buffer, boxed: false)
-                _data.schedule.serialize(buffer, true)
-                _data.recipients.serialize(buffer, true)
-                break
+        static func parse_channelAdminLogEventActionParticipantSubExtend(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            }
+            var _2: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantSubExtend(Cons_channelAdminLogEventActionParticipantSubExtend(prevParticipant: _1!, newParticipant: _2!))
+            }
+            else {
+                return nil
             }
         }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessAwayMessage(let _data):
-                return ("businessAwayMessage", [("flags", ConstructorParameterDescription(_data.flags)), ("shortcutId", ConstructorParameterDescription(_data.shortcutId)), ("schedule", ConstructorParameterDescription(_data.schedule)), ("recipients", ConstructorParameterDescription(_data.recipients))])
+        static func parse_channelAdminLogEventActionParticipantToggleAdmin(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            }
+            var _2: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantToggleAdmin(Cons_channelAdminLogEventActionParticipantToggleAdmin(prevParticipant: _1!, newParticipant: _2!))
+            }
+            else {
+                return nil
             }
         }
-
-        public static func parse_businessAwayMessage(_ reader: BufferReader) -> BusinessAwayMessage? {
+        static func parse_channelAdminLogEventActionParticipantToggleBan(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            }
+            var _2: Api.ChannelParticipant?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.ChannelParticipant
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantToggleBan(Cons_channelAdminLogEventActionParticipantToggleBan(prevParticipant: _1!, newParticipant: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionParticipantUnmute(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.GroupCallParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.GroupCallParticipant
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantUnmute(Cons_channelAdminLogEventActionParticipantUnmute(participant: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionParticipantVolume(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.GroupCallParticipant?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.GroupCallParticipant
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionParticipantVolume(Cons_channelAdminLogEventActionParticipantVolume(participant: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionPinTopic(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
             var _1: Int32?
             _1 = reader.readInt32()
-            var _2: Int32?
-            _2 = reader.readInt32()
-            var _3: Api.BusinessAwayMessageSchedule?
-            if let signature = reader.readInt32() {
-                _3 = Api.parse(reader, signature: signature) as? Api.BusinessAwayMessageSchedule
+            var _2: Api.ForumTopic?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                if let signature = reader.readInt32() {
+                    _2 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+                }
             }
-            var _4: Api.BusinessRecipients?
-            if let signature = reader.readInt32() {
-                _4 = Api.parse(reader, signature: signature) as? Api.BusinessRecipients
+            var _3: Api.ForumTopic?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                if let signature = reader.readInt32() {
+                    _3 = Api.parse(reader, signature: signature) as? Api.ForumTopic
+                }
             }
             let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = _4 != nil
-            if _c1 && _c2 && _c3 && _c4 {
-                return Api.BusinessAwayMessage.businessAwayMessage(Cons_businessAwayMessage(flags: _1!, shortcutId: _2!, schedule: _3!, recipients: _4!))
+            let _c2 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _2 != nil
+            let _c3 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _3 != nil
+            if _c1 && _c2 && _c3 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionPinTopic(Cons_channelAdminLogEventActionPinTopic(flags: _1!, prevTopic: _2, newTopic: _3))
             }
             else {
                 return nil
             }
         }
-    }
-}
-public extension Api {
-    enum BusinessAwayMessageSchedule: TypeConstructorDescription {
-        public class Cons_businessAwayMessageScheduleCustom: TypeConstructorDescription {
-            public var startDate: Int32
-            public var endDate: Int32
-            public init(startDate: Int32, endDate: Int32) {
-                self.startDate = startDate
-                self.endDate = endDate
+        static func parse_channelAdminLogEventActionSendMessage(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Message?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Message
             }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessAwayMessageScheduleCustom", [("startDate", ConstructorParameterDescription(self.startDate)), ("endDate", ConstructorParameterDescription(self.endDate))])
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionSendMessage(Cons_channelAdminLogEventActionSendMessage(message: _1!))
+            }
+            else {
+                return nil
             }
         }
-        case businessAwayMessageScheduleAlways
-        case businessAwayMessageScheduleCustom(Cons_businessAwayMessageScheduleCustom)
-        case businessAwayMessageScheduleOutsideWorkHours
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessAwayMessageScheduleAlways:
-                if boxed {
-                    buffer.appendInt32(-910564679)
-                }
-                break
-            case .businessAwayMessageScheduleCustom(let _data):
-                if boxed {
-                    buffer.appendInt32(-867328308)
-                }
-                serializeInt32(_data.startDate, buffer: buffer, boxed: false)
-                serializeInt32(_data.endDate, buffer: buffer, boxed: false)
-                break
-            case .businessAwayMessageScheduleOutsideWorkHours:
-                if boxed {
-                    buffer.appendInt32(-1007487743)
-                }
-                break
+        static func parse_channelAdminLogEventActionStartGroupCall(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.InputGroupCall?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.InputGroupCall
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionStartGroupCall(Cons_channelAdminLogEventActionStartGroupCall(call: _1!))
+            }
+            else {
+                return nil
             }
         }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessAwayMessageScheduleAlways:
-                return ("businessAwayMessageScheduleAlways", [])
-            case .businessAwayMessageScheduleCustom(let _data):
-                return ("businessAwayMessageScheduleCustom", [("startDate", ConstructorParameterDescription(_data.startDate)), ("endDate", ConstructorParameterDescription(_data.endDate))])
-            case .businessAwayMessageScheduleOutsideWorkHours:
-                return ("businessAwayMessageScheduleOutsideWorkHours", [])
+        static func parse_channelAdminLogEventActionStopPoll(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Message?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Message
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionStopPoll(Cons_channelAdminLogEventActionStopPoll(message: _1!))
+            }
+            else {
+                return nil
             }
         }
-
-        public static func parse_businessAwayMessageScheduleAlways(_ reader: BufferReader) -> BusinessAwayMessageSchedule? {
-            return Api.BusinessAwayMessageSchedule.businessAwayMessageScheduleAlways
+        static func parse_channelAdminLogEventActionToggleAntiSpam(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleAntiSpam(Cons_channelAdminLogEventActionToggleAntiSpam(newValue: _1!))
+            }
+            else {
+                return nil
+            }
         }
-        public static func parse_businessAwayMessageScheduleCustom(_ reader: BufferReader) -> BusinessAwayMessageSchedule? {
+        static func parse_channelAdminLogEventActionToggleAutotranslation(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleAutotranslation(Cons_channelAdminLogEventActionToggleAutotranslation(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleForum(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleForum(Cons_channelAdminLogEventActionToggleForum(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleGroupCallSetting(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleGroupCallSetting(Cons_channelAdminLogEventActionToggleGroupCallSetting(joinMuted: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleInvites(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleInvites(Cons_channelAdminLogEventActionToggleInvites(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleNoForwards(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleNoForwards(Cons_channelAdminLogEventActionToggleNoForwards(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionTogglePreHistoryHidden(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionTogglePreHistoryHidden(Cons_channelAdminLogEventActionTogglePreHistoryHidden(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleSignatureProfiles(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleSignatureProfiles(Cons_channelAdminLogEventActionToggleSignatureProfiles(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleSignatures(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Bool?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Bool
+            }
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleSignatures(Cons_channelAdminLogEventActionToggleSignatures(newValue: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_channelAdminLogEventActionToggleSlowMode(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
             var _1: Int32?
             _1 = reader.readInt32()
             var _2: Int32?
@@ -1532,130 +1517,20 @@ public extension Api {
             let _c1 = _1 != nil
             let _c2 = _2 != nil
             if _c1 && _c2 {
-                return Api.BusinessAwayMessageSchedule.businessAwayMessageScheduleCustom(Cons_businessAwayMessageScheduleCustom(startDate: _1!, endDate: _2!))
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionToggleSlowMode(Cons_channelAdminLogEventActionToggleSlowMode(prevValue: _1!, newValue: _2!))
             }
             else {
                 return nil
             }
         }
-        public static func parse_businessAwayMessageScheduleOutsideWorkHours(_ reader: BufferReader) -> BusinessAwayMessageSchedule? {
-            return Api.BusinessAwayMessageSchedule.businessAwayMessageScheduleOutsideWorkHours
-        }
-    }
-}
-public extension Api {
-    enum BusinessBotRecipients: TypeConstructorDescription {
-        public class Cons_businessBotRecipients: TypeConstructorDescription {
-            public var flags: Int32
-            public var users: [Int64]?
-            public var excludeUsers: [Int64]?
-            public init(flags: Int32, users: [Int64]?, excludeUsers: [Int64]?) {
-                self.flags = flags
-                self.users = users
-                self.excludeUsers = excludeUsers
+        static func parse_channelAdminLogEventActionUpdatePinned(_ reader: BufferReader) -> ChannelAdminLogEventAction? {
+            var _1: Api.Message?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.Message
             }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessBotRecipients", [("flags", ConstructorParameterDescription(self.flags)), ("users", ConstructorParameterDescription(self.users)), ("excludeUsers", ConstructorParameterDescription(self.excludeUsers))])
-            }
-        }
-        case businessBotRecipients(Cons_businessBotRecipients)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessBotRecipients(let _data):
-                if boxed {
-                    buffer.appendInt32(-1198722189)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 4) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.users!.count))
-                    for item in _data.users! {
-                        serializeInt64(item, buffer: buffer, boxed: false)
-                    }
-                }
-                if Int(_data.flags) & Int(1 << 6) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.excludeUsers!.count))
-                    for item in _data.excludeUsers! {
-                        serializeInt64(item, buffer: buffer, boxed: false)
-                    }
-                }
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessBotRecipients(let _data):
-                return ("businessBotRecipients", [("flags", ConstructorParameterDescription(_data.flags)), ("users", ConstructorParameterDescription(_data.users)), ("excludeUsers", ConstructorParameterDescription(_data.excludeUsers))])
-            }
-        }
-
-        public static func parse_businessBotRecipients(_ reader: BufferReader) -> BusinessBotRecipients? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: [Int64]?
-            if Int(_1!) & Int(1 << 4) != 0 {
-                if let _ = reader.readInt32() {
-                    _2 = Api.parseVector(reader, elementSignature: 570911930, elementType: Int64.self)
-                }
-            }
-            var _3: [Int64]?
-            if Int(_1!) & Int(1 << 6) != 0 {
-                if let _ = reader.readInt32() {
-                    _3 = Api.parseVector(reader, elementSignature: 570911930, elementType: Int64.self)
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = (Int(_1!) & Int(1 << 4) == 0) || _2 != nil
-            let _c3 = (Int(_1!) & Int(1 << 6) == 0) || _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.BusinessBotRecipients.businessBotRecipients(Cons_businessBotRecipients(flags: _1!, users: _2, excludeUsers: _3))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-public extension Api {
-    enum BusinessBotRights: TypeConstructorDescription {
-        public class Cons_businessBotRights: TypeConstructorDescription {
-            public var flags: Int32
-            public init(flags: Int32) {
-                self.flags = flags
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessBotRights", [("flags", ConstructorParameterDescription(self.flags))])
-            }
-        }
-        case businessBotRights(Cons_businessBotRights)
-
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .businessBotRights(let _data):
-                if boxed {
-                    buffer.appendInt32(-1604170505)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                break
-            }
-        }
-
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessBotRights(let _data):
-                return ("businessBotRights", [("flags", ConstructorParameterDescription(_data.flags))])
-            }
-        }
-
-        public static func parse_businessBotRights(_ reader: BufferReader) -> BusinessBotRights? {
-            var _1: Int32?
-            _1 = reader.readInt32()
             let _c1 = _1 != nil
             if _c1 {
-                return Api.BusinessBotRights.businessBotRights(Cons_businessBotRights(flags: _1!))
+                return Api.ChannelAdminLogEventAction.channelAdminLogEventActionUpdatePinned(Cons_channelAdminLogEventActionUpdatePinned(message: _1!))
             }
             else {
                 return nil
@@ -1663,91 +1538,54 @@ public extension Api {
         }
     }
 }
-public extension Api {
-    enum BusinessChatLink: TypeConstructorDescription {
-        public class Cons_businessChatLink: TypeConstructorDescription {
-            public var flags: Int32
-            public var link: String
-            public var message: String
-            public var entities: [Api.MessageEntity]?
-            public var title: String?
-            public var views: Int32
-            public init(flags: Int32, link: String, message: String, entities: [Api.MessageEntity]?, title: String?, views: Int32) {
-                self.flags = flags
-                self.link = link
-                self.message = message
-                self.entities = entities
-                self.title = title
-                self.views = views
-            }
-            public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-                return ("businessChatLink", [("flags", ConstructorParameterDescription(self.flags)), ("link", ConstructorParameterDescription(self.link)), ("message", ConstructorParameterDescription(self.message)), ("entities", ConstructorParameterDescription(self.entities)), ("title", ConstructorParameterDescription(self.title)), ("views", ConstructorParameterDescription(self.views))])
+extension Api {
+    enum ChannelLocation: TypeConstructorDescription {
+        class Cons_channelLocation: TypeConstructorDescription {
+            var geoPoint: Api.GeoPoint
+            var address: String
+            init(geoPoint: Api.GeoPoint, address: String) {
+                self.geoPoint = geoPoint
+                self.address = address
             }
         }
-        case businessChatLink(Cons_businessChatLink)
+        case channelLocation(Cons_channelLocation)
+        case channelLocationEmpty
 
-        public func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
             switch self {
-            case .businessChatLink(let _data):
+            case .channelLocation(let _data):
                 if boxed {
-                    buffer.appendInt32(-1263638929)
+                    buffer.appendInt32(547062491)
                 }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeString(_data.link, buffer: buffer, boxed: false)
-                serializeString(_data.message, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.entities!.count))
-                    for item in _data.entities! {
-                        item.serialize(buffer, true)
-                    }
+                _data.geoPoint.serialize(buffer, true)
+                serializeString(_data.address, buffer: buffer, boxed: false)
+                break
+            case .channelLocationEmpty:
+                if boxed {
+                    buffer.appendInt32(-1078612597)
                 }
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    serializeString(_data.title!, buffer: buffer, boxed: false)
-                }
-                serializeInt32(_data.views, buffer: buffer, boxed: false)
                 break
             }
         }
 
-        public func descriptionFields() -> (String, [(String, ConstructorParameterDescription)]) {
-            switch self {
-            case .businessChatLink(let _data):
-                return ("businessChatLink", [("flags", ConstructorParameterDescription(_data.flags)), ("link", ConstructorParameterDescription(_data.link)), ("message", ConstructorParameterDescription(_data.message)), ("entities", ConstructorParameterDescription(_data.entities)), ("title", ConstructorParameterDescription(_data.title)), ("views", ConstructorParameterDescription(_data.views))])
+        static func parse_channelLocation(_ reader: BufferReader) -> ChannelLocation? {
+            var _1: Api.GeoPoint?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.GeoPoint
             }
-        }
-
-        public static func parse_businessChatLink(_ reader: BufferReader) -> BusinessChatLink? {
-            var _1: Int32?
-            _1 = reader.readInt32()
             var _2: String?
             _2 = parseString(reader)
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: [Api.MessageEntity]?
-            if Int(_1!) & Int(1 << 0) != 0 {
-                if let _ = reader.readInt32() {
-                    _4 = Api.parseVector(reader, elementSignature: 0, elementType: Api.MessageEntity.self)
-                }
-            }
-            var _5: String?
-            if Int(_1!) & Int(1 << 1) != 0 {
-                _5 = parseString(reader)
-            }
-            var _6: Int32?
-            _6 = reader.readInt32()
             let _c1 = _1 != nil
             let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1!) & Int(1 << 0) == 0) || _4 != nil
-            let _c5 = (Int(_1!) & Int(1 << 1) == 0) || _5 != nil
-            let _c6 = _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.BusinessChatLink.businessChatLink(Cons_businessChatLink(flags: _1!, link: _2!, message: _3!, entities: _4, title: _5, views: _6!))
+            if _c1 && _c2 {
+                return Api.ChannelLocation.channelLocation(Cons_channelLocation(geoPoint: _1!, address: _2!))
             }
             else {
                 return nil
             }
+        }
+        static func parse_channelLocationEmpty(_ reader: BufferReader) -> ChannelLocation? {
+            return Api.ChannelLocation.channelLocationEmpty
         }
     }
 }

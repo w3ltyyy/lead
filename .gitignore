@@ -43,3 +43,8 @@ regex_test.swift
 *~
 
 lead-admin/
+.build/
+.claude/
+# Local menu backup (the old menu is in git history: 1dba292)
+backup/
+__pycache__/

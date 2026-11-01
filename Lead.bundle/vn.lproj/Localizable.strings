@@ -111,3 +111,6 @@
 "DISCLAIMER" = "Tuyên bố miễn trừ";
 
 "AUTHOR_MESSAGE" = "Bản chỉnh sửa Telegram này chỉ dành cho mục đích cá nhân và giáo dục. Chúng tôi không liên kết với Telegram. Mọi nhãn hiệu, bao gồm tên và logo Telegram, thuộc về chủ sở hữu tương ứng. Không sử dụng để vi phạm quy tắc, hành vi mờ ám hoặc điều khoản Telegram - chúng tôi không chịu trách nhiệm nếu có vấn đề phát sinh. Tự chịu rủi ro khi sử dụng. \n \nNếu bạn thích, hãy nói gì đó. Tôi thực sự sống nhờ sự công nhận. \n \nNếu muốn hỗ trợ tôi bằng cách quyên góp, hãy liên hệ với tôi trên Telegram";
+
+"SHOW_IOS_RESTRICTED_TITLE" = "Hiện trò chuyện bị App Store chặn";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "Mở các kênh và bài đăng chỉ bị ẩn trên iPhone theo quy định của App Store. Khởi động lại ứng dụng sau khi bật.";

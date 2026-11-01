@@ -9,14 +9,14 @@ $(TWEAK_NAME)_FILES = $(shell find Sources \( -name '*.swift' -o -name '*.m' -o 
 $(TWEAK_NAME)_SWIFTFLAGS = -ISources/tgapiC/include -Osize
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -ISources/tgapiC/include -Wno-deprecated-declarations -Os
 $(TWEAK_NAME)_LDFLAGS = -Wl,-dead_strip
-$(TWEAK_NAME)_FRAMEWORKS = CoreServices
+$(TWEAK_NAME)_FRAMEWORKS = CoreServices AVFoundation
 $(TWEAK_NAME)_LIBRARIES = z
 $(TWEAK_NAME)_LOGOS_DEFAULT_GENERATOR = internal
 $(TWEAK_NAME)_RESOURCE_FILES = Sources/tgapi/Resources
 
 # Copy Lead.bundle manually during the packaging step
 after-stage::
-	@echo ">>> Copying Choco.bundle into .deb package..."
+	@echo ">>> Copying Lead.bundle into .deb package..."
 	@mkdir -p $(THEOS_STAGING_DIR)/Library/Application\ Support/Lead
 	@cp -a Lead.bundle $(THEOS_STAGING_DIR)/Library/Application\ Support/Lead
 

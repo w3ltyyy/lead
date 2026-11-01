@@ -115,3 +115,6 @@
 "DISCLAIMER" = "Disclaimer";
 
 "AUTHOR_MESSAGE" = "This Telegram tweak is for personal and educational use only. We are not affiliated with Telegram in any way. All trademarks, including the Telegram name and logo, belong to their respective owners. Don't use this to break rules or violate Telegram's terms — we're not responsible if things go sideways. Use at your own risk.\n\nMade by Lead Team";
+
+"SHOW_IOS_RESTRICTED_TITLE" = "Show App Store-Blocked Chats";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "Opens channels and posts hidden only on iPhone by App Store rules. Restart the app after turning it on.";

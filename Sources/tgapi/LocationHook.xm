@@ -3,7 +3,21 @@
 #import <CoreLocation/CoreLocation.h>
 #import<MapKit/MapKit.h>
 
+static BOOL LeadIsNotificationExtensionProcess(void) {
+	NSBundle *bundle = [NSBundle mainBundle];
+	NSString *bundleId = bundle.bundleIdentifier ?: @"";
+	NSString *processName = [NSProcessInfo processInfo].processName ?: @"";
+	NSString *executableName = bundle.executablePath.lastPathComponent ?: @"";
+	NSDictionary *extensionInfo = bundle.infoDictionary[@"NSExtension"];
+	NSString *extensionPoint = extensionInfo[@"NSExtensionPointIdentifier"] ?: @"";
+	NSString *identity = [[NSString stringWithFormat:@"%@ %@ %@ %@", bundleId, processName, executableName, extensionPoint] lowercaseString];
+	return [identity containsString:@"notificationservice"] ||
+	       [identity containsString:@"notificationcontent"] ||
+	       [identity containsString:@"com.apple.usernotifications.service"];
+}
+
 bool shouldFakeLocation() {
+	if (LeadIsNotificationExtensionProcess()) return false;
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	return [defaults boolForKey:FAKE_LOCATION_ENABLED_KEY];
 }
@@ -143,7 +157,7 @@ bool shouldFakeLocation() {
 
 - (id)init {
     self = %orig;
-    if (self) {
+    if (self && !LeadIsNotificationExtensionProcess()) {
         [[LeadFakeLocationManager shared].locationManagers addObject:self];
     }
     return self;
@@ -153,7 +167,9 @@ bool shouldFakeLocation() {
 	//customLog(@"Set Delegate :%@", delegate);
     %orig;
 	
-    [[LeadFakeLocationManager shared].locationManagers addObject:self];
+    if (!LeadIsNotificationExtensionProcess()) {
+        [[LeadFakeLocationManager shared].locationManagers addObject:self];
+    }
 }
 
 %end
@@ -165,11 +181,12 @@ bool shouldFakeLocation() {
 %hook MKCoreLocationProvider
 
 - (id)initWithCLLocationManager:(id)locationManager {
-    if ([locationManager isKindOfClass:[CLLocationManager class]]) {
+    if (!LeadIsNotificationExtensionProcess() && [locationManager isKindOfClass:[CLLocationManager class]]) {
         [[LeadFakeLocationManager shared].locationManagers addObject:(CLLocationManager *)locationManager];
     }
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (LeadIsNotificationExtensionProcess()) return;
         CLLocationManager *innerLocationManager = [self _clLocationManager];
 		[[LeadFakeLocationManager shared].locationManagers addObject:innerLocationManager];
     });
@@ -182,6 +199,8 @@ bool shouldFakeLocation() {
 
 __attribute__((constructor))
 static void initLocationHooks() {
+	 if (LeadIsNotificationExtensionProcess()) return;
+
 	 %init(
 	    DeviceLocationManager = objc_getClass("DeviceLocationManager.DeviceLocationManager")
 	);

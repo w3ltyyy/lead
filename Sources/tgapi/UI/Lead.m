@@ -1,1242 +1,697 @@
 #import "Headers.h"
-#import "Icons.h"
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
+#import "LeadMenu.h"
 #import <objc/runtime.h>
-
-#define TGLoc(key) [LeadLocalization localizedStringForKey:(key)]
 
 // Announcements are fetched from this JSON file on GitHub
 static NSString *const kLeadAnnouncementsURL = @"https://raw.githubusercontent.com/w3ltyyy/lead/main/announcements.json";
-static NSString *const kLeadTweakVersion = @"1.3.9";
 
-@interface Lead ()
-@property(nonatomic, strong) UITableView *tableView;
-@property(nonatomic, strong) NSString *cacheSize;
-@property(nonatomic, strong) UIView *announcementsContainer;
-@property(nonatomic, strong) NSArray *announcementsData;
-@property(nonatomic, assign) BOOL isGhostModeExpanded;
-- (NSString *)switchKeyForIndexPath:(NSIndexPath *)indexPath;
-- (NSString *)sizeOfUglyFileFixDirectory;
+static NSString *const kCellId = @"LeadCell";
+static NSString *const kHeroId = @"LeadHero";
+static NSString *const kHeaderId = @"LeadHeader";
+
+typedef NS_ENUM(NSInteger, LeadHomeSection) {
+  LeadHomeSectionGhost = 0,
+  LeadHomeSectionFeatures,
+  LeadHomeSectionGeneral,
+  LeadHomeSectionAbout,
+  LeadHomeSectionCount
+};
+
+typedef NS_ENUM(NSInteger, LeadGeneralRow) {
+  LeadGeneralRowLanguage = 0,
+  LeadGeneralRowExport,
+  LeadGeneralRowImport,
+  LeadGeneralRowCount
+};
+
+typedef NS_ENUM(NSInteger, LeadAboutRow) {
+  LeadAboutRowDeveloper = 0,
+  LeadAboutRowSupport,
+  LeadAboutRowDisclaimer,
+  LeadAboutRowDebugLog,
+  LeadAboutRowCount
+};
+
+static NSDictionary<NSString *, NSString *> *LeadLanguageNames(void) {
+  return @{
+    @"ar" : @"العربية", @"cn" : @"简体中文", @"en" : @"English", @"es" : @"Español", @"fr" : @"Français",
+    @"it" : @"Italiano", @"ja" : @"日本語", @"ru" : @"Русский", @"tw" : @"繁體中文", @"vn" : @"Tiếng Việt"
+  };
+}
+
+@interface Lead () <UISearchResultsUpdating, UIScrollViewDelegate>
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) UISearchController *searchController;
+@property (nonatomic, strong) NSArray<LeadPage *> *pages;
+@property (nonatomic, strong) LeadPage *ghostPage;
+@property (nonatomic, strong) NSArray *searchResults; // LeadRow or LeadPage
+@property (nonatomic, strong) UIView *headerView;
+@property (nonatomic, strong) LeadLogoView *logoView;
+@property (nonatomic, strong) UILabel *statusLabel;
+@property (nonatomic, strong) UIView *statusDot;
+@property (nonatomic, strong) UIStackView *announcementStack;
+@property (nonatomic, strong) UILabel *navTitleLabel;
+@property (nonatomic, strong) UILabel *emptySearchLabel;
+@property (nonatomic, strong) UIView *engineWarningCard;
+@property (nonatomic, assign) BOOL didIntro;
+@property (nonatomic, assign) BOOL didAnimateRows;
+@property (nonatomic, assign) NSInteger appearOrder;
 @end
 
 @implementation Lead
 
++ (void)presentMenu {
+  UIViewController *root = LeadTopPresenter();
+  if (!root) return;
+  // Already open (and actually on screen) — nothing to do.
+  if ([root isKindOfClass:[LeadNavigationController class]] && root.view.window) return;
+  LeadNavigationController *nav = [[LeadNavigationController alloc] initWithRootViewController:[Lead new]];
+  [root presentViewController:nav animated:YES completion:nil];
+}
+
 - (void)viewDidLoad {
-  self.isGhostModeExpanded = [[NSUserDefaults standardUserDefaults] boolForKey:kGhostDetailsToggle];
+  [super viewDidLoad];
+  self.view.backgroundColor = UIColor.systemGroupedBackgroundColor;
+  self.ghostPage = LeadGhostPage();
+  self.pages = LeadFeaturePages();
 
-  [self setupTableView];
-  [self setupIconAsHeader];
-  [self setupFooterView];
-  [self setupApplyButton];
-  self.title = @"Lead";
+  [self setupNavigation];
+  [self setupTable];
+  [self setupHeader];
+  [self setupFooter];
+  [self refreshStatusAnimated:NO];
+  [self fetchAnnouncements];
 
-  [self fetchAnnouncement];
-
-  [[NSNotificationCenter defaultCenter]
-      addObserver:self
-         selector:@selector(didChangeLanguage)
-             name:@"LanguageChangedNotification"
-           object:nil];
-
-  [[NSNotificationCenter defaultCenter]
-      addObserver:self
-         selector:@selector(didChangeFakeLocation)
-             name:@"LeadLocationChanged"
-           object:nil];
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  [center addObserver:self selector:@selector(settingsChanged) name:LeadSettingsDidChangeNotification object:nil];
+  [center addObserver:self selector:@selector(settingsChanged) name:@"LeadLocationChanged" object:nil];
 }
 
-- (void)setupFooterView {
-  UIView *footerView = [[UIView alloc]
-      initWithFrame:CGRectMake(0, 0, self.tableView.frame.size.width, 60)];
-  UILabel *versionLabel = [[UILabel alloc] init];
-  versionLabel.translatesAutoresizingMaskIntoConstraints = NO;
-  versionLabel.font = [UIFont systemFontOfSize:12];
-  versionLabel.textColor = [UIColor secondaryLabelColor];
-  versionLabel.textAlignment = NSTextAlignmentCenter;
-  versionLabel.numberOfLines = 0;
-
-  NSString *version = @"1.3.9";
-  NSString *build = @"103";
-  versionLabel.text = [NSString
-      stringWithFormat:@"Lead Version %@ (Build %@)\n© 2026 Lead Team", version,
-                       build];
-
-  [footerView addSubview:versionLabel];
-
-  [NSLayoutConstraint activateConstraints:@[
-    [versionLabel.topAnchor constraintEqualToAnchor:footerView.topAnchor
-                                           constant:20],
-    [versionLabel.centerXAnchor
-        constraintEqualToAnchor:footerView.centerXAnchor],
-    [versionLabel.leadingAnchor constraintEqualToAnchor:footerView.leadingAnchor
-                                               constant:20],
-    [versionLabel.trailingAnchor
-        constraintEqualToAnchor:footerView.trailingAnchor
-                       constant:-20]
-  ]];
-
-  self.tableView.tableFooterView = footerView;
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (void)didChangeLanguage {
-  [self.tableView reloadData];
+- (void)viewWillAppear:(BOOL)animated {
+  [super viewWillAppear:animated];
+  [self settingsChanged];
+  [self refreshEngineWarning];
 }
 
-- (void)didChangeFakeLocation {
-  NSIndexSet *section = [NSIndexSet indexSetWithIndex:3];
-  [self.tableView reloadSections:section
-                withRowAnimation:UITableViewRowAnimationAutomatic];
+// With Telegram's Rust engine (Debug menu) no request passes through MtProtoKit,
+// so every network feature of Lead is silently off. Say so instead of pretending.
+- (void)refreshEngineWarning {
+  BOOL blind = LeadNetworkHookActivity() == 0 && LeadTweakUptime() > 20;
+  if (blind == (self.engineWarningCard != nil)) return;
+  if (blind) {
+    self.engineWarningCard = [self announcementCardWithTitle:LeadL(@"UI_RUST_TITLE") message:LeadL(@"UI_RUST_MESSAGE") type:@"warning" url:nil];
+    [self.announcementStack insertArrangedSubview:self.engineWarningCard atIndex:0];
+  } else {
+    [self.engineWarningCard removeFromSuperview];
+    self.engineWarningCard = nil;
+  }
+  [self.view setNeedsLayout];
 }
-- (void)setupTableView {
-  self.tableView =
-      [[UITableView alloc] initWithFrame:CGRectZero
-                                   style:UITableViewStyleInsetGrouped];
-  self.tableView.delegate = self;
+
+- (void)viewDidAppear:(BOOL)animated {
+  [super viewDidAppear:animated];
+  if (!self.didIntro) {
+    self.didIntro = YES;
+    [self.logoView playIntro];
+  }
+}
+
+#pragma mark - Setup
+
+- (void)setupNavigation {
+  self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+
+  // System close button: a gray circle up to iOS 18, Liquid Glass on 26.
+  self.navigationItem.leftBarButtonItem =
+      [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemClose target:self action:@selector(closeTapped)];
+
+  self.navTitleLabel = [UILabel new];
+  self.navTitleLabel.text = @"Lead";
+  self.navTitleLabel.font = LeadRoundedFont(17, UIFontWeightSemibold);
+  self.navTitleLabel.alpha = 0;
+  // Navigation transitions animate the titleView's own alpha back to 1, so the
+  // scroll-driven fade lives on a label inside a container.
+  [self.navTitleLabel sizeToFit];
+  UIView *titleContainer = [[UIView alloc] initWithFrame:self.navTitleLabel.bounds];
+  [titleContainer addSubview:self.navTitleLabel];
+  self.navigationItem.titleView = titleContainer;
+  self.navigationItem.backButtonTitle = @"Lead";
+
+  self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+  self.searchController.searchResultsUpdater = self;
+  self.searchController.obscuresBackgroundDuringPresentation = NO;
+  self.searchController.searchBar.placeholder = LeadL(@"UI_SEARCH");
+  self.navigationItem.searchController = self.searchController;
+  self.navigationItem.hidesSearchBarWhenScrolling = YES;
+  self.definesPresentationContext = YES;
+}
+
+- (void)setupTable {
+  self.tableView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
   self.tableView.dataSource = self;
+  self.tableView.delegate = self;
+  self.tableView.backgroundColor = UIColor.systemGroupedBackgroundColor;
+  self.tableView.rowHeight = UITableViewAutomaticDimension;
+  self.tableView.estimatedRowHeight = 60;
+  self.tableView.sectionHeaderHeight = UITableViewAutomaticDimension;
+  self.tableView.estimatedSectionHeaderHeight = 36;
+  self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
+  [self.tableView registerClass:[LeadCell class] forCellReuseIdentifier:kCellId];
+  [self.tableView registerClass:[LeadHeroCell class] forCellReuseIdentifier:kHeroId];
+  [self.tableView registerClass:[LeadSectionHeader class] forHeaderFooterViewReuseIdentifier:kHeaderId];
   self.tableView.translatesAutoresizingMaskIntoConstraints = NO;
-
   [self.view addSubview:self.tableView];
-
   [NSLayoutConstraint activateConstraints:@[
     [self.tableView.topAnchor constraintEqualToAnchor:self.view.topAnchor],
-    [self.tableView.leadingAnchor
-        constraintEqualToAnchor:self.view.leadingAnchor],
-    [self.tableView.trailingAnchor
-        constraintEqualToAnchor:self.view.trailingAnchor],
-    [self.tableView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor]
+    [self.tableView.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [self.tableView.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [self.tableView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
   ]];
+
+  self.emptySearchLabel = [UILabel new];
+  self.emptySearchLabel.text = LeadL(@"UI_SEARCH_EMPTY");
+  self.emptySearchLabel.font = LeadFont(15, UIFontWeightRegular);
+  self.emptySearchLabel.textColor = UIColor.secondaryLabelColor;
+  self.emptySearchLabel.textAlignment = NSTextAlignmentCenter;
 }
 
-- (void)setupIconAsHeader {
-  UIView *headerContainer = [[UIView alloc]
-      initWithFrame:CGRectMake(0, 0, self.tableView.frame.size.width, 120)];
+- (void)setupHeader {
+  UIView *header = [UIView new];
 
-  // Logo Image
-  NSData *imageData = [[NSData alloc]
-      initWithBase64EncodedString:CHOCOPNG
-                          options:NSDataBase64DecodingIgnoreUnknownCharacters];
-  UIImageView *iconView =
-      [[UIImageView alloc] initWithImage:[UIImage imageWithData:imageData]];
-  iconView.translatesAutoresizingMaskIntoConstraints = NO;
-  iconView.layer.cornerRadius = 100 / 4;
-  iconView.userInteractionEnabled = YES;
-  iconView.clipsToBounds = YES;
-  iconView.contentMode = UIViewContentModeScaleAspectFill;
-  iconView.tag = 100;
+  self.logoView = [LeadLogoView new];
+  self.logoView.translatesAutoresizingMaskIntoConstraints = NO;
+  [header addSubview:self.logoView];
 
-  [headerContainer addSubview:iconView];
+  UILabel *title = [UILabel new];
+  title.text = @"Lead";
+  title.font = LeadRoundedFont(32, UIFontWeightBold);
+  title.textColor = UIColor.labelColor;
 
-  // Announcements container (vertical stack below icon)
-  self.announcementsContainer = [[UIView alloc] init];
-  self.announcementsContainer.translatesAutoresizingMaskIntoConstraints = NO;
-  self.announcementsContainer.hidden = YES;
-  [headerContainer addSubview:self.announcementsContainer];
+  self.statusDot = [UIView new];
+  self.statusDot.layer.cornerRadius = 3.5;
+  [self.statusDot.widthAnchor constraintEqualToConstant:7].active = YES;
+  [self.statusDot.heightAnchor constraintEqualToConstant:7].active = YES;
+  self.statusLabel = [UILabel new];
+  self.statusLabel.font = LeadFont(14, UIFontWeightMedium);
+  self.statusLabel.textColor = UIColor.secondaryLabelColor;
+  UIStackView *status = [[UIStackView alloc] initWithArrangedSubviews:@[ self.statusDot, self.statusLabel ]];
+  status.spacing = 7;
+  status.alignment = UIStackViewAlignmentCenter;
+
+  UIStackView *titles = [[UIStackView alloc] initWithArrangedSubviews:@[ title, status ]];
+  titles.axis = UILayoutConstraintAxisVertical;
+  titles.alignment = UIStackViewAlignmentCenter;
+  titles.spacing = 4;
+  titles.translatesAutoresizingMaskIntoConstraints = NO;
+  [header addSubview:titles];
+
+  self.announcementStack = [UIStackView new];
+  self.announcementStack.axis = UILayoutConstraintAxisVertical;
+  self.announcementStack.spacing = 10;
+  self.announcementStack.translatesAutoresizingMaskIntoConstraints = NO;
+  [header addSubview:self.announcementStack];
 
   [NSLayoutConstraint activateConstraints:@[
-    [iconView.topAnchor constraintEqualToAnchor:headerContainer.topAnchor
-                                       constant:10],
-    [iconView.centerXAnchor
-        constraintEqualToAnchor:headerContainer.centerXAnchor],
-    [iconView.widthAnchor constraintEqualToConstant:100],
-    [iconView.heightAnchor constraintEqualToConstant:100],
-
-    [self.announcementsContainer.topAnchor
-        constraintEqualToAnchor:iconView.bottomAnchor
-                       constant:14],
-    [self.announcementsContainer.leadingAnchor
-        constraintEqualToAnchor:headerContainer.leadingAnchor
-                       constant:20],
-    [self.announcementsContainer.trailingAnchor
-        constraintEqualToAnchor:headerContainer.trailingAnchor
-                       constant:-20],
+    [self.logoView.topAnchor constraintEqualToAnchor:header.topAnchor constant:4],
+    [self.logoView.centerXAnchor constraintEqualToAnchor:header.centerXAnchor],
+    [self.logoView.widthAnchor constraintEqualToConstant:72],
+    [self.logoView.heightAnchor constraintEqualToConstant:72],
+    [titles.topAnchor constraintEqualToAnchor:self.logoView.bottomAnchor constant:10],
+    [titles.centerXAnchor constraintEqualToAnchor:header.centerXAnchor],
+    [self.announcementStack.topAnchor constraintEqualToAnchor:titles.bottomAnchor constant:18],
+    [self.announcementStack.leadingAnchor constraintEqualToAnchor:header.leadingAnchor constant:20],
+    [self.announcementStack.trailingAnchor constraintEqualToAnchor:header.trailingAnchor constant:-20],
+    [self.announcementStack.bottomAnchor constraintEqualToAnchor:header.bottomAnchor constant:-4],
   ]];
-
-  self.tableView.tableHeaderView = headerContainer;
+  self.headerView = header;
+  [self layoutHeader];
 }
 
-// Returns gradient colors for each announcement type
-- (NSArray *)gradientColorsForType:(NSString *)type {
-  if ([type isEqualToString:@"update"]) {
-    return @[
-      (id)[[UIColor colorWithRed:0.05 green:0.35 blue:0.15 alpha:0.95] CGColor],
-      (id)[[UIColor colorWithRed:0.1 green:0.5 blue:0.25 alpha:0.95] CGColor]
-    ];
-  } else if ([type isEqualToString:@"warning"]) {
-    return @[
-      (id)[[UIColor colorWithRed:0.45 green:0.25 blue:0.0 alpha:0.95] CGColor],
-      (id)[[UIColor colorWithRed:0.55 green:0.35 blue:0.05 alpha:0.95] CGColor]
-    ];
-  } else if ([type isEqualToString:@"promo"]) {
-    return @[
-      (id)[[UIColor colorWithRed:0.3 green:0.1 blue:0.45 alpha:0.95] CGColor],
-      (id)[[UIColor colorWithRed:0.45 green:0.15 blue:0.55 alpha:0.95] CGColor]
-    ];
-  }
-  // info (default) — blue
-  return @[
-    (id)[[UIColor colorWithRed:0.0 green:0.2 blue:0.45 alpha:0.95] CGColor],
-    (id)[[UIColor colorWithRed:0.05 green:0.3 blue:0.55 alpha:0.95] CGColor]
-  ];
-}
-
-- (NSString *)iconForType:(NSString *)type {
-  if ([type isEqualToString:@"update"])
-    return @"arrow.up.circle.fill";
-  if ([type isEqualToString:@"warning"])
-    return @"exclamationmark.triangle.fill";
-  if ([type isEqualToString:@"promo"])
-    return @"star.fill";
-  return @"info.circle.fill";
-}
-
-- (UIView *)createAnnouncementCardWithTitle:(NSString *)title
-                                    message:(NSString *)message
-                                       type:(NSString *)type
-                                        url:(NSString *)url {
-  UIView *card = [[UIView alloc] init];
-  card.translatesAutoresizingMaskIntoConstraints = NO;
-  card.layer.cornerRadius = 14;
-  card.clipsToBounds = YES;
-  card.userInteractionEnabled = YES;
-
-  // Gradient background
-  CAGradientLayer *gradient = [CAGradientLayer layer];
-  gradient.colors = [self gradientColorsForType:type];
-  gradient.startPoint = CGPointMake(0, 0);
-  gradient.endPoint = CGPointMake(1, 1);
-  gradient.frame = CGRectMake(0, 0, 600, 80);
-  [card.layer insertSublayer:gradient atIndex:0];
-
-  // Icon
-  UIImageView *iconImg = [[UIImageView alloc]
-      initWithImage:[UIImage systemImageNamed:[self iconForType:type]]];
-  iconImg.translatesAutoresizingMaskIntoConstraints = NO;
-  iconImg.tintColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7];
-  iconImg.contentMode = UIViewContentModeScaleAspectFit;
-  [card addSubview:iconImg];
-
-  // Title
-  UILabel *titleLabel = [[UILabel alloc] init];
-  titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-  titleLabel.text = title;
-  titleLabel.font = [UIFont systemFontOfSize:14 weight:UIFontWeightBold];
-  titleLabel.textColor = [UIColor whiteColor];
-  titleLabel.numberOfLines = 1;
-  [card addSubview:titleLabel];
-
-  // Message
-  UILabel *msgLabel = [[UILabel alloc] init];
-  msgLabel.translatesAutoresizingMaskIntoConstraints = NO;
-  msgLabel.text = message;
-  msgLabel.font = [UIFont systemFontOfSize:12 weight:UIFontWeightRegular];
-  msgLabel.textColor = [[UIColor whiteColor] colorWithAlphaComponent:0.8];
-  msgLabel.numberOfLines = 2;
-  [card addSubview:msgLabel];
-
-  // Chevron (if URL)
-  UIImageView *chevron = nil;
-  if (url.length > 0) {
-    chevron = [[UIImageView alloc]
-        initWithImage:[UIImage systemImageNamed:@"chevron.right"]];
-    chevron.translatesAutoresizingMaskIntoConstraints = NO;
-    chevron.tintColor = [[UIColor whiteColor] colorWithAlphaComponent:0.4];
-    chevron.contentMode = UIViewContentModeScaleAspectFit;
-    [card addSubview:chevron];
-  }
-
-  NSLayoutAnchor *trailingAnchor =
-      chevron ? chevron.leadingAnchor : card.trailingAnchor;
-  CGFloat trailingConst = chevron ? -6 : -14;
-
-  [NSLayoutConstraint activateConstraints:@[
-    [iconImg.leadingAnchor constraintEqualToAnchor:card.leadingAnchor
-                                          constant:14],
-    [iconImg.centerYAnchor constraintEqualToAnchor:card.centerYAnchor],
-    [iconImg.widthAnchor constraintEqualToConstant:22],
-    [iconImg.heightAnchor constraintEqualToConstant:22],
-
-    [titleLabel.topAnchor constraintEqualToAnchor:card.topAnchor constant:12],
-    [titleLabel.leadingAnchor constraintEqualToAnchor:iconImg.trailingAnchor
-                                             constant:10],
-    [titleLabel.trailingAnchor constraintEqualToAnchor:trailingAnchor
-                                              constant:trailingConst],
-
-    [msgLabel.topAnchor constraintEqualToAnchor:titleLabel.bottomAnchor
-                                       constant:2],
-    [msgLabel.leadingAnchor constraintEqualToAnchor:iconImg.trailingAnchor
-                                           constant:10],
-    [msgLabel.trailingAnchor constraintEqualToAnchor:trailingAnchor
-                                            constant:trailingConst],
-    [msgLabel.bottomAnchor constraintEqualToAnchor:card.bottomAnchor
-                                          constant:-12],
-  ]];
-
-  if (chevron) {
-    [NSLayoutConstraint activateConstraints:@[
-      [chevron.trailingAnchor constraintEqualToAnchor:card.trailingAnchor
-                                             constant:-14],
-      [chevron.centerYAnchor constraintEqualToAnchor:card.centerYAnchor],
-      [chevron.widthAnchor constraintEqualToConstant:10],
-    ]];
-
-    // Store URL in accessibilityHint for tap handler
-    card.accessibilityHint = url;
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]
-        initWithTarget:self
-                action:@selector(announcementCardTapped:)];
-    [card addGestureRecognizer:tap];
-  }
-
-  return card;
-}
-
-- (void)announcementCardTapped:(UITapGestureRecognizer *)gesture {
-  NSString *urlStr = gesture.view.accessibilityHint;
-  if (urlStr.length == 0)
-    return;
-
-  NSURL *finalURL = nil;
-
-  if ([urlStr hasPrefix:@"@"]) {
-    // @username → tg://resolve?domain=username
-    NSString *username = [urlStr substringFromIndex:1];
-    finalURL = [NSURL
-        URLWithString:[NSString stringWithFormat:@"tg://resolve?domain=%@",
-                                                 username]];
-  } else if ([urlStr containsString:@"t.me/"]) {
-    // Extract path after t.me/
-    NSString *path = [[urlStr componentsSeparatedByString:@"t.me/"] lastObject];
-    // Remove trailing slash
-    if ([path hasSuffix:@"/"]) {
-      path = [path substringToIndex:path.length - 1];
-    }
-
-    if ([path hasPrefix:@"+"]) {
-      // Invite link: t.me/+HASH → tg://join?invite=HASH
-      NSString *hash = [path substringFromIndex:1];
-      finalURL = [NSURL
-          URLWithString:[NSString
-                            stringWithFormat:@"tg://join?invite=%@", hash]];
-    } else if ([path containsString:@"/"]) {
-      // Post link: t.me/channel/123 → tg://resolve?domain=channel&post=123
-      NSArray *parts = [path componentsSeparatedByString:@"/"];
-      NSString *domain = parts[0];
-      NSString *post = parts[1];
-      finalURL = [NSURL
-          URLWithString:[NSString
-                            stringWithFormat:@"tg://resolve?domain=%@&post=%@",
-                                             domain, post]];
-    } else {
-      // Simple: t.me/channel → tg://resolve?domain=channel
-      finalURL = [NSURL
-          URLWithString:[NSString
-                            stringWithFormat:@"tg://resolve?domain=%@", path]];
-    }
-  }
-
-  // Fallback to regular URL for non-telegram links
-  if (!finalURL) {
-    finalURL = [NSURL URLWithString:urlStr];
-  }
-
-  if (finalURL) {
-    [[UIApplication sharedApplication] openURL:finalURL
-                                       options:@{}
-                             completionHandler:nil];
-  }
-}
-
-- (void)rebuildAnnouncementCards {
-  // Clear old cards
-  for (UIView *sub in self.announcementsContainer.subviews) {
-    [sub removeFromSuperview];
-  }
-
-  NSArray *announcements = self.announcementsData;
-  if (!announcements || announcements.count == 0) {
-    self.announcementsContainer.hidden = YES;
-    [self updateHeaderHeight];
+- (void)layoutHeader {
+  if (self.isSearching) return;
+  CGFloat width = self.tableView.bounds.size.width ?: UIScreen.mainScreen.bounds.size.width;
+  CGFloat height = [self.headerView systemLayoutSizeFittingSize:CGSizeMake(width, UILayoutFittingCompressedSize.height)
+                                  withHorizontalFittingPriority:UILayoutPriorityRequired
+                                        verticalFittingPriority:UILayoutPriorityFittingSizeLevel].height;
+  if (self.tableView.tableHeaderView == self.headerView && fabs(self.headerView.frame.size.height - height) < 0.5 &&
+      fabs(self.headerView.frame.size.width - width) < 0.5) {
     return;
   }
-
-  self.announcementsContainer.hidden = NO;
-  UIView *previousCard = nil;
-
-  for (NSDictionary *ann in announcements) {
-    NSString *title = ann[@"title"] ?: @"";
-    NSString *msg = ann[@"message"] ?: @"";
-    NSString *type = ann[@"type"] ?: @"info";
-    NSString *url = ann[@"url"];
-    if ([url isEqual:[NSNull null]])
-      url = nil;
-
-    UIView *card = [self createAnnouncementCardWithTitle:title
-                                                 message:msg
-                                                    type:type
-                                                     url:url];
-    [self.announcementsContainer addSubview:card];
-
-    [NSLayoutConstraint activateConstraints:@[
-      [card.leadingAnchor
-          constraintEqualToAnchor:self.announcementsContainer.leadingAnchor],
-      [card.trailingAnchor
-          constraintEqualToAnchor:self.announcementsContainer.trailingAnchor],
-    ]];
-
-    if (previousCard) {
-      [card.topAnchor constraintEqualToAnchor:previousCard.bottomAnchor
-                                     constant:8]
-          .active = YES;
-    } else {
-      [card.topAnchor
-          constraintEqualToAnchor:self.announcementsContainer.topAnchor]
-          .active = YES;
-    }
-    previousCard = card;
-  }
-
-  // Pin last card's bottom
-  if (previousCard) {
-    [previousCard.bottomAnchor
-        constraintEqualToAnchor:self.announcementsContainer.bottomAnchor]
-        .active = YES;
-  }
-
-  [self updateHeaderHeight];
-}
-
-- (void)updateHeaderHeight {
-  UIView *header = self.tableView.tableHeaderView;
-  if (!header)
-    return;
-
-  // Force layout to calculate intrinsic size
-  [header setNeedsLayout];
-  [header layoutIfNeeded];
-
-  CGFloat bannerHeight = 0;
-  if (!self.announcementsContainer.hidden) {
-    bannerHeight =
-        [self.announcementsContainer
-            systemLayoutSizeFittingSize:UILayoutFittingCompressedSize]
-            .height +
-        14;
-  }
-  CGFloat totalHeight = 120 + bannerHeight;
-  header.frame = CGRectMake(0, 0, self.tableView.frame.size.width, totalHeight);
-  self.tableView.tableHeaderView = header;
+  self.headerView.frame = CGRectMake(0, 0, width, height);
+  self.tableView.tableHeaderView = self.headerView;
 }
 
 - (void)viewDidLayoutSubviews {
   [super viewDidLayoutSubviews];
-  // Update gradient frames
-  for (UIView *card in self.announcementsContainer.subviews) {
-    for (CALayer *layer in card.layer.sublayers) {
-      if ([layer isKindOfClass:[CAGradientLayer class]]) {
-        layer.frame = card.bounds;
-      }
+  [self layoutHeader];
+}
+
+- (void)setupFooter {
+  UILabel *footer = [UILabel new];
+  footer.numberOfLines = 0;
+  footer.textAlignment = NSTextAlignmentCenter;
+  footer.font = LeadFont(12, UIFontWeightRegular);
+  footer.textColor = UIColor.tertiaryLabelColor;
+  footer.text = [NSString stringWithFormat:@"Lead %@ (%@)\n© 2026 Lead Team", kLeadTweakVersion, kLeadTweakBuild];
+  footer.frame = CGRectMake(0, 0, 320, 72);
+  self.tableView.tableFooterView = footer;
+}
+
+#pragma mark - State
+
+- (void)settingsChanged {
+  [self refreshStatusAnimated:YES];
+  if (self.isSearching) {
+    [self updateSearchResultsForSearchController:self.searchController];
+    return;
+  }
+  for (NSIndexPath *indexPath in self.tableView.indexPathsForVisibleRows) {
+    UITableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+    if ([cell isKindOfClass:[LeadHeroCell class]]) {
+      [(LeadHeroCell *)cell configureTitle:LeadL(@"GHOST_MODE_SECTION_HEADER")
+                                     status:LeadGhostStatusText()
+                                         on:[[NSUserDefaults standardUserDefaults] boolForKey:kGhostModeEnabled]
+                                   animated:YES];
+    } else if (indexPath.section == LeadHomeSectionFeatures && [cell isKindOfClass:[LeadCell class]]) {
+      LeadPage *page = self.pages[indexPath.row];
+      [(LeadCell *)cell showValue:[self valueForPage:page] chevron:YES];
+      [((LeadCell *)cell).tile setActive:page.enabledCount > 0 animated:YES];
     }
   }
 }
 
-#pragma mark - Lead Announcements
-
-- (void)fetchAnnouncement {
-  NSURL *url = [NSURL URLWithString:kLeadAnnouncementsURL];
-  NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
-  req.timeoutInterval = 10;
-  // Cache policy to ensure we get fresh data
-  req.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-
-  [[[NSURLSession sharedSession]
-      dataTaskWithRequest:req
-        completionHandler:^(NSData *data, NSURLResponse *response,
-                             NSError *error) {
-          if (error || !data)
-            return;
-
-          id parsed = [NSJSONSerialization JSONObjectWithData:data
-                                                       options:0
-                                                         error:nil];
-
-          dispatch_async(dispatch_get_main_queue(), ^{
-            if ([parsed isKindOfClass:[NSArray class]]) {
-              self.announcementsData = (NSArray *)parsed;
-            } else if ([parsed isKindOfClass:[NSDictionary class]]) {
-              self.announcementsData = @[ parsed ];
-            } else {
-              self.announcementsData = @[];
-            }
-            [self rebuildAnnouncementCards];
-          });
-        }] resume];
+- (void)refreshStatusAnimated:(BOOL)animated {
+  NSInteger count = LeadEnabledFeatureCount();
+  NSString *text = count > 0 ? [NSString stringWithFormat:LeadL(@"UI_STATUS_ON"), (long)count] : LeadL(@"UI_STATUS_NONE");
+  UIColor *dot = count > 0 ? UIColor.systemGreenColor : UIColor.tertiaryLabelColor;
+  if (!animated || [self.statusLabel.text isEqualToString:text]) {
+    self.statusLabel.text = text;
+    self.statusDot.backgroundColor = dot;
+    return;
+  }
+  [UIView transitionWithView:self.statusLabel duration:0.2 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+    self.statusLabel.text = text;
+  } completion:nil];
+  [UIView animateWithDuration:0.25 animations:^{ self.statusDot.backgroundColor = dot; }];
+  self.statusDot.transform = CGAffineTransformMakeScale(1.8, 1.8);
+  LeadSpring(0.5, 0.45, ^{ self.statusDot.transform = CGAffineTransformIdentity; }, nil);
 }
 
-- (void)setupApplyButton {
-  UIButton *applyChangesButton = [UIButton buttonWithType:UIButtonTypeSystem];
-  UIImage *applyImage = [UIImage systemImageNamed:@"checkmark.square"];
-  applyImage =
-      [applyImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-  applyChangesButton.tintColor = [UIColor systemPinkColor];
-  [applyChangesButton setImage:applyImage forState:UIControlStateNormal];
-  [applyChangesButton addTarget:self
-                         action:@selector(applyChanges)
-               forControlEvents:UIControlEventTouchUpInside];
-  UIBarButtonItem *applyButtonItem =
-      [[UIBarButtonItem alloc] initWithCustomView:applyChangesButton];
-  self.navigationItem.rightBarButtonItems = @[ applyButtonItem ];
+- (NSString *)valueForPage:(LeadPage *)page {
+  NSInteger count = page.enabledCount;
+  return count > 0 ? [NSString stringWithFormat:LeadL(@"UI_ON_COUNT"), (long)count] : LeadL(@"UI_OFF");
 }
 
-- (void)applyChanges {
-  UIAlertController *alert =
-      [UIAlertController alertControllerWithTitle:TGLoc(@"APPLY")
-                                          message:TGLoc(@"APPLY_CHANGES")
-                                   preferredStyle:UIAlertControllerStyleAlert];
+#pragma mark - Search
 
-  UIAlertAction *okAction = [UIAlertAction
-      actionWithTitle:TGLoc(@"OK")
-                style:UIAlertActionStyleDefault
-              handler:^(UIAlertAction *_Nonnull action) {
-                [[UIApplication sharedApplication]
-                    performSelector:@selector(suspend)];
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW,
-                                             (int64_t)(0.5 * NSEC_PER_SEC)),
-                               dispatch_get_main_queue(), ^{
-                                 exit(0);
-                               });
-              }];
-
-  [alert addAction:okAction];
-
-  UIAlertAction *cancelAction =
-      [UIAlertAction actionWithTitle:TGLoc(@"CANCEL")
-                               style:UIAlertActionStyleCancel
-                             handler:nil];
-  [alert addAction:cancelAction];
-  [self presentViewController:alert animated:YES completion:nil];
+- (BOOL)isSearching {
+  return self.searchController.isActive && self.searchController.searchBar.text.length > 0;
 }
 
-- (UIColor *)dynamicColorBW {
-  static dispatch_once_t token;
-  static UIColor *cached;
-  dispatch_once(&token, ^{
-    cached = [UIColor colorWithDynamicProvider:^UIColor *_Nonnull(
-                          UITraitCollection *_Nonnull trait) {
-      if (trait.userInterfaceStyle == UIUserInterfaceStyleDark) {
-        return [UIColor whiteColor];
-      } else {
-        return [UIColor blackColor];
+- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+  NSString *query = [searchController.searchBar.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
+  NSMutableArray *results = [NSMutableArray array];
+  if (query.length > 0) {
+    NSStringCompareOptions options = NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch;
+    NSMutableArray *allPages = [NSMutableArray arrayWithObject:self.ghostPage];
+    [allPages addObjectsFromArray:self.pages];
+    for (LeadPage *page in allPages) {
+      if ([LeadL(page.titleKey) rangeOfString:query options:options].location != NSNotFound) [results addObject:page];
+    }
+    for (LeadPage *page in allPages) {
+      for (LeadSection *section in page.sections) {
+        for (LeadRow *row in section.rows) {
+          if ([row.title rangeOfString:query options:options].location != NSNotFound ||
+              (row.subtitle && [row.subtitle rangeOfString:query options:options].location != NSNotFound)) {
+            [results addObject:row];
+          }
+        }
       }
-    }];
-  });
-  return cached;
+    }
+  }
+  self.searchResults = results;
+  self.tableView.backgroundView = (self.isSearching && results.count == 0) ? self.emptySearchLabel : nil;
+  // Results get the whole screen; the header comes back with the full list.
+  UIView *wantedHeader = self.isSearching ? nil : self.headerView;
+  if (self.tableView.tableHeaderView != wantedHeader) {
+    self.tableView.tableHeaderView = wantedHeader;
+  }
+  [self.tableView reloadData];
 }
 
-#pragma mark - UITableViewDataSource
-
-typedef NS_ENUM(NSInteger, TABLE_VIEW_SECTIONS) {
-  GHOST_MODE = 0,
-  MISC = 1,
-  FILE_FIXER = 2,
-  FAKE_LOCATION = 3,
-  LANGUAGE = 4,
-  CREDITS = 5,
-};
+#pragma mark - Table
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-  return 6;
+  return self.isSearching ? 1 : LeadHomeSectionCount;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView
-    numberOfRowsInSection:(NSInteger)section {
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+  if (self.isSearching) return self.searchResults.count;
   switch (section) {
-  case GHOST_MODE:
-    return 2 + (self.isGhostModeExpanded ? 19 : 0);
-  case MISC:
-    return 7;
-  case FILE_FIXER:
-    return 2;
-  case FAKE_LOCATION:
-    return 2;
-  case LANGUAGE:
-    return 1;
-  case CREDITS:
-    return 3;
-  default:
-    return 0;
+  case LeadHomeSectionGhost: return 1;
+  case LeadHomeSectionFeatures: return self.pages.count;
+  case LeadHomeSectionGeneral: return LeadGeneralRowCount;
+  case LeadHomeSectionAbout: return LeadAboutRowCount;
   }
   return 0;
 }
 
-- (NSString *)tableView:(UITableView *)tableView
-    titleForHeaderInSection:(NSInteger)section {
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+  if (self.isSearching) return [self searchCellAt:indexPath];
 
-  switch (section) {
-  case GHOST_MODE:
-    return TGLoc(@"GHOST_MODE_SECTION_HEADER");
-  case MISC:
-    return TGLoc(@"MISC_SECTION_HEADER");
-  case FILE_FIXER:
-    return TGLoc(@"FILE_FIXER_SECTION_HEADER");
-  case FAKE_LOCATION:
-    return TGLoc(@"FAKE_LOCATION_SECTION_HEADER");
-  case LANGUAGE:
-    return TGLoc(@"LANGUAGE_SECTION_HEADER");
-  case CREDITS:
-    return TGLoc(@"CREDITS_SECTION_HEADER");
-  default:
-    return nil;
-  }
-  return nil;
-}
-
-- (UITableViewCell *)switchCellFromTableView:(UITableView *)tableView {
-  UITableViewCell *switchCell =
-      [tableView dequeueReusableCellWithIdentifier:@"switchCell"];
-  if (!switchCell) {
-    switchCell =
-        [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
-                               reuseIdentifier:@"switchCell"];
-  }
-
-  return switchCell;
-}
-
-- (UITableViewCell *)normalCellFromTableView:(UITableView *)tableView {
-  UITableViewCell *normalCell =
-      [tableView dequeueReusableCellWithIdentifier:@"normalCell"];
-  if (!normalCell) {
-    normalCell =
-        [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
-                               reuseIdentifier:@"normalCell"];
-  }
-
-  return normalCell;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView
-         cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-  UITableViewCell *cell;
-
-  if (indexPath.section == 0) { // GHOST MOODE
-    if (indexPath.row == 1) {
-      cell = [self normalCellFromTableView:tableView];
-      cell.textLabel.text = @"Advanced Settings";
-      cell.detailTextLabel.text = self.isGhostModeExpanded ? @"Hide detail settings" : @"Show detail settings";
-      cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-      cell.accessoryView = nil;
-      cell.imageView.image = [UIImage systemImageNamed:@"slider.horizontal.3"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      return cell;
-    }
-
-    cell = [self switchCellFromTableView:tableView];
-    cell.imageView.image = nil;
-
-    if (indexPath.row == 0) {
-      cell.textLabel.text = @"Ghost Mode";
-      cell.detailTextLabel.text = @"Main toggle for all ghost features";
-      cell.imageView.image = [UIImage systemImageNamed:@"eye.slash.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-    } else {
-      NSInteger ghostRow = indexPath.row - 2;
-      if (ghostRow == 0) {
-        cell.textLabel.text = TGLoc(@"DISABLE_ONLINE_STATUS_TITLE");
-        cell.detailTextLabel.text = TGLoc(@"DISABLE_ONLINE_STATUS_SUBTITLE");
-      } else if (ghostRow == 1) {
-        cell.textLabel.text = TGLoc(@"DISABLE_TYPING_STATUS_TITLE");
-        cell.detailTextLabel.text = TGLoc(@"DISABLE_TYPING_STATUS_SUBTITLE");
-      } else if (ghostRow == 2) {
-        cell.textLabel.text = TGLoc(@"DISABLE_RECORDING_VIDEO_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_RECORDING_VIDEO_STATUS_SUBTITLE");
-      } else if (ghostRow == 3) {
-        cell.textLabel.text = TGLoc(@"DISABLE_UPLOADING_VIDEO_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_UPLOADING_VIDEO_STATUS_SUBTITLE");
-      } else if (ghostRow == 4) {
-        cell.textLabel.text = TGLoc(@"DISABLE_VC_MESSAGE_RECORDING_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_VC_MESSAGE_RECORDING_STATUS_SUBTITLE");
-      } else if (ghostRow == 5) {
-        cell.textLabel.text = TGLoc(@"DISABLE_VC_MESSAGE_UPLOADING_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_VC_MESSAGE_UPLOADING_STATUS_SUBTITLE");
-      } else if (ghostRow == 6) {
-        cell.textLabel.text = TGLoc(@"DISABLE_UPLOADING_PHOTO_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_UPLOADING_PHOTO_STATUS_SUBTITLE");
-      } else if (ghostRow == 7) {
-        cell.textLabel.text = TGLoc(@"DISABLE_UPLOADING_FILE_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_UPLOADING_FILE_STATUS_SUBTITLE");
-      } else if (ghostRow == 8) {
-        cell.textLabel.text = TGLoc(@"DISABLE_CHOOSING_LOCATION_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_CHOOSING_LOCATION_STATUS_SUBTITLE");
-      } else if (ghostRow == 9) {
-        cell.textLabel.text = TGLoc(@"DISABLE_CHOOSING_CONTACT_TITLE");
-        cell.detailTextLabel.text = TGLoc(@"DISABLE_CHOOSING_CONTACT_SUBTITLE");
-      } else if (ghostRow == 10) {
-        cell.textLabel.text = TGLoc(@"DISABLE_PLAYING_GAME_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_PLAYING_GAME_STATUS_SUBTITLE");
-      } else if (ghostRow == 11) {
-        cell.textLabel.text =
-            TGLoc(@"DISABLE_RECORDING_ROUND_VIDEO_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_RECORDING_ROUND_VIDEO_STATUS_SUBTITLE");
-      } else if (ghostRow == 12) {
-        cell.textLabel.text =
-            TGLoc(@"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_TITLE");
-      } else if (ghostRow == 13) {
-        cell.textLabel.text =
-            TGLoc(@"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_SPEAKING_IN_GROUP_CALL_STATUS_SUBTITLE");
-      } else if (ghostRow == 14) {
-        cell.textLabel.text = TGLoc(@"DISABLE_CHOOSING_STICKER_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_CHOOSING_STICKER_STATUS_SUBTITLE");
-      } else if (ghostRow == 15) {
-        cell.textLabel.text = TGLoc(@"DISABLE_EMOJI_INTERACTION_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_EMOJI_INTERACTION_STATUS_SUBTITLE");
-      } else if (ghostRow == 16) {
-        cell.textLabel.text =
-            TGLoc(@"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_EMOJI_ACKNOWLEDGEMENT_STATUS_SUBTITLE");
-      } else if (ghostRow == 17) {
-        cell.textLabel.text = TGLoc(@"DISABLE_MESSAGE_READ_RECEIPT_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_MESSAGE_READ_RECEIPT_SUBTITLE");
-      } else if (ghostRow == 18) {
-        cell.textLabel.text = TGLoc(@"DISABLE_STORY_READ_RECEIPT_TITLE");
-        cell.detailTextLabel.text =
-            TGLoc(@"DISABLE_STORY_READ_RECEIPT_SUBTITLE");
+  if (indexPath.section == LeadHomeSectionGhost) {
+    LeadHeroCell *hero = [tableView dequeueReusableCellWithIdentifier:kHeroId forIndexPath:indexPath];
+    [hero configureTitle:LeadL(@"GHOST_MODE_SECTION_HEADER")
+                  status:LeadGhostStatusText()
+                      on:[[NSUserDefaults standardUserDefaults] boolForKey:kGhostModeEnabled]
+                animated:NO];
+    hero.accessoryType = UITableViewCellAccessoryNone;
+    __weak typeof(self) weakSelf = self;
+    hero.onToggle = ^(BOOL on) {
+      if (on) {
+        LeadEnableGhostMode(weakSelf);
+      } else {
+        LeadSetBool(kGhostModeEnabled, NO);
       }
-    }
-
-    UISwitch *toggle = (UISwitch *)cell.accessoryView;
-    if (!toggle || ![toggle isKindOfClass:[UISwitch class]]) {
-      toggle = [[UISwitch alloc] init];
-    }
-
-    NSString *switchKey = [self switchKeyForIndexPath:indexPath];
-    toggle.on = [[NSUserDefaults standardUserDefaults] boolForKey:switchKey];
-    [toggle addTarget:self
-                  action:@selector(switchChanged:)
-        forControlEvents:UIControlEventValueChanged];
-    toggle.tag = 1000 + (indexPath.section * 1000) + indexPath.row;
-    cell.accessoryView = toggle;
-
-    cell.textLabel.numberOfLines = 0;
-    cell.detailTextLabel.numberOfLines = 0;
-    return cell;
-
-  } else if (indexPath.section == MISC) {
-    cell = [self switchCellFromTableView:tableView];
-    cell.imageView.image = nil;
-
-    if (indexPath.row == 0) {
-      cell.imageView.image = [UIImage systemImageNamed:@"nosign"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"DISABLE_ALL_ADS_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"DISABLE_ALL_ADS_SUBTITLE");
-    } else if (indexPath.row == 1) {
-      cell.imageView.image = [UIImage systemImageNamed:@"lock.open.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"ENABLE_SAVING_PROTECTED_CONTENT_TITLE");
-      cell.detailTextLabel.text =
-          TGLoc(@"ENABLE_SAVING_PROTECTED_CONTENT_SUBTITLE");
-    } else if (indexPath.row == 2) {
-      cell.imageView.image = [UIImage systemImageNamed:@"trash.slash.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"ANTI_REVOKE_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"ANTI_REVOKE_SUBTITLE");
-    } else if (indexPath.row == 3) {
-      cell.imageView.image =
-          [UIImage systemImageNamed:@"clock.arrow.circlepath"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"ANTI_AUTO_DELETE_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"ANTI_AUTO_DELETE_SUBTITLE");
-    } else if (indexPath.row == 4) {
-      cell.imageView.image = [UIImage systemImageNamed:@"camera.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"ANTI_SCREENSHOT_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"ANTI_SCREENSHOT_SUBTITLE");
-    } else if (indexPath.row == 5) {
-      cell.imageView.image = [UIImage systemImageNamed:@"eye.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"ANTI_SELF_DESTRUCT_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"ANTI_SELF_DESTRUCT_SUBTITLE");
-    } else if (indexPath.row == 6) {
-      cell.imageView.image =
-          [UIImage systemImageNamed:@"phone.badge.checkmark"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"CONFIRM_CALLS_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"CONFIRM_CALLS_SUBTITLE");
-    }
-
-    UISwitch *toggle = (UISwitch *)cell.accessoryView;
-    if (!toggle || ![toggle isKindOfClass:[UISwitch class]]) {
-      toggle = [[UISwitch alloc] init];
-    }
-
-    NSString *switchKey = [self switchKeyForIndexPath:indexPath];
-    toggle.on = [[NSUserDefaults standardUserDefaults] boolForKey:switchKey];
-    [toggle addTarget:self
-                  action:@selector(switchChanged:)
-        forControlEvents:UIControlEventValueChanged];
-    toggle.tag = 1000 + (indexPath.section * 1000) + indexPath.row;
-    cell.accessoryView = toggle;
-
-    cell.textLabel.numberOfLines = 0;
-    cell.detailTextLabel.numberOfLines = 0;
-    return cell;
-  } else if (indexPath.section == FILE_FIXER) {
-    if (indexPath.row == 0) {
-      cell = [self switchCellFromTableView:tableView];
-      cell.imageView.image = [UIImage systemImageNamed:@"folder.fill.badge.gear"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"FIX_FILE_PICKER_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"FIX_FILE_PICKER_SUBTITLE");
-      UISwitch *toggle = (UISwitch *)cell.accessoryView;
-      if (!toggle || ![toggle isKindOfClass:[UISwitch class]]) toggle = [[UISwitch alloc] init];
-      NSString *switchKey = [self switchKeyForIndexPath:indexPath];
-      toggle.on = [[NSUserDefaults standardUserDefaults] boolForKey:switchKey];
-      [toggle addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
-      toggle.tag = 1000 + (indexPath.section * 1000) + indexPath.row;
-      cell.accessoryView = toggle;
-      cell.textLabel.numberOfLines = 0;
-      cell.detailTextLabel.numberOfLines = 0;
-      return cell;
-    }
-    cell = [self normalCellFromTableView:tableView];
-    cell.textLabel.text = TGLoc(@"CLEAR_FILE_PICKER_CACHE_TITLE");
-    cell.detailTextLabel.text = TGLoc(@"CLEAR_FILE_PICKER_CACHE_SUBTITLE");
-    cell.imageView.image = [UIImage systemImageNamed:@"trash"];
-    cell.imageView.tintColor = [UIColor redColor];
-    UIActivityIndicatorView *loadingIcon = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleMedium];
-    [loadingIcon startAnimating];
-    cell.accessoryView = loadingIcon;
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-      if (!self.cacheSize) self.cacheSize = [self sizeOfUglyFileFixDirectory];
-      dispatch_async(dispatch_get_main_queue(), ^{
-        UITableViewCell *currentCell = [tableView cellForRowAtIndexPath:indexPath];
-        if (currentCell == cell) {
-          UILabel *sizeLabel = [[UILabel alloc] init];
-          sizeLabel.text = self.cacheSize;
-          cell.accessoryView = sizeLabel;
-          [sizeLabel sizeToFit];
-        }
-      });
-    });
-    cell.textLabel.numberOfLines = 0;
-    cell.detailTextLabel.numberOfLines = 0;
-    return cell;
-  } else if (indexPath.section == FAKE_LOCATION) {
-    if (indexPath.row == 0) {
-      cell = [self switchCellFromTableView:tableView];
-      cell.imageView.image = [UIImage systemImageNamed:@"location.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"ENABLE_FAKE_LOCATION_TITLE");
-      cell.detailTextLabel.text = TGLoc(@"ENABLE_FAKE_LOCATION_SUBTITLE");
-      UISwitch *toggle = (UISwitch *)cell.accessoryView;
-      if (!toggle || ![toggle isKindOfClass:[UISwitch class]]) toggle = [[UISwitch alloc] init];
-      NSString *switchKey = [self switchKeyForIndexPath:indexPath];
-      toggle.on = [[NSUserDefaults standardUserDefaults] boolForKey:switchKey];
-      [toggle addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
-      toggle.tag = 1000 + (indexPath.section * 1000) + indexPath.row;
-      cell.accessoryView = toggle;
-    }
-    if (indexPath.row == 1) {
-      cell = [self normalCellFromTableView:tableView];
-      cell.imageView.image = [UIImage systemImageNamed:@"location.fill"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.textLabel.text = TGLoc(@"SELECT_FAKE_LOCATION_TITLE");
-      NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-      CGFloat savedLongitude = [defaults floatForKey:FAKE_LONGITUDE_KEY];
-      CGFloat savedLatitude = [defaults floatForKey:FAKE_LATITUDE_KEY];
-      cell.detailTextLabel.text = [NSString stringWithFormat:@"lon :%f\nlat :%f", savedLongitude ?: 0, savedLatitude ?: 0];
-    }
-    cell.detailTextLabel.numberOfLines = 0;
-    return cell;
-  } else if (indexPath.section == LANGUAGE) {
-    cell = [self normalCellFromTableView:tableView];
-    cell.textLabel.text = @"Change Language";
-    cell.detailTextLabel.text = @"";
-    cell.imageView.image = [UIImage systemImageNamed:@"globe"];
-    cell.imageView.tintColor = [self dynamicColorBW];
-    cell.accessoryView = nil;
-    cell.textLabel.numberOfLines = 0;
-    cell.detailTextLabel.numberOfLines = 0;
-    return cell;
-  } else if (indexPath.section == CREDITS) {
-    cell = [self normalCellFromTableView:tableView];
-    if (indexPath.row == 0) {
-      cell.textLabel.text = @"Lead Team / w3ltyyy";
-      cell.detailTextLabel.text = @"Developer";
-      cell.detailTextLabel.textColor = [UIColor lightGrayColor];
-      NSData *imageData = [[NSData alloc] initWithBase64EncodedString:CHOCOPNG options:NSDataBase64DecodingIgnoreUnknownCharacters];
-      UIImage *rawImage = [UIImage imageWithData:imageData];
-      UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(40, 40)];
-      UIImage *thumb = [renderer imageWithActions:^(UIGraphicsImageRendererContext *ctx) { [rawImage drawInRect:CGRectMake(0, 0, 40, 40)]; }];
-      cell.imageView.image = thumb;
-      cell.imageView.layer.cornerRadius = 8;
-      cell.imageView.layer.masksToBounds = YES;
-      cell.accessoryView = nil;
-    } else if (indexPath.row == 1) {
-      cell.textLabel.text = TGLoc(@"DISCLAIMER");
-      cell.detailTextLabel.text = @"A note from developer";
-      cell.imageView.image = [UIImage systemImageNamed:@"note.text"];
-      cell.imageView.tintColor = [self dynamicColorBW];
-      cell.accessoryView = nil;
-      cell.detailTextLabel.textColor = [UIColor lightGrayColor];
-    } else if (indexPath.row == 2) {
-      cell.textLabel.text = @"Support Development";
-      cell.detailTextLabel.text = @"Donate crypto to support the project";
-      cell.imageView.image = [UIImage systemImageNamed:@"heart.fill"];
-      cell.imageView.tintColor = [UIColor systemPinkColor];
-      cell.accessoryView = nil;
-      cell.detailTextLabel.textColor = [UIColor lightGrayColor];
-    }
-    cell.textLabel.numberOfLines = 0;
-    cell.detailTextLabel.numberOfLines = 0;
-    return cell;
+    };
+    return hero;
   }
 
+  LeadCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellId forIndexPath:indexPath];
+  if (indexPath.section == LeadHomeSectionFeatures) {
+    LeadPage *page = self.pages[indexPath.row];
+    [cell configureTitle:LeadL(page.titleKey) subtitle:nil symbol:page.symbol];
+    [cell showValue:[self valueForPage:page] chevron:YES];
+    [cell.tile setActive:page.enabledCount > 0 animated:NO];
+  } else if (indexPath.section == LeadHomeSectionGeneral) {
+    if (indexPath.row == LeadGeneralRowLanguage) {
+      NSString *code = [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadLanguage"] ?: @"en";
+      [cell configureTitle:LeadL(@"LANGUAGE_SECTION_HEADER") subtitle:nil symbol:@"globe"];
+      [cell showValue:LeadLanguageNames()[code] ?: code chevron:YES];
+    } else if (indexPath.row == LeadGeneralRowExport) {
+      [cell configureTitle:LeadL(@"UI_EXPORT") subtitle:LeadL(@"UI_EXPORT_SUBTITLE") symbol:@"square.and.arrow.up"];
+      [cell showValue:nil chevron:NO];
+    } else {
+      [cell configureTitle:LeadL(@"UI_IMPORT") subtitle:LeadL(@"UI_IMPORT_SUBTITLE") symbol:@"square.and.arrow.down"];
+      [cell showValue:nil chevron:NO];
+    }
+  } else {
+    switch (indexPath.row) {
+    case LeadAboutRowDeveloper:
+      [cell configureTitle:@"w3ltyyy · Lead Team" subtitle:@"@Leadgramm" symbol:nil];
+      [cell.tile setImage:LeadLogoImage(60)];
+      [cell showValue:nil chevron:YES];
+      break;
+    case LeadAboutRowSupport:
+      [cell configureTitle:LeadL(@"UI_SUPPORT") subtitle:LeadL(@"UI_SUPPORT_SUBTITLE") symbol:@"heart"];
+      [cell showValue:nil chevron:YES];
+      break;
+    case LeadAboutRowDisclaimer:
+      [cell configureTitle:LeadL(@"DISCLAIMER") subtitle:LeadL(@"UI_DISCLAIMER_SUBTITLE") symbol:@"text.quote"];
+      [cell showValue:nil chevron:YES];
+      break;
+    case LeadAboutRowDebugLog:
+      [cell configureTitle:LeadL(@"UI_DEBUG_LOG") subtitle:nil symbol:@"ladybug"];
+      [cell showValue:nil chevron:YES];
+      break;
+    }
+  }
   return cell;
 }
 
-#pragma mark - UITableViewDelegate
+- (UITableViewCell *)searchCellAt:(NSIndexPath *)indexPath {
+  id item = self.searchResults[indexPath.row];
+  LeadCell *cell = [self.tableView dequeueReusableCellWithIdentifier:kCellId forIndexPath:indexPath];
+  if ([item isKindOfClass:[LeadPage class]]) {
+    LeadPage *page = item;
+    [cell configureTitle:LeadL(page.titleKey) subtitle:nil symbol:page.symbol];
+    [cell showValue:page.isGhost ? nil : [self valueForPage:page] chevron:YES];
+    return cell;
+  }
+  LeadRow *row = item;
+  [cell configureTitle:row.title subtitle:row.subtitle symbol:row.symbol];
+  [cell setDestructive:row.destructive];
+  if (row.style == LeadRowStyleToggle) {
+    [cell showToggle:row.isOn];
+    NSString *key = row.defaultsKey;
+    __weak typeof(self) weakSelf = self;
+    cell.onToggle = ^(BOOL on) {
+      if ([key isEqualToString:kGhostModeEnabled] && on) {
+        LeadEnableGhostMode(weakSelf);
+      } else {
+        LeadSetBool(key, on);
+      }
+    };
+  } else {
+    [cell showValue:row.valueBlock ? row.valueBlock() : nil chevron:row.style == LeadRowStyleLink];
+  }
+  return cell;
+}
 
-- (void)tableView:(UITableView *)tableView
-    didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+  if (self.didAnimateRows || self.isSearching) return;
+  LeadAnimateCellIn(cell, self.appearOrder++ + 4);
+  dispatch_async(dispatch_get_main_queue(), ^{
+    self.didAnimateRows = YES;
+  });
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+  NSString *key = nil;
+  if (!self.isSearching) {
+    if (section == LeadHomeSectionFeatures) key = @"UI_SECTION_FEATURES";
+    if (section == LeadHomeSectionGeneral) key = @"UI_SECTION_GENERAL";
+    if (section == LeadHomeSectionAbout) key = @"UI_SECTION_ABOUT";
+  }
+  if (!key) return nil;
+  LeadSectionHeader *header = [tableView dequeueReusableHeaderFooterViewWithIdentifier:kHeaderId];
+  header.label.text = LeadL(key);
+  header.actionButton.hidden = YES;
+  return header;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+  if (self.isSearching || section == LeadHomeSectionGhost) return 8;
+  return UITableViewAutomaticDimension;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
-
-  if (indexPath.section == 0 && indexPath.row == 1) { // Ghost Expansion
-    self.isGhostModeExpanded = !self.isGhostModeExpanded;
-    [[NSUserDefaults standardUserDefaults] setBool:self.isGhostModeExpanded
-                                            forKey:kGhostDetailsToggle];
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0]
-                  withRowAnimation:UITableViewRowAnimationAutomatic];
+  if (self.isSearching) {
+    id item = self.searchResults[indexPath.row];
+    if ([item isKindOfClass:[LeadPage class]]) {
+      [self openPage:item];
+    } else if ([(LeadRow *)item style] == LeadRowStyleToggle) {
+      LeadCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+      [cell.toggle setOn:!cell.toggle.on animated:YES];
+      [cell.toggle sendActionsForControlEvents:UIControlEventValueChanged];
+    } else if ([(LeadRow *)item tapBlock]) {
+      [(LeadRow *)item tapBlock](self);
+    }
     return;
   }
 
-  if (indexPath.section == FAKE_LOCATION) { // Fake Location
-    if (indexPath.row == 1) {
-      [self showLocationSelector];
-    }
-  }
-
-  if (indexPath.section == LANGUAGE) { // Language
-    if (indexPath.row == 0) {
-      [self showLanguageSelector];
-    }
-  }
-
-  if (indexPath.section == CREDITS) {
-    if (indexPath.row == 0) {
-      NSURL *url = [NSURL URLWithString:@"https://t.me/Leadgramm"];
-      if ([[UIApplication sharedApplication] canOpenURL:url]) {
-        [[UIApplication sharedApplication] openURL:url
-                                           options:@{}
-                                 completionHandler:nil];
-      }
-    } else if (indexPath.row == 1) {
-      [self showDisclaimer];
-    } else if (indexPath.row == 2) {
-      [self showDonateSheet];
-    }
-  }
-}
-
-- (void)switchChanged:(UISwitch *)sender {
-  NSInteger adjustedTag = sender.tag - 1000;
-  NSInteger section = adjustedTag / 1000;
-  NSInteger row = adjustedTag % 1000;
-
-  NSIndexPath *indexPath = [NSIndexPath indexPathForRow:row inSection:section];
-  NSString *switchKey = [self switchKeyForIndexPath:indexPath];
-
-  if (switchKey) {
-    if ([switchKey isEqualToString:kGhostModeEnabled] && sender.isOn) {
-      if (![self anyGhostSubFeatureEnabled]) {
-        [sender setOn:NO animated:YES];
-        [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kGhostModeEnabled];
-        
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Ghost Mode"
-                                                                       message:@"Please enable at least one feature in Advanced Settings first."
-                                                                preferredStyle:UIAlertControllerStyleAlert];
-        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-        [self presentViewController:alert animated:YES completion:nil];
-        return;
-      }
-    }
-    
-    [[NSUserDefaults standardUserDefaults] setBool:sender.isOn
-                                            forKey:switchKey];
-  }
-}
-
-- (NSString *)switchKeyForIndexPath:(NSIndexPath *)indexPath {
   switch (indexPath.section) {
-  case 0:
-    if (indexPath.row == 0) return kGhostModeEnabled;
-    if (indexPath.row < 2) return nil;
-    
-    NSInteger ghostRow = indexPath.row - 2;
-    switch (ghostRow) {
-    case 0:
-      return kDisableOnlineStatus;
-    case 1:
-      return kDisableTypingStatus;
-    case 2:
-      return kDisableRecordingVideoStatus;
-    case 3:
-      return kDisableUploadingVideoStatus;
-    case 4:
-      return kDisableRecordingVoiceStatus;
-    case 5:
-      return kDisableUploadingVoiceStatus;
-    case 6:
-      return kDisableUploadingPhotoStatus;
-    case 7:
-      return kDisableUploadingFileStatus;
-    case 8:
-      return kDisableChoosingLocationStatus;
-    case 9:
-      return kDisableChoosingContactStatus;
-    case 10:
-      return kDisablePlayingGameStatus;
-    case 11:
-      return kDisableRecordingRoundVideoStatus;
-    case 12:
-      return kDisableUploadingRoundVideoStatus;
-    case 13:
-      return kDisableSpeakingInGroupCallStatus;
-    case 14:
-      return kDisableChoosingStickerStatus;
-    case 15:
-      return kDisableEmojiInteractionStatus;
-    case 16:
-      return kDisableEmojiAcknowledgementStatus;
-    case 17:
-      return kDisableMessageReadReceipt;
-    case 18:
-      return kDisableStoriesReadReceipt;
-    default:
-      return nil;
+  case LeadHomeSectionGhost:
+    [self openPage:self.ghostPage];
+    break;
+  case LeadHomeSectionFeatures:
+    [self openPage:self.pages[indexPath.row]];
+    break;
+  case LeadHomeSectionGeneral:
+    if (indexPath.row == LeadGeneralRowLanguage) {
+      [self.navigationController pushViewController:[LanguageSelector new] animated:YES];
+    } else if (indexPath.row == LeadGeneralRowExport) {
+      LeadExportSettings(self);
+    } else {
+      LeadImportSettings(self);
     }
-  case 1: // MISC
-    switch (indexPath.row) {
-    case 0:
-      return kDisableAllAds;
-    case 1:
-      return kDisableForwardRestriction;
-    case 2:
-      return kAntiRevoke;
-    case 3:
-      return kAntiAutoDelete;
-    case 4:
-      return kDisableScreenshotNotification;
-    case 5:
-      return kAntiSelfDestruct;
-    case 6:
-      return kConfirmCalls;
-    default:
-      return nil;
-    }
-  case 2: // File Picker Fix
-    if (indexPath.row == 0) return FILE_PICKER_FIX_KEY;
-    return nil;
-  case 3: // Fake Location
-    return FAKE_LOCATION_ENABLED_KEY;
-  default:
-    return nil;
+    break;
+  case LeadHomeSectionAbout:
+    [self openAboutRow:indexPath.row];
+    break;
   }
 }
 
-- (NSString *)sizeOfUglyFileFixDirectory {
-  NSString *uglyFixDirectory =
-      [NSTemporaryDirectory() stringByAppendingPathComponent:FILE_PICKER_PATH];
+- (void)openPage:(LeadPage *)page {
+  [self.navigationController pushViewController:[[LeadPageViewController alloc] initWithPage:page] animated:YES];
+}
 
-  // Calculate size of it recursively
-  unsigned long long totalSize = 0;
-  NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSArray *contents = [fileManager subpathsAtPath:uglyFixDirectory];
-
-  for (NSString *path in contents) {
-    NSString *fullPath = [uglyFixDirectory stringByAppendingPathComponent:path];
-    BOOL isDirectory;
-    if ([fileManager fileExistsAtPath:fullPath isDirectory:&isDirectory]) {
-      if (!isDirectory) {
-        NSDictionary *attributes = [fileManager attributesOfItemAtPath:fullPath
-                                                                 error:nil];
-        totalSize += [attributes fileSize];
-      }
-    }
+- (void)openAboutRow:(NSInteger)row {
+  switch (row) {
+  case LeadAboutRowDeveloper:
+    LeadOpenTelegramURL(@"https://t.me/Leadgramm");
+    break;
+  case LeadAboutRowSupport:
+    [self.navigationController pushViewController:[DonateViewController new] animated:YES];
+    break;
+  case LeadAboutRowDisclaimer:
+    [self.navigationController pushViewController:[[LeadTextViewController alloc] initWithTitle:LeadL(@"DISCLAIMER") text:LeadL(@"AUTHOR_MESSAGE") monospaced:NO]
+                                         animated:YES];
+    break;
+  case LeadAboutRowDebugLog: {
+    LeadTextViewController *log = [[LeadTextViewController alloc] initWithTitle:LeadL(@"UI_DEBUG_LOG") text:nil monospaced:YES];
+    log.filePath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/lead_debug.txt"];
+    [self.navigationController pushViewController:log animated:YES];
+    break;
   }
+  }
+}
 
-  // Format the size into MB or GB
-  NSString *formattedSize;
-  if (totalSize >= 1024 * 1024 * 1024) { // if the size is >= 1GB
-    formattedSize = [NSString
-        stringWithFormat:@"%.2f GB", totalSize / (1024.0 * 1024.0 * 1024.0)];
+#pragma mark - Scroll
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+  CGFloat y = scrollView.contentOffset.y + scrollView.adjustedContentInset.top;
+  if (y < 0) {
+    // Pull down: the mark grows a little, like it's being stretched.
+    CGFloat scale = 1.0 + MIN(-y, 160) / 400.0;
+    self.logoView.transform = CGAffineTransformMakeScale(scale, scale);
+    self.logoView.alpha = 1;
   } else {
-    formattedSize =
-        [NSString stringWithFormat:@"%.2f MB", totalSize / (1024.0 * 1024.0)];
+    self.logoView.transform = CGAffineTransformMakeTranslation(0, y * 0.35);
+    self.logoView.alpha = MAX(0, 1 - y / 90.0);
   }
-  return formattedSize;
+  self.navTitleLabel.alpha = MIN(1, MAX(0, (y - 90) / 30.0));
 }
 
-- (BOOL)anyGhostSubFeatureEnabled {
-  NSArray *keys = @[
-    kDisableOnlineStatus, kDisableTypingStatus, kDisableRecordingVideoStatus,
-    kDisableUploadingVideoStatus, kDisableRecordingVoiceStatus,
-    kDisableUploadingVoiceStatus, kDisableUploadingPhotoStatus,
-    kDisableUploadingFileStatus, kDisableChoosingLocationStatus,
-    kDisableChoosingContactStatus, kDisablePlayingGameStatus,
-    kDisableRecordingRoundVideoStatus, kDisableUploadingRoundVideoStatus,
-    kDisableSpeakingInGroupCallStatus, kDisableChoosingStickerStatus,
-    kDisableEmojiInteractionStatus, kDisableEmojiAcknowledgementStatus,
-    kDisableMessageReadReceipt, kDisableStoriesReadReceipt
-  ];
-  for (NSString *key in keys) {
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:key])
-      return YES;
+#pragma mark - Announcements
+
+- (void)fetchAnnouncements {
+  NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:kLeadAnnouncementsURL]];
+  request.timeoutInterval = 10;
+  request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+  __weak typeof(self) weakSelf = self;
+  [[[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, __unused NSURLResponse *response, NSError *error) {
+    if (error || !data) return;
+    id parsed = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    NSArray *items = [parsed isKindOfClass:[NSArray class]] ? parsed : ([parsed isKindOfClass:[NSDictionary class]] ? @[ parsed ] : @[]);
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [weakSelf showAnnouncements:items];
+    });
+  }] resume];
+}
+
+- (NSString *)symbolForAnnouncementType:(NSString *)type {
+  if ([type isEqualToString:@"update"]) return @"arrow.down.circle";
+  if ([type isEqualToString:@"warning"]) return @"exclamationmark.triangle";
+  if ([type isEqualToString:@"promo"]) return @"star";
+  return @"info.circle";
+}
+
+- (void)showAnnouncements:(NSArray *)items {
+  for (UIView *view in self.announcementStack.arrangedSubviews) {
+    if (view != self.engineWarningCard) [view removeFromSuperview];
   }
-  return NO;
-}
-
-- (void)showDebugLog {
-  NSString *logPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/lead_debug.txt"];
-  NSString *logContent = [NSString stringWithContentsOfFile:logPath encoding:NSUTF8StringEncoding error:nil];
-
-  if (!logContent || logContent.length == 0) {
-    logContent = [NSString stringWithFormat:@"Log empty or not found.\nPath: %@", logPath];
-  } else if (logContent.length > 3000) {
-    logContent = [NSString stringWithFormat:@"...(last 3000 chars)\n%@",
-                  [logContent substringFromIndex:logContent.length - 3000]];
+  NSMutableArray<UIView *> *cards = [NSMutableArray array];
+  for (NSDictionary *item in items) {
+    if (![item isKindOfClass:[NSDictionary class]]) continue;
+    // target_version: shown only to users below that version.
+    NSString *target = [item[@"target_version"] isKindOfClass:[NSString class]] ? item[@"target_version"] : nil;
+    if (target.length && [kLeadTweakVersion compare:target options:NSNumericSearch] != NSOrderedAscending) continue;
+    NSString *url = [item[@"url"] isKindOfClass:[NSString class]] ? item[@"url"] : nil;
+    UIView *card = [self announcementCardWithTitle:item[@"title"] message:item[@"message"] type:item[@"type"] url:url];
+    [self.announcementStack addArrangedSubview:card];
+    [cards addObject:card];
   }
-
-  UIAlertController *alert = [UIAlertController
-      alertControllerWithTitle:@"Debug Log"
-                       message:logContent
-                preferredStyle:UIAlertControllerStyleAlert];
-
-  [alert addAction:[UIAlertAction actionWithTitle:@"Copy" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-    [UIPasteboard generalPasteboard].string = logContent;
-  }]];
-  [alert addAction:[UIAlertAction actionWithTitle:@"Clear" style:UIAlertActionStyleDestructive handler:^(UIAlertAction *a) {
-    [@"" writeToFile:logPath atomically:YES encoding:NSUTF8StringEncoding error:nil];
-  }]];
-  [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
-
-  [self presentViewController:alert animated:YES completion:nil];
+  [self.view setNeedsLayout];
+  [self.view layoutIfNeeded];
+  [UIView animateWithDuration:0.35 animations:^{
+    [self.tableView beginUpdates];
+    [self.tableView endUpdates];
+  }];
+  [cards enumerateObjectsUsingBlock:^(UIView *card, NSUInteger idx, __unused BOOL *stop) {
+    card.alpha = 0;
+    card.transform = CGAffineTransformMakeTranslation(0, 10);
+    [UIView animateWithDuration:0.5 delay:0.06 * idx usingSpringWithDamping:0.85 initialSpringVelocity:0 options:0 animations:^{
+      card.alpha = 1;
+      card.transform = CGAffineTransformIdentity;
+    } completion:nil];
+  }];
 }
 
-- (void)showDonateSheet {
-  DonateViewController *vc = [DonateViewController new];
-  UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-  [self presentViewController:nav animated:YES completion:nil];
+- (UIView *)announcementCardWithTitle:(NSString *)title message:(NSString *)message type:(NSString *)type url:(NSString *)url {
+  UIControl *card = [UIControl new];
+  card.backgroundColor = UIColor.secondarySystemGroupedBackgroundColor;
+  card.layer.cornerRadius = 14;
+  card.layer.cornerCurve = kCACornerCurveContinuous;
+
+  LeadIconTile *tile = [LeadIconTile new];
+  tile.side = 30;
+  [tile setSymbol:[self symbolForAnnouncementType:[type isKindOfClass:[NSString class]] ? type : @"info"]];
+  tile.translatesAutoresizingMaskIntoConstraints = NO;
+  tile.userInteractionEnabled = NO;
+
+  UILabel *titleLabel = [UILabel new];
+  titleLabel.text = [title isKindOfClass:[NSString class]] ? title : @"";
+  titleLabel.font = LeadFont(15, UIFontWeightSemibold);
+  titleLabel.numberOfLines = 0;
+  UILabel *messageLabel = [UILabel new];
+  messageLabel.text = [message isKindOfClass:[NSString class]] ? message : @"";
+  messageLabel.font = LeadFont(13, UIFontWeightRegular);
+  messageLabel.textColor = UIColor.secondaryLabelColor;
+  messageLabel.numberOfLines = 0;
+  UIStackView *texts = [[UIStackView alloc] initWithArrangedSubviews:@[ titleLabel, messageLabel ]];
+  texts.axis = UILayoutConstraintAxisVertical;
+  texts.spacing = 2;
+  texts.userInteractionEnabled = NO;
+  texts.translatesAutoresizingMaskIntoConstraints = NO;
+  [card addSubview:tile];
+  [card addSubview:texts];
+
+  NSLayoutXAxisAnchor *trailing = card.trailingAnchor;
+  CGFloat trailingInset = -14;
+  if (url.length) {
+    UIImageView *chevron = [[UIImageView alloc] initWithImage:[UIImage systemImageNamed:@"chevron.right"
+                                                                       withConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:12 weight:UIImageSymbolWeightSemibold]]];
+    chevron.tintColor = UIColor.tertiaryLabelColor;
+    chevron.translatesAutoresizingMaskIntoConstraints = NO;
+    [card addSubview:chevron];
+    [NSLayoutConstraint activateConstraints:@[
+      [chevron.trailingAnchor constraintEqualToAnchor:card.trailingAnchor constant:-14],
+      [chevron.centerYAnchor constraintEqualToAnchor:card.centerYAnchor],
+    ]];
+    trailing = chevron.leadingAnchor;
+    trailingInset = -10;
+    card.accessibilityHint = url;
+    [card addTarget:self action:@selector(announcementTapped:) forControlEvents:UIControlEventTouchUpInside];
+    [card addTarget:self action:@selector(cardDown:) forControlEvents:UIControlEventTouchDown | UIControlEventTouchDragEnter];
+    [card addTarget:self action:@selector(cardUp:) forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel | UIControlEventTouchDragExit];
+  }
+  [NSLayoutConstraint activateConstraints:@[
+    [tile.widthAnchor constraintEqualToConstant:30],
+    [tile.heightAnchor constraintEqualToConstant:30],
+    [tile.leadingAnchor constraintEqualToAnchor:card.leadingAnchor constant:14],
+    [tile.topAnchor constraintEqualToAnchor:card.topAnchor constant:13],
+    [texts.leadingAnchor constraintEqualToAnchor:tile.trailingAnchor constant:12],
+    [texts.trailingAnchor constraintEqualToAnchor:trailing constant:trailingInset],
+    [texts.topAnchor constraintEqualToAnchor:card.topAnchor constant:12],
+    [texts.bottomAnchor constraintEqualToAnchor:card.bottomAnchor constant:-12],
+    [card.heightAnchor constraintGreaterThanOrEqualToConstant:56],
+  ]];
+  return card;
 }
 
-
-- (void)showDisclaimer {
-  UIAlertController *alert =
-      [UIAlertController alertControllerWithTitle:TGLoc(@"DISCLAIMER")
-                                          message:TGLoc(@"AUTHOR_MESSAGE")
-                                   preferredStyle:UIAlertControllerStyleAlert];
-
-  UIAlertAction *okAction =
-      [UIAlertAction actionWithTitle:TGLoc(@"OK")
-                               style:UIAlertActionStyleDefault
-                             handler:nil];
-
-  [alert addAction:okAction];
-
-  [self presentViewController:alert animated:YES completion:nil];
+- (void)cardDown:(UIControl *)card {
+  LeadSpring(0.3, 0.7, ^{ card.transform = CGAffineTransformMakeScale(0.97, 0.97); }, nil);
 }
 
-
-- (void)showLanguageSelector {
-  LanguageSelector *ui = [LanguageSelector new];
-  UINavigationController *navVC =
-      [[UINavigationController alloc] initWithRootViewController:ui];
-  [self presentViewController:navVC animated:YES completion:nil];
+- (void)cardUp:(UIControl *)card {
+  LeadSpring(0.45, 0.55, ^{ card.transform = CGAffineTransformIdentity; }, nil);
 }
 
-- (void)showLocationSelector {
-  LocationSelector *ui = [LocationSelector new];
-  UINavigationController *navVC =
-      [[UINavigationController alloc] initWithRootViewController:ui];
-  [self presentViewController:navVC animated:YES completion:nil];
+- (void)announcementTapped:(UIControl *)card {
+  LeadSelectionHaptic();
+  LeadOpenTelegramURL(card.accessibilityHint);
 }
 
-- (void)clearFilePickerFixCache {
-  UIAlertController *alert = [UIAlertController
-      alertControllerWithTitle:TGLoc(@"CACHE_CLEAR_WARNING_TITLE")
-                       message:TGLoc(@"CACHE_CLEAR_WARNING_MESSAGE")
-                preferredStyle:UIAlertControllerStyleAlert];
+#pragma mark - Actions
 
-  UIAlertAction *okAction = [UIAlertAction
-      actionWithTitle:TGLoc(@"OK")
-                style:UIAlertActionStyleDestructive
-              handler:^(UIAlertAction *action) {
-                NSString *uglyFixDirectory = [NSTemporaryDirectory()
-                    stringByAppendingPathComponent:
-                        @"LeadFileFixUsingSomeUglyHacks"];
-
-                NSError *error = nil;
-                [[NSFileManager defaultManager]
-                    removeItemAtPath:uglyFixDirectory
-                               error:&error];
-
-                if (error) {
-                  NSLog(@"Failed to remove cache directory: %@",
-                        error.localizedDescription);
-                } else {
-                  NSLog(@"Successfully cleared cache: %@", uglyFixDirectory);
-                }
-
-                self.cacheSize = @"Cleared";
-
-                // Reload section or row as needed
-                dispatch_async(dispatch_get_main_queue(), ^{
-                  NSIndexSet *section =
-                      [NSIndexSet indexSetWithIndex:FILE_FIXER];
-                  [self.tableView
-                        reloadSections:section
-                      withRowAnimation:UITableViewRowAnimationAutomatic];
-                });
-              }];
-
-  UIAlertAction *cancelAction =
-      [UIAlertAction actionWithTitle:TGLoc(@"CANCEL")
-                               style:UIAlertActionStyleCancel
-                             handler:nil];
-
-  [alert addAction:cancelAction];
-  [alert addAction:okAction];
-
-  [self presentViewController:alert animated:YES completion:nil];
-}
-
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter]
-      removeObserver:self
-                name:@"LanguageChangedNotification"
-              object:nil];
-
-  [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                  name:@"LeadlocationChanged"
-                                                object:nil];
+- (void)closeTapped {
+  [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

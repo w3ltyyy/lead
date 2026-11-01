@@ -114,3 +114,5 @@
 "DISCLAIMER" = "Aviso legal";
 
 "AUTHOR_MESSAGE" = "Este ajuste de Telegram es solo para uso personal y educativo. No estamos afiliados con Telegram de ninguna manera. Todas las marcas registradas, incluido el nombre y logo de Telegram, pertenecen a sus respectivos propietarios. No uses esto para romper reglas, hacer cosas sospechosas o violar los términos de Telegram — no nos hacemos responsables si algo sale mal. Úsalo bajo tu propio riesgo.\n\nAdemás... si te gusta, dilo. En serio, vivo del reconocimiento.\n\nY también... si quieres apoyarme donando uno o dos dólares, contáctame por Telegram.";
+"SHOW_IOS_RESTRICTED_TITLE" = "Mostrar chats bloqueados por App Store";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "Abre canales y publicaciones ocultos solo en iPhone por las normas de App Store. Reinicia la app tras activarlo.";

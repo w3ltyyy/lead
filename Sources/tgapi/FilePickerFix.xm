@@ -1,6 +1,20 @@
 #import "Headers.h"
 
+static BOOL LeadIsNotificationExtensionProcess(void) {
+	NSBundle *bundle = [NSBundle mainBundle];
+	NSString *bundleId = bundle.bundleIdentifier ?: @"";
+	NSString *processName = [NSProcessInfo processInfo].processName ?: @"";
+	NSString *executableName = bundle.executablePath.lastPathComponent ?: @"";
+	NSDictionary *extensionInfo = bundle.infoDictionary[@"NSExtension"];
+	NSString *extensionPoint = extensionInfo[@"NSExtensionPointIdentifier"] ?: @"";
+	NSString *identity = [[NSString stringWithFormat:@"%@ %@ %@ %@", bundleId, processName, executableName, extensionPoint] lowercaseString];
+	return [identity containsString:@"notificationservice"] ||
+	       [identity containsString:@"notificationcontent"] ||
+	       [identity containsString:@"com.apple.usernotifications.service"];
+}
+
 bool shouldFixFilePicker() {
+	if (LeadIsNotificationExtensionProcess()) return false;
 	return [[NSUserDefaults standardUserDefaults] boolForKey:FILE_PICKER_FIX_KEY];
 }
 
@@ -118,6 +132,8 @@ bool shouldFixFilePicker() {
 
 __attribute__((constructor))
 static void initFileHooks() {
+	if (LeadIsNotificationExtensionProcess()) return;
+
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.4 * NSEC_PER_SEC)), dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0),	^{
 		
 		int numClasses = objc_getClassList(NULL, 0);
@@ -128,16 +144,14 @@ static void initFileHooks() {
 		Class LegacyICloudFileController = Nil;
 		
 		for (int i = 0; i < numClasses; i++) {
-			Class cls = classes[i];
-			NSString *className = NSStringFromClass(cls);
-			
-			if ([className containsString:@"LegacyMediaPickerUI"]) {
-				if ([className containsString:@"DocumentPickerViewController"]) {
-					DocumentPickerViewController = cls;
-				} else if ([className containsString:@"LegacyICloudFileController"]) {
-					LegacyICloudFileController = cls;
-				}
+			const char *name = class_getName(classes[i]);
+			if (!name || !strstr(name, "LegacyMediaPickerUI")) continue;
+			if (strstr(name, "DocumentPickerViewController")) {
+				DocumentPickerViewController = classes[i];
+			} else if (strstr(name, "LegacyICloudFileController")) {
+				LegacyICloudFileController = classes[i];
 			}
+			if (DocumentPickerViewController && LegacyICloudFileController) break;
 		}
 		
 		free(classes);

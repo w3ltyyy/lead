@@ -1,9 +1,9 @@
 [
   {
-    "title": "Lead 1.4.3 is ready!",
-    "message": "• Fixed: False \"edited\" badge appearing on reactions and normal sends\n• Fixed: Anti-Revoke not working in groups and channels\n• Fixed: One-time media badge reverting to normal after leaving and re-entering a chat\n• Updated hooks for the latest Telegram version",
+    "title": "Lead 2.0 is out!",
+    "message": "• Brand-new menu with search\n• Updated for Telegram 13.1.1\n• Saving protected content works again, channels included\n• Edit history, message log and deletion banner\n• Fixed notifications and dozens of bugs",
     "type": "update",
-    "url": "https://t.me/Leadgramm/74",
-    "target_version": "1.4.3"
+    "url": "https://t.me/Leadgramm",
+    "target_version": "2.0"
   }
 ]

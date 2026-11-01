@@ -113,3 +113,6 @@
 "DISCLAIMER" = "Avvertenza";
 
 "AUTHOR_MESSAGE" = "Questa modifica per Telegram è solo per uso personale ed educativo. Non siamo in alcun modo affiliati con Telegram. Tutti i marchi, incluso il nome e il logo di Telegram, appartengono ai rispettivi proprietari. Non usare questo tweak per infrangere le regole, fare i furbi o violare i termini di Telegram — non siamo responsabili se qualcosa va storto. Usalo a tuo rischio e pericolo. \n\nInoltre… se ti piace, fammelo sapere. Vivo seriamente di approvazione. \n\nE se vuoi supportarmi con una donazione di uno o due dollari, contattami su Telegram.";
+
+"SHOW_IOS_RESTRICTED_TITLE" = "Mostra chat bloccate da App Store";
+"SHOW_IOS_RESTRICTED_SUBTITLE" = "Apre canali e post nascosti solo su iPhone dalle regole di App Store. Riavvia l'app dopo averlo attivato.";

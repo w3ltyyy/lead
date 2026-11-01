@@ -3,6 +3,8 @@
 static inline NSDictionary *GetAllTranslations(NSString *code) {
   if ([code isEqualToString:@"ar"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"إظهار المحادثات المحجوبة بسبب App Store",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"يفتح القنوات والمنشورات المخفية على iPhone فقط بسبب قواعد App Store. أعد تشغيل التطبيق بعد التفعيل.",
       @"GHOST_MODE_SECTION_HEADER" : @"وضع الشبح",
       @"READ_RECEIPT_SECTION_HEADER" : @"إيصالات القراءة",
       @"MISC_SECTION_HEADER" : @"متنوع",
@@ -112,6 +114,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"ja"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"App Storeでブロックされたチャットを表示",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"App Storeの規約によりiPhoneでのみ非表示のチャンネルや投稿を開きます。オンにした後はアプリを再起動してください。",
       @"GHOST_MODE_SECTION_HEADER" : @"ゴーストモード",
       @"READ_RECEIPT_SECTION_HEADER" : @"既読通知",
       @"MISC_SECTION_HEADER" : @"その他",
@@ -237,6 +241,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"en"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Show App Store-Blocked Chats",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Opens channels and posts hidden only on iPhone by App Store rules. Restart the app after turning it on.",
       @"GHOST_MODE_SECTION_HEADER" : @"Ghost Mode",
       @"READ_RECEIPT_SECTION_HEADER" : @"Read Receipts",
       @"MISC_SECTION_HEADER" : @"Privacy & Extras",
@@ -323,10 +329,10 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"ANTI_REVOKE_SUBTITLE" :
           @"Keep messages in your chat even after the sender deletes them. "
           @"Deleted messages stay visible to you.",
-      @"ANTI_EDIT_TITLE" : @"Save Original Edited Messages",
+      @"ANTI_EDIT_TITLE" : @"Edit History",
       @"ANTI_EDIT_SUBTITLE" :
-          @"When someone edits a message, the original text is preserved on "
-          @"your end. You'll always see what was first written.",
+          @"Keep the latest edited text visible and save previous versions. "
+          @"Tap the pencil icon on edited messages to view history.",
       @"ANTI_SCREENSHOT_TITLE" : @"Disable Screenshot Notifications",
       @"ANTI_SCREENSHOT_SUBTITLE" :
           @"Take screenshots in secret chats and protected channels without "
@@ -372,6 +378,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"es"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Mostrar chats bloqueados por App Store",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Abre canales y publicaciones ocultos solo en iPhone por las normas de App Store. Reinicia la app tras activarlo.",
       @"GHOST_MODE_SECTION_HEADER" : @"Modo Fantasma",
       @"READ_RECEIPT_SECTION_HEADER" : @"Confirmaciones de Lectura",
       @"MISC_SECTION_HEADER" : @"Misceláneo",
@@ -502,6 +510,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"it"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Mostra chat bloccate da App Store",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Apre canali e post nascosti solo su iPhone dalle regole di App Store. Riavvia l'app dopo averlo attivato.",
       @"GHOST_MODE_SECTION_HEADER" : @"Modalità Fantasma",
       @"READ_RECEIPT_SECTION_HEADER" : @"Conferme di lettura",
       @"MISC_SECTION_HEADER" : @"Varie",
@@ -637,6 +647,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"cn"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"显示被 App Store 屏蔽的聊天",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"打开仅因 App Store 规则在 iPhone 上被隐藏的频道和帖子。开启后请重启应用。",
       @"GHOST_MODE_SECTION_HEADER" : @"隐身模式",
       @"READ_RECEIPT_SECTION_HEADER" : @"阅读回执",
       @"MISC_SECTION_HEADER" : @"其他",
@@ -735,6 +747,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"ru"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Показывать чаты, скрытые App Store",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Открывает каналы и посты, скрытые только на iPhone по правилам App Store. После включения перезапусти приложение.",
       @"GHOST_MODE_SECTION_HEADER" : @"Режим призрака",
       @"READ_RECEIPT_SECTION_HEADER" : @"Отчёты о прочтении",
       @"MISC_SECTION_HEADER" : @"Приватность и функции",
@@ -818,9 +832,10 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"ANTI_REVOKE_TITLE" : @"Сохранять удалённые сообщения",
       @"ANTI_REVOKE_SUBTITLE" : @"Сообщения остаются у вас в чате даже после "
                                 @"того, как отправитель их удалил.",
-      @"ANTI_EDIT_TITLE" : @"Сохранять оригинал при редактировании",
-      @"ANTI_EDIT_SUBTITLE" : @"Когда кто-то редактирует сообщение, вы видите "
-                              @"первоначальный текст — до правки.",
+      @"ANTI_EDIT_TITLE" : @"История редактирований",
+      @"ANTI_EDIT_SUBTITLE" : @"Показывает новый текст после правки, но "
+                              @"сохраняет прошлые версии. Нажмите на "
+                              @"карандаш у сообщения, чтобы открыть историю.",
       @"ANTI_SCREENSHOT_TITLE" : @"Скриншоты без уведомлений",
       @"ANTI_SCREENSHOT_SUBTITLE" :
           @"Делайте скриншоты в секретных чатах и защищённых каналах — без "
@@ -854,20 +869,13 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
       @"CANCEL" : @"Отмена",
       @"DISCLAIMER" : @"Отказ от ответственности",
       @"AUTHOR_MESSAGE" :
-          @"Этот твик для Telegram предназначен только для личного и "
-          @"образовательного использования. Мы никоим образом не связаны с "
-          @"Telegram. Все торговые марки, включая название и логотип Telegram, "
-          @"принадлежат их владельцам. Не используйте это для нарушения "
-          @"правил, сомнительных действий или нарушений условий использования "
-          @"Telegram — мы не несем ответственности, если что-то пойдет не так. "
-          @"Используйте на свой страх и риск.\n\nА ещё… если тебе понравилось "
-          @"— скажи об этом. Я, честно говоря, питаюсь одобрением.\n\nИ… если "
-          @"хочешь поддержать меня и скинуть доллар-другой, напиши мне в "
-          @"Telegram.",
+          @"Lead — независимый твик для Telegram. Он не связан с Telegram FZ-LLC и не одобрен ею; название и логотип Telegram принадлежат их владельцам.\n\nТвик работает только на вашем устройстве и ничего не передаёт разработчику. Пользуясь им, вы сами отвечаете за соблюдение правил Telegram и возможные последствия для аккаунта.\n\nНашли баг или есть идея — пишите в @Leadgramm.",
     };
   }
   if ([code isEqualToString:@"fr"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Afficher les chats bloqués par l'App Store",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Ouvre les canaux et publications masqués uniquement sur iPhone par les règles de l'App Store. Redémarrez l'app après l'activation.",
       @"GHOST_MODE_SECTION_HEADER" : @"Mode Fantôme",
       @"READ_RECEIPT_SECTION_HEADER" : @"Accusés de Lecture",
       @"MISC_SECTION_HEADER" : @"Divers",
@@ -1009,6 +1017,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"vn"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"Hiện trò chuyện bị App Store chặn",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Mở các kênh và bài đăng chỉ bị ẩn trên iPhone theo quy định của App Store. Khởi động lại ứng dụng sau khi bật.",
       @"GHOST_MODE_SECTION_HEADER" : @"Chế độ ma",
       @"READ_RECEIPT_SECTION_HEADER" : @"Trạng thái đã đọc",
       @"MISC_SECTION_HEADER" : @"Khác",
@@ -1133,6 +1143,8 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"tw"]) {
     return @{
+      @"SHOW_IOS_RESTRICTED_TITLE" : @"顯示被 App Store 封鎖的聊天",
+      @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"開啟僅因 App Store 規則在 iPhone 上被隱藏的頻道和貼文。開啟後請重新啟動 App。",
       @"GHOST_MODE_SECTION_HEADER" : @"隱身模式",
       @"READ_RECEIPT_SECTION_HEADER" : @"已讀通知",
       @"MISC_SECTION_HEADER" : @"其它",
