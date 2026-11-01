@@ -106,6 +106,10 @@ static const CGFloat LeadBadgeSide = 22.0;
 // of it (incoming). A message never changes sides, so this outlives the layout
 // passes where Telegram rebuilds the bubble with an empty frame (adding a reaction).
 @property (nonatomic, assign) NSInteger side;
+// A deleted message that was also edited gets a second, pencil badge right under
+// the trash one: each badge opens its own thing.
+@property (nonatomic, assign) BOOL isSecondary;
+@property (nonatomic, weak) LeadMessageBadge *companion;
 - (void)setKind:(LeadBadgeKind)kind animated:(BOOL)animated;
 @end
 
@@ -180,7 +184,14 @@ static const CGFloat LeadBadgeSide = 22.0;
 
 static LeadMessageBadge *LeadBadgeInView(UIView *view) {
     for (UIView *subview in view.subviews) {
-        if ([subview isKindOfClass:[LeadMessageBadge class]]) return (LeadMessageBadge *)subview;
+        if ([subview isKindOfClass:[LeadMessageBadge class]] && !((LeadMessageBadge *)subview).isSecondary) return (LeadMessageBadge *)subview;
+    }
+    return nil;
+}
+
+static LeadMessageBadge *LeadSecondaryBadgeInView(UIView *view) {
+    for (UIView *subview in view.subviews) {
+        if ([subview isKindOfClass:[LeadMessageBadge class]] && ((LeadMessageBadge *)subview).isSecondary) return (LeadMessageBadge *)subview;
     }
     return nil;
 }
@@ -206,7 +217,7 @@ static NSString *LeadDeletionTimeText(NSString *peerTag, NSNumber *messageId) {
 static void LeadBadgeTapped(LeadMessageBadge *badge) {
     UIViewController *host = LeadTopViewController();
     if (!host) return;
-    if (badge.kind == LeadBadgeKindEdited || (badge.kind == LeadBadgeKindDeleted && badge.alsoEdited)) {
+    if (badge.kind == LeadBadgeKindEdited) {
         BOOL hasText = badge.editKey.length && [TLParser editHistoryForKey:badge.editKey].count > 0;
         [LeadEditHistoryViewController presentForKey:badge.editKey mediaReplaced:!hasText from:host];
     } else if (badge.kind == LeadBadgeKindDeleted) {
@@ -234,11 +245,22 @@ static void LeadBadgeTapped(LeadMessageBadge *badge) {
 }
 
 static BOOL LeadBadgeHit(UIGestureRecognizer *recognizer, LeadMessageBadge **outBadge) {
-    LeadMessageBadge *badge = LeadBadgeInView(recognizer.view);
-    if (!badge || badge.hidden || badge.kind == LeadBadgeKindNone || badge.kind == LeadBadgeKindTimer) return NO;
     CGPoint location = [recognizer locationInView:recognizer.view];
-    if (!CGRectContainsPoint(CGRectInset(badge.frame, -12, -12), location)) return NO;
-    if (outBadge) *outBadge = badge;
+    LeadMessageBadge *best = nil;
+    CGFloat bestDistance = CGFLOAT_MAX;
+    // Of the badges whose (enlarged) frame holds the touch, the nearest one wins.
+    for (LeadMessageBadge *badge in @[ LeadBadgeInView(recognizer.view) ?: (id)[NSNull null], LeadSecondaryBadgeInView(recognizer.view) ?: (id)[NSNull null] ]) {
+        if (![badge isKindOfClass:[LeadMessageBadge class]]) continue;
+        if (badge.hidden || badge.alpha < 0.01 || badge.kind == LeadBadgeKindNone || badge.kind == LeadBadgeKindTimer) continue;
+        if (!CGRectContainsPoint(CGRectInset(badge.frame, -12, -12), location)) continue;
+        CGFloat distance = hypot(location.x - CGRectGetMidX(badge.frame), location.y - CGRectGetMidY(badge.frame));
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            best = badge;
+        }
+    }
+    if (!best) return NO;
+    if (outBadge) *outBadge = best;
     return YES;
 }
 
@@ -327,6 +349,18 @@ static void LeadPlaceBadge(LeadMessageBadge *badge, UIView *view, ASDisplayNode 
         badge.alpha = 1;
     } else if (badge.alpha > 0 && CGRectIsEmpty(badge.frame)) {
         badge.alpha = 0;
+    }
+    LeadMessageBadge *companion = badge.companion;
+    if (companion && !companion.hidden) {
+        // Under the trash badge; a one-line message is shorter than two badges, so
+        // there it goes beside it, away from the bubble, to stay inside the row.
+        CGRect below = CGRectOffset(badge.frame, 0, LeadBadgeSide + 4);
+        CGFloat step = (badge.side < 0 ? -1 : 1) * (LeadBadgeSide + 4);
+        CGRect beside = CGRectOffset(badge.frame, step, 0);
+        BOOL fitsBelow = CGRectGetMaxY(below) <= view.bounds.size.height - 2;
+        BOOL fitsBeside = CGRectGetMinX(beside) >= 2 && CGRectGetMaxX(beside) <= view.bounds.size.width - 2;
+        companion.frame = (fitsBelow || !fitsBeside) ? below : beside;
+        companion.alpha = badge.alpha;
     }
     if (!settle) return;
     __weak LeadMessageBadge *weakBadge = badge;
@@ -1409,7 +1443,7 @@ static NSHashTable *activeMessageNodes = nil;
     }
     BOOL isDeletedMsg = (msgId && [TLParser isDeletedMessageNode:self]);
     BOOL isEditedMsg = (msgId && [TLParser isEditedMessageNode:self]);
-    BOOL isSelfDestructMsg = (msgId && [TLParser isMessageSelfDestructing:msgId]);
+    BOOL isSelfDestructMsg = (msgId && [TLParser isSelfDestructingMessageNode:self]);
     LeadBadgeKind kind = isDeletedMsg ? LeadBadgeKindDeleted : isEditedMsg ? LeadBadgeKindEdited : isSelfDestructMsg ? LeadBadgeKindTimer : LeadBadgeKindNone;
     NSString *editKey = isEditedMsg ? [TLParser editKeyForNode:self] : nil;
     NSString *peerTag = msgId ? [TLParser peerTagForNode:self] : nil;
@@ -1419,7 +1453,13 @@ static NSHashTable *activeMessageNodes = nil;
         UIView *view = node.view;
         if (!view) return;
         LeadMessageBadge *badge = LeadBadgeInView(view);
+        LeadMessageBadge *secondary = LeadSecondaryBadgeInView(view);
         LeadInstallBadgeTap(view, kind == LeadBadgeKindDeleted || kind == LeadBadgeKindEdited);
+        BOOL wantsSecondary = kind == LeadBadgeKindDeleted && isEditedMsg;
+        if (!wantsSecondary && secondary) {
+            secondary.hidden = YES;
+            secondary.kind = LeadBadgeKindNone;
+        }
         if (kind == LeadBadgeKindNone) {
             badge.hidden = YES;
             badge.kind = LeadBadgeKindNone;
@@ -1440,6 +1480,24 @@ static NSHashTable *activeMessageNodes = nil;
         [view bringSubviewToFront:badge];
         if (appearing) badge.kind = LeadBadgeKindNone;
         [badge setKind:kind animated:YES];
+        if (wantsSecondary) {
+            BOOL secondaryAppearing = !secondary || secondary.hidden;
+            if (!secondary) {
+                secondary = [[LeadMessageBadge alloc] initWithFrame:CGRectZero];
+                secondary.isSecondary = YES;
+                [view addSubview:secondary];
+            }
+            secondary.editKey = editKey;
+            secondary.peerTag = peerTag;
+            secondary.messageId = msgId;
+            secondary.hidden = NO;
+            [view bringSubviewToFront:secondary];
+            if (secondaryAppearing) secondary.kind = LeadBadgeKindNone;
+            [secondary setKind:LeadBadgeKindEdited animated:YES];
+            badge.companion = secondary;
+        } else {
+            badge.companion = nil;
+        }
         LeadPlaceBadge(badge, view, node, YES);
     });
 }

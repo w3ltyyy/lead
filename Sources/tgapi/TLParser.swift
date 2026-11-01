@@ -78,11 +78,12 @@ class TLParser: NSObject {
 
     private static func isDeleted(id: Int32, channelId: Int64?) -> Bool {
         return deletedQueue.sync {
-            if _legacyDeletedIds.contains(id) { return true }
             if let channelId = channelId {
                 return _deletedChannelKeys.contains(channelKey(channelId, id))
             }
-            return _deletedIds.contains(id)
+            // Ids saved before 2.0 have no chat; they can only be trusted outside
+            // channels, where ids are unique per account.
+            return _deletedIds.contains(id) || _legacyDeletedIds.contains(id)
         }
     }
 
@@ -228,10 +229,19 @@ class TLParser: NSObject {
         // PeerId namespace: 0 user, 1 basic group, 2 channel; -1 when unknown.
         let peerNamespace: Int32
         let peerId: Int64
-        init(id: Int32, peerNamespace: Int32, peerId: Int64) {
+        // MessageId namespace: 0 is a server message. Messages being sent, local and
+        // scheduled ones have their own small ids that collide with real ones.
+        let messageNamespace: Int32
+        init(id: Int32, peerNamespace: Int32, peerId: Int64, messageNamespace: Int32 = 0) {
             self.id = id
             self.peerNamespace = peerNamespace
             self.peerId = peerId
+            self.messageNamespace = messageNamespace
+        }
+
+        // Known chat and a server message: only then can ids be compared at all.
+        var isComparable: Bool {
+            return peerNamespace >= 0 && messageNamespace == 0
         }
     }
 
@@ -241,7 +251,7 @@ class TLParser: NSObject {
     private static let messageRefCache = NSMapTable<AnyObject, MessageRef>(keyOptions: .weakMemory, valueOptions: .strongMemory)
     private static let messageRefCacheLock = NSLock()
     // ChatMessageItemImpl.description: "(ChatMessageItem id: <ns>:<peer>:<msgNs>_<id>, text: …)"
-    private static let itemIdRegex = try? NSRegularExpression(pattern: "ChatMessageItem id: (\\d+):(-?\\d+):-?\\d+_(-?\\d+)", options: [])
+    private static let itemIdRegex = try? NSRegularExpression(pattern: "ChatMessageItem id: (\\d+):(-?\\d+):(-?\\d+)_(-?\\d+)", options: [])
 
     private static func messageRef(fromItem item: Any) -> MessageRef? {
         let description = String(describing: item)
@@ -249,16 +259,44 @@ class TLParser: NSObject {
            let match = regex.firstMatch(in: description, options: [], range: NSRange(description.startIndex..<description.endIndex, in: description)),
            let nsRange = Range(match.range(at: 1), in: description),
            let peerRange = Range(match.range(at: 2), in: description),
-           let idRange = Range(match.range(at: 3), in: description),
+           let msgNsRange = Range(match.range(at: 3), in: description),
+           let idRange = Range(match.range(at: 4), in: description),
            let namespace = Int32(description[nsRange]),
            let peerId = Int64(description[peerRange]),
+           let messageNamespace = Int32(description[msgNsRange]),
            let id = Int32(description[idRange]) {
-            return MessageRef(id: id, peerNamespace: namespace, peerId: peerId)
+            return MessageRef(id: id, peerNamespace: namespace, peerId: peerId, messageNamespace: messageNamespace)
+        }
+        // On device the description doesn't always parse; read Message.id directly.
+        if let ref = messageRefFromMirror(item) {
+            return ref
         }
         if let id = getMessageId(from: item) {
-            return MessageRef(id: id.int32Value, peerNamespace: -1, peerId: 0)
+            return MessageRef(id: id.int32Value, peerNamespace: -1, peerId: 0, messageNamespace: -1)
         }
         return nil
+    }
+
+    // Postbox.Message.id: MessageId { peerId: PeerId { namespace.rawValue, id.rawValue }, namespace, id }
+    private static func messageRefFromMirror(_ item: Any) -> MessageRef? {
+        guard let message = diagFindObject(item, depth: 0, where: { name, mirror in
+            name == "Message" && mirror.children.contains(where: { $0.label == "peers" })
+        }), let messageId = diagChild(message, "id"),
+              let peerId = diagChild(messageId, "peerId"),
+              let peerNamespaceValue = diagChild(peerId, "namespace").flatMap({ diagChild($0, "rawValue") }),
+              let peerIdValue = diagChild(peerId, "id").flatMap({ diagChild($0, "rawValue") }),
+              let messageNamespace = diagChild(messageId, "namespace") as? Int32,
+              let id = diagChild(messageId, "id") as? Int32 else {
+            return nil
+        }
+        let peerNamespace: Int32
+        switch peerNamespaceValue {
+        case let value as UInt32: peerNamespace = Int32(bitPattern: value)
+        case let value as Int32: peerNamespace = value
+        default: return nil
+        }
+        guard let peerIdRaw = peerIdValue as? Int64 else { return nil }
+        return MessageRef(id: id, peerNamespace: peerNamespace, peerId: peerIdRaw, messageNamespace: messageNamespace)
     }
 
     static func getMessageRefFromNode(_ node: Any) -> MessageRef? {
@@ -849,18 +887,19 @@ class TLParser: NSObject {
         return nil
     }
 
-    /// Peer-aware check for a chat message node. Falls back to the id alone when the
-    /// node's peer can't be read.
+    /// Peer-aware check for a chat message node. No guessing: a message whose chat
+    /// can't be read, or that isn't a server message yet (being sent, scheduled), is
+    /// never shown as deleted — ids alone repeat across chats and namespaces.
     @objc static func isDeletedMessageNode(_ node: Any) -> Bool {
-        guard let ref = getMessageRefFromNode(node) else { return false }
-        if ref.peerNamespace == 2 {
-            return isDeleted(id: ref.id, channelId: ref.peerId)
-        } else if ref.peerNamespace >= 0 {
-            return isDeleted(id: ref.id, channelId: nil)
-        }
-        return deletedQueue.sync {
-            _deletedIds.contains(ref.id) || _legacyDeletedIds.contains(ref.id) || _deletedChannelMsgIds.contains(ref.id)
-        }
+        guard let ref = getMessageRefFromNode(node), ref.isComparable else { return false }
+        return isDeleted(id: ref.id, channelId: ref.peerNamespace == 2 ? ref.peerId : nil)
+    }
+
+    // Self-destruct / auto-delete ids are stored without their chat; only trust them
+    // for server messages outside channels.
+    @objc static func isSelfDestructingMessageNode(_ node: Any) -> Bool {
+        guard let ref = getMessageRefFromNode(node), ref.isComparable, ref.peerNamespace != 2 else { return false }
+        return selfDestructingMessageIds.contains(ref.id)
     }
 
     // Channel message ids repeat from channel to channel; private chats and basic
@@ -898,7 +937,7 @@ class TLParser: NSObject {
 
     // Identifies a message for the edit-history UI: pass it back to editHistoryForKey:.
     @objc static func editKeyForNode(_ node: Any) -> NSString? {
-        guard let ref = getMessageRefFromNode(node), ref.id != 0 else { return nil }
+        guard let ref = getMessageRefFromNode(node), ref.id != 0, ref.isComparable else { return nil }
         return (editScope(namespace: ref.peerNamespace, peerId: ref.peerId) + "\(ref.id)") as NSString
     }
 
@@ -914,7 +953,7 @@ class TLParser: NSObject {
     }
 
     @objc static func isEditedMessageNode(_ node: Any) -> Bool {
-        guard let ref = getMessageRefFromNode(node), ref.id != 0 else { return false }
+        guard let ref = getMessageRefFromNode(node), ref.id != 0, ref.isComparable else { return false }
         return isEdited(id: ref.id, scope: editScope(namespace: ref.peerNamespace, peerId: ref.peerId))
     }
 
@@ -927,6 +966,7 @@ class TLParser: NSObject {
 
     @objc static func observeMessageTextFromNode(_ node: Any) {
         guard UserDefaults.standard.bool(forKey: "LeadAntiEdit"),
+              getMessageRefFromNode(node)?.isComparable == true,
               let msgId = getMessageIdFromNode(node),
               let text = getMessageTextFromNode(node) as String?,
               !text.isEmpty else {

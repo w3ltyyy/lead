@@ -29,6 +29,7 @@
 + (NSInteger)diagLogSize;
 + (NSData *)stripAntiSelfDestruct:(NSData *)data;
 + (BOOL)isMessageSelfDestructing:(NSNumber *)msgId;
++ (BOOL)isSelfDestructingMessageNode:(id)node;
 + (NSData *)transformVideoToVoiceSendMedia:(NSData *)data duration:(NSNumber *)duration;
 + (NSData *)transformAudioToVoiceSendMedia:(NSData *)data;
 @end
