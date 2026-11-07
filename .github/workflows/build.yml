@@ -23,6 +23,10 @@ jobs:
                 sdks-src: 'waruhachi/sdks'
                 sdks-branch: 'main'
 
+            # tools/package_variants.sh builds the rootless and RootHide debs with it.
+            - name: Install dpkg
+              run: brew install dpkg
+
             - name: Build packages
               shell: bash
               run: make clean package FINALPACKAGE=1
