@@ -1,9 +1,9 @@
 [
   {
-    "title": "Lead 2.0.3 is out!",
-    "message": "• Nagram support\n• Turkish language\n• The whole menu is translated into every language",
+    "title": "Lead 2.0.2 is out!",
+    "message": "• Telegram 13.2, Swiftgram 13.1.2 and Turrit 1.5.8 support\n• Messages that arrive while the app is closed are now handled too\n• Ghost exceptions for supergroups\n• Compatibility check in the menu\n• 18+ content switch and custom device name",
     "type": "update",
     "url": "https://t.me/Leadgramm",
-    "target_version": "2.0.3"
+    "target_version": "2.0.2"
   }
 ]
