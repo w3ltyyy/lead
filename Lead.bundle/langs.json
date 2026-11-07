@@ -45,6 +45,11 @@
         "flag": "🇹🇼"
     },
     {
+        "name": "Turkish",
+        "code": "tr",
+        "flag": "🇹🇷"
+    },
+    {
         "name": "Vietnamese",
         "code": "vn",
         "flag": "🇻🇳"

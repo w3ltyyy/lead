@@ -35,7 +35,7 @@ typedef NS_ENUM(NSInteger, LeadAboutRow) {
 static NSDictionary<NSString *, NSString *> *LeadLanguageNames(void) {
   return @{
     @"ar" : @"العربية", @"cn" : @"简体中文", @"en" : @"English", @"es" : @"Español", @"fr" : @"Français",
-    @"it" : @"Italiano", @"ja" : @"日本語", @"ru" : @"Русский", @"tw" : @"繁體中文", @"vn" : @"Tiếng Việt"
+    @"it" : @"Italiano", @"ja" : @"日本語", @"ru" : @"Русский", @"tr" : @"Türkçe", @"tw" : @"繁體中文", @"vn" : @"Tiếng Việt"
   };
 }
 

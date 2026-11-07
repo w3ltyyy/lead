@@ -20,6 +20,7 @@
     @{ @"code" : @"es", @"name" : @"Español", @"flag" : @"🇪🇸" },
     @{ @"code" : @"fr", @"name" : @"Français", @"flag" : @"🇫🇷" },
     @{ @"code" : @"it", @"name" : @"Italiano", @"flag" : @"🇮🇹" },
+    @{ @"code" : @"tr", @"name" : @"Türkçe", @"flag" : @"🇹🇷" },
     @{ @"code" : @"ar", @"name" : @"العربية", @"flag" : @"🇸🇦" },
     @{ @"code" : @"cn", @"name" : @"简体中文", @"flag" : @"🇨🇳" },
     @{ @"code" : @"tw", @"name" : @"繁體中文", @"flag" : @"🇹🇼" },
