@@ -18,7 +18,8 @@ typedef NS_ENUM(NSInteger, LeadHomeSection) {
 };
 
 typedef NS_ENUM(NSInteger, LeadGeneralRow) {
-  LeadGeneralRowLanguage = 0,
+  LeadGeneralRowCompat = 0,
+  LeadGeneralRowLanguage,
   LeadGeneralRowExport,
   LeadGeneralRowImport,
   LeadGeneralRowCount
@@ -81,6 +82,7 @@ static NSDictionary<NSString *, NSString *> *LeadLanguageNames(void) {
   [self setupFooter];
   [self refreshStatusAnimated:NO];
   [self fetchAnnouncements];
+  LeadRefreshContentSettings();
 
   NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
   [center addObserver:self selector:@selector(settingsChanged) name:LeadSettingsDidChangeNotification object:nil];
@@ -388,7 +390,10 @@ static NSDictionary<NSString *, NSString *> *LeadLanguageNames(void) {
     [cell showValue:[self valueForPage:page] chevron:YES];
     [cell.tile setActive:page.enabledCount > 0 animated:NO];
   } else if (indexPath.section == LeadHomeSectionGeneral) {
-    if (indexPath.row == LeadGeneralRowLanguage) {
+    if (indexPath.row == LeadGeneralRowCompat) {
+      [cell configureTitle:LeadL(@"UI_COMPAT_TITLE") subtitle:LeadL(@"UI_COMPAT_SUBTITLE") symbol:@"checkmark.shield"];
+      [cell showValue:nil chevron:YES];
+    } else if (indexPath.row == LeadGeneralRowLanguage) {
       NSString *code = [[NSUserDefaults standardUserDefaults] stringForKey:@"LeadLanguage"] ?: @"en";
       [cell configureTitle:LeadL(@"LANGUAGE_SECTION_HEADER") subtitle:nil symbol:@"globe"];
       [cell showValue:LeadLanguageNames()[code] ?: code chevron:YES];
@@ -444,6 +449,7 @@ static NSDictionary<NSString *, NSString *> *LeadLanguageNames(void) {
         LeadEnableGhostMode(weakSelf);
       } else {
         LeadSetBool(key, on);
+        if (row.toggleBlock) row.toggleBlock(on, weakSelf);
       }
     };
   } else {
@@ -503,7 +509,9 @@ static NSDictionary<NSString *, NSString *> *LeadLanguageNames(void) {
     [self openPage:self.pages[indexPath.row]];
     break;
   case LeadHomeSectionGeneral:
-    if (indexPath.row == LeadGeneralRowLanguage) {
+    if (indexPath.row == LeadGeneralRowCompat) {
+      [self.navigationController pushViewController:[LeadCompatViewController new] animated:YES];
+    } else if (indexPath.row == LeadGeneralRowLanguage) {
       [self.navigationController pushViewController:[LanguageSelector new] animated:YES];
     } else if (indexPath.row == LeadGeneralRowExport) {
       LeadExportSettings(self);

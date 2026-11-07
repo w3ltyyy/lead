@@ -29,13 +29,23 @@
 + (NSInteger)diagLogSize;
 + (NSData *)stripAntiSelfDestruct:(NSData *)data;
 + (BOOL)isMessageSelfDestructing:(NSNumber *)msgId;
++ (BOOL)isMessageSelfDestructing:(NSNumber *)msgId channelId:(int64_t)channelId;
 + (BOOL)isSelfDestructingMessageNode:(id)node;
 + (NSData *)transformVideoToVoiceSendMedia:(NSData *)data duration:(NSNumber *)duration;
 + (NSData *)transformAudioToVoiceSendMedia:(NSData *)data;
++ (NSNumber *)channelKindFromController:(id)controller;
++ (NSDictionary *)compatCounters;
+@property (class, nonatomic, copy) NSString *sharedNotesPath;
++ (void)bridgeWriteSettings;
++ (BOOL)bridgeLoadSettings;
++ (void)bridgeTakeHandoff;
++ (void)bridgeNotePatched;
++ (NSDictionary *)bridgeExtensionStatus;
 @end
 
 @interface MTRpcError : NSObject
 - (id)initWithErrorCode:(int)code errorDescription:(id)desc;
+@property (nonatomic, strong, readonly) NSString *errorDescription;
 @end
 
 @interface MTRequestResponseInfo : NSObject
@@ -67,6 +77,9 @@ void handleSetTyping(MTRequest *request, NSData *payload);
 void handleMessageReadReceipt(MTRequest *request, NSData *payload);
 void handleDiscussionReadReceipt(MTRequest *request, NSData *payload);
 void handleStoriesReadReceipt(MTRequest *request, NSData *payload);
+void handleStoriesIncrementViews(MTRequest *request, NSData *payload);
+void handleEncryptedReadReceipt(MTRequest *request, NSData *payload);
+void handleEncryptedTyping(MTRequest *request, NSData *payload);
 void handleGetSponsoredMessages(MTRequest *request, NSData *payload);
 void handleGetSponsoredPeers(MTRequest *request, NSData *payload);
 void handleChannelsReadReceipt(MTRequest *request, NSData *payload);
@@ -76,6 +89,8 @@ void handleChannelsReadMessageContents(MTRequest *request, NSData *payload);
 void handleForwardMessages(MTRequest *request, NSData *payload);
 void handleOwnDeletion(NSData *payload);
 NSData *decompressGzip(const void *input, size_t inputLen);
+NSString *LeadSharedNotesPath(void);
+BOOL LeadSendRawRequest(NSData *payload, void (^done)(NSData *result, NSString *error));
 NSArray<NSString *> *LeadSendTargetPeerKeys(NSData *payload);
 NSArray<NSData *> *LeadTakePendingReads(NSArray<NSString *> *peerKeys);
 NSString *LeadPeerKey(NSString *kind, long long peerId);

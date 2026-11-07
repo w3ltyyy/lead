@@ -48,3 +48,6 @@ lead-admin/
 # Local menu backup (the old menu is in git history: 1dba292)
 backup/
 __pycache__/
+
+# Built IPAs / zips for posting
+release/

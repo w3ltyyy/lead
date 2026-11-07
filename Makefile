@@ -1,5 +1,7 @@
 ARCHS = arm64 arm64e
 TARGET = iphone:16.5:14.0
+# xz: the default lzma can't be unpacked by RootHidePatcher's dpkg-deb.
+THEOS_PLATFORM_DEB_COMPRESSION_TYPE = xz
 
 include $(THEOS)/makefiles/common.mk
 
@@ -22,8 +24,10 @@ after-stage::
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
-# Also copy the .dylib into packages/ for direct sideload use
+# Also copy the .dylib into packages/ for direct sideload use, and build the
+# rootless / RootHide .debs from the same dylib.
 after-package::
 	@mkdir -p packages
 	@cp -f $(THEOS_OBJ_DIR)/Lead.dylib packages/Lead.dylib
 	@echo ">>> .dylib copied to packages/Lead.dylib"
+	@tools/package_variants.sh

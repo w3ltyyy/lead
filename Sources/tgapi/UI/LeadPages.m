@@ -249,6 +249,83 @@ static void LeadClearFilePickerCache(UIViewController *host) {
   [host presentViewController:alert animated:YES completion:nil];
 }
 
+#pragma mark - 18+ content
+
+// The same call Telegram's own switch makes. On iOS Telegram shows that switch only when
+// the setting is already on, so it can't be turned on from the phone; the server still
+// decides whether this account may change it.
+static BOOL sLeadContentSettingsBusy = NO;
+
+void LeadRefreshContentSettings(void) {
+  if (sLeadContentSettingsBusy) return;
+  int32_t function = kAccountGetContentSettings;
+  LeadSendRawRequest([NSData dataWithBytes:&function length:sizeof(function)], ^(NSData *result, NSString *error) {
+    if (error || result.length < 8 || sLeadContentSettingsBusy) return;
+    int32_t constructor = 0, flags = 0;
+    [result getBytes:&constructor range:NSMakeRange(0, 4)];
+    [result getBytes:&flags range:NSMakeRange(4, 4)];
+    if (constructor != (int32_t)0x57e28221) return; // account.contentSettings#57e28221
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    BOOL on = (flags & (1 << 0)) != 0;
+    if ([defaults boolForKey:kSensitiveContent] == on) return;
+    [defaults setBool:on forKey:kSensitiveContent];
+    [[NSNotificationCenter defaultCenter] postNotificationName:LeadSettingsDidChangeNotification object:kSensitiveContent];
+  });
+}
+
+static void LeadApplySensitiveContent(BOOL on, UIViewController *host) {
+  NSMutableData *payload = [NSMutableData data];
+  int32_t function = kAccountSetContentSettings, flags = on ? 1 : 0;
+  [payload appendBytes:&function length:sizeof(function)];
+  [payload appendBytes:&flags length:sizeof(flags)];
+  void (^revert)(void) = ^{
+    [[NSUserDefaults standardUserDefaults] setBool:!on forKey:kSensitiveContent];
+    [[NSNotificationCenter defaultCenter] postNotificationName:LeadSettingsDidChangeNotification object:kSensitiveContent];
+    LeadImpactHaptic(UIImpactFeedbackStyleRigid);
+    [LeadToast showText:LeadL(@"UI_SENSITIVE_FAILED") symbol:@"exclamationmark.circle" inView:host.view];
+  };
+  sLeadContentSettingsBusy = YES;
+  BOOL sent = LeadSendRawRequest(payload, ^(__unused NSData *result, NSString *error) {
+    sLeadContentSettingsBusy = NO;
+    if (error) revert();
+  });
+  if (!sent) {
+    sLeadContentSettingsBusy = NO;
+    revert();
+  }
+}
+
+#pragma mark - Device name
+
+static void LeadEditDeviceName(UIViewController *host) {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  UIAlertController *alert = [UIAlertController alertControllerWithTitle:LeadL(@"UI_DEVICE_NAME")
+                                                                 message:LeadL(@"UI_DEVICE_NAME_HINT")
+                                                          preferredStyle:UIAlertControllerStyleAlert];
+  [alert addTextFieldWithConfigurationHandler:^(UITextField *field) {
+    field.placeholder = @"iPhone 17 Pro";
+    field.text = [defaults stringForKey:kFakeDeviceName];
+    field.clearButtonMode = UITextFieldViewModeWhileEditing;
+  }];
+  [alert addAction:[UIAlertAction actionWithTitle:LeadL(@"CANCEL") style:UIAlertActionStyleCancel handler:^(__unused UIAlertAction *action) {
+    if ([defaults stringForKey:kFakeDeviceName].length == 0 && [defaults boolForKey:kFakeDeviceEnabled]) {
+      LeadSetBool(kFakeDeviceEnabled, NO);
+    }
+  }]];
+  [alert addAction:[UIAlertAction actionWithTitle:LeadL(@"UI_SAVE") style:UIAlertActionStyleDefault handler:^(__unused UIAlertAction *action) {
+    NSString *name = [alert.textFields.firstObject.text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if (name.length > 64) name = [name substringToIndex:64];
+    if (name.length) {
+      [defaults setObject:name forKey:kFakeDeviceName];
+    } else {
+      [defaults removeObjectForKey:kFakeDeviceName];
+      [defaults setBool:NO forKey:kFakeDeviceEnabled];
+    }
+    LeadNotifySettingsChanged();
+  }]];
+  [host presentViewController:alert animated:YES completion:nil];
+}
+
 #pragma mark - Registration date estimate
 
 // User ids grow with sign-up time. Known (id, unix time) anchors, interpolated —
@@ -296,7 +373,9 @@ static NSArray<NSString *> *LeadTransferableKeys(void) {
     for (LeadRow *row in page.toggleRows) [keys addObject:row.defaultsKey];
   }
   [keys addObjectsFromArray:@[ kVisualStarsAmount, FAKE_LATITUDE_KEY, FAKE_LONGITUDE_KEY,
-                               kGhostPeerRecords, kGhostPeerKeys, @"LeadLanguage" ]];
+                               kGhostPeerRecords, kGhostPeerKeys, @"LeadLanguage", kFakeDeviceName ]];
+  // Lives on the server and belongs to the account, not to this device's settings.
+  [keys removeObject:kSensitiveContent];
   return keys.array;
 }
 
@@ -481,6 +560,11 @@ NSArray<LeadPage *> *LeadFeaturePages(void) {
   ]];
   diagnostics.footerKey = @"UI_DIAG_FOOTER";
 
+  LeadRow *sensitive = [LeadRow toggle:kSensitiveContent title:@"UI_SENSITIVE_TITLE" subtitle:@"UI_SENSITIVE_SUBTITLE" symbol:@"eye.trianglebadge.exclamationmark"];
+  sensitive.toggleBlock = ^(BOOL on, UIViewController *host) {
+    LeadApplySensitiveContent(on, host);
+  };
+
   LeadPage *content = [LeadPage new];
   content.titleKey = @"UI_PAGE_CONTENT";
   content.symbol = @"lock.open";
@@ -489,6 +573,7 @@ NSArray<LeadPage *> *LeadFeaturePages(void) {
       [LeadRow toggle:kDisableForwardRestriction title:@"ENABLE_SAVING_PROTECTED_CONTENT_TITLE" subtitle:@"ENABLE_SAVING_PROTECTED_CONTENT_SUBTITLE" symbol:@"square.and.arrow.down"],
       [LeadRow toggle:kDisableAllAds title:@"DISABLE_ALL_ADS_TITLE" subtitle:@"DISABLE_ALL_ADS_SUBTITLE" symbol:@"nosign"],
       [LeadRow toggle:kShowIosRestricted title:@"SHOW_IOS_RESTRICTED_TITLE" subtitle:@"SHOW_IOS_RESTRICTED_SUBTITLE" symbol:@"eye"],
+      sensitive,
       [LeadRow toggle:kHideProxyPromo title:@"UI_HIDE_PROXY_PROMO_TITLE" subtitle:@"UI_HIDE_PROXY_PROMO_SUBTITLE" symbol:@"network"],
     ]],
     [LeadSection title:nil rows:@[
@@ -559,6 +644,17 @@ NSArray<LeadPage *> *LeadFeaturePages(void) {
   starsAmount.valueBlock = ^NSString * {
     return LeadFormattedStars([[[NSUserDefaults standardUserDefaults] objectForKey:kVisualStarsAmount] longLongValue]);
   };
+  LeadRow *fakeDevice = [LeadRow toggle:kFakeDeviceEnabled title:@"UI_FAKE_DEVICE_TITLE" subtitle:@"UI_FAKE_DEVICE_SUBTITLE" symbol:@"iphone"];
+  fakeDevice.toggleBlock = ^(BOOL on, UIViewController *host) {
+    if (on && [[NSUserDefaults standardUserDefaults] stringForKey:kFakeDeviceName].length == 0) LeadEditDeviceName(host);
+  };
+  LeadRow *deviceName = [LeadRow link:@"UI_DEVICE_NAME" symbol:@"pencil" tap:^(UIViewController *host) {
+    LeadEditDeviceName(host);
+  }];
+  deviceName.valueBlock = ^NSString * {
+    return [[NSUserDefaults standardUserDefaults] stringForKey:kFakeDeviceName] ?: LeadL(@"UI_NOT_SET");
+  };
+
   LeadPage *extras = [LeadPage new];
   extras.titleKey = @"UI_PAGE_EXTRAS";
   extras.symbol = @"sparkles";
@@ -570,6 +666,7 @@ NSArray<LeadPage *> *LeadFeaturePages(void) {
     [LeadSection title:nil rows:@[
       [LeadRow toggle:kShowPeerInfo title:@"UI_PEER_INFO_TITLE" subtitle:@"UI_PEER_INFO_SUBTITLE" symbol:@"number.circle"],
     ]],
+    [LeadSection title:nil rows:@[ fakeDevice, deviceName ]],
   ];
 
   return @[ messages, content, media, calls, location, extras ];

@@ -300,6 +300,7 @@ void handleSetTyping(MTRequest *request, NSData *payload) {
 	int offset = 0; 
 	offset += 4; // Skip First 4 Bytes of constructor id;
 	int32_t flags = 0;
+	if (payload.length < 8) return;
 	[payload getBytes:&flags range:NSMakeRange(offset, 4)];
 	offset += 4;
 	
@@ -310,7 +311,7 @@ void handleSetTyping(MTRequest *request, NSData *payload) {
 	}
 	
 	int32_t actionID = 0;
-	[payload getBytes:&actionID range:NSMakeRange(offset, 4)];
+	if (!readInt32At(payload, &offset, &actionID)) return;
 	
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	bool shouldBlockAction = false;
@@ -418,6 +419,29 @@ void handleStoriesReadReceipt(MTRequest *request, NSData *payload) {
 		[data appendBytes:&count length:sizeof(count)];
 	
 		request.fakeData = data;
+	}
+}
+
+// Stories opened from a profile mark themselves seen with this call instead of
+// stories.readStories, and it's what puts you on the author's viewers list.
+void handleStoriesIncrementViews(MTRequest *request, NSData *payload) {
+	int offset = 4;
+	NSArray<NSString *> *peerKeys = readInputPeerKeys(payload, &offset);
+	if (shouldApplyGlobalGhost(kDisableStoriesReadReceipt, peerKeys)) {
+		request.fakeData = boolTrue();
+	}
+}
+
+// Secret chats carry only an encrypted chat id, so exceptions can't apply here.
+void handleEncryptedReadReceipt(MTRequest *request, NSData *payload) {
+	if (shouldApplyGlobalGhost(kDisableMessageReadReceipt, @[])) {
+		request.fakeData = boolTrue();
+	}
+}
+
+void handleEncryptedTyping(MTRequest *request, NSData *payload) {
+	if (shouldApplyGlobalGhost(kDisableTypingStatus, @[])) {
+		request.fakeData = boolTrue();
 	}
 }
 

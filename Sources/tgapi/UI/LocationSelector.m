@@ -90,9 +90,9 @@
 
 - (void)loadDefaultLocation {
   CGFloat savedLongitude =
-      [[NSUserDefaults standardUserDefaults] floatForKey:FAKE_LONGITUDE_KEY];
+      [[NSUserDefaults standardUserDefaults] doubleForKey:FAKE_LONGITUDE_KEY];
   CGFloat savedLatitude =
-      [[NSUserDefaults standardUserDefaults] floatForKey:FAKE_LATITUDE_KEY];
+      [[NSUserDefaults standardUserDefaults] doubleForKey:FAKE_LATITUDE_KEY];
 
   CLLocationCoordinate2D centerCoordinate;
   if (savedLongitude && savedLatitude) {
@@ -123,9 +123,9 @@
   [self addPinAtCoordinate:coordinate withTitle:@"Selected Location"];
 
   // Save the selected location to UserDefaults
-  [[NSUserDefaults standardUserDefaults] setFloat:coordinate.longitude
+  [[NSUserDefaults standardUserDefaults] setDouble:coordinate.longitude
                                            forKey:FAKE_LONGITUDE_KEY];
-  [[NSUserDefaults standardUserDefaults] setFloat:coordinate.latitude
+  [[NSUserDefaults standardUserDefaults] setDouble:coordinate.latitude
                                            forKey:FAKE_LATITUDE_KEY];
   [[NSUserDefaults standardUserDefaults] synchronize];
 

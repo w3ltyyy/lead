@@ -93,31 +93,42 @@ static NSURL *LeadPrivateGroupFolder(void) {
   return folder;
 }
 
-// An install that ran with the old fixer keeps its account in <Documents>/AppGroup.
-// Once a real, shared container is available, move it there (once, before Telegram
-// opens anything) so the user stays logged in and the extension can read it.
-static void LeadMigratePrivateFolderIfNeeded(NSURL *container) {
-  if (LeadIsAppExtension()) return;
+// A signer usually hands every app it signs the same few groups (and sometimes the
+// same bundle id). Telegram, Turrit and Swiftgram then shared one folder: one
+// account, one database written by several apps. Each client gets its own folder
+// inside the shared one, named after the group it asked for; its notification
+// extension asks for the same name and lands in the same place.
+static NSURL *LeadClientFolder(NSURL *base, NSString *group) {
+  NSString *name = [[group componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/:"]] componentsJoinedByString:@"_"];
+  NSURL *folder = [[base URLByAppendingPathComponent:@"Lead" isDirectory:YES] URLByAppendingPathComponent:name isDirectory:YES];
+  [[NSFileManager defaultManager] createDirectoryAtURL:folder withIntermediateDirectories:YES attributes:nil error:nil];
+  return folder;
+}
+
+static BOOL LeadHasTelegramData(NSURL *folder) {
+  return [[NSFileManager defaultManager] fileExistsAtPath:[folder.path stringByAppendingPathComponent:@"telegram-data"]];
+}
+
+// Moves a client's data from `from` (the shared root a 2.0 build used, or the old
+// fixer's <Documents>/AppGroup) into its own folder. The first client launched
+// after the update claims it, so whoever was logged in stays logged in there;
+// the others start clean. Main app only: extensions just read.
+static void LeadClaimData(NSURL *from, NSURL *client) {
+  if (LeadIsAppExtension() || LeadHasTelegramData(client) || !LeadHasTelegramData(from)) return;
   NSFileManager *fm = [NSFileManager defaultManager];
-  NSURL *documents = [fm URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask].lastObject;
-  NSURL *legacy = [documents URLByAppendingPathComponent:@"AppGroup" isDirectory:YES];
-  NSString *legacyData = [legacy.path stringByAppendingPathComponent:@"telegram-data"];
-  NSString *targetData = [container.path stringByAppendingPathComponent:@"telegram-data"];
-  if (![fm fileExistsAtPath:legacyData] || [fm fileExistsAtPath:targetData]) return;
-  NSArray<NSString *> *items = [fm contentsOfDirectoryAtPath:legacy.path error:nil] ?: @[];
-  for (NSString *item in items) {
-    NSString *from = [legacy.path stringByAppendingPathComponent:item];
-    NSString *to = [container.path stringByAppendingPathComponent:item];
+  for (NSString *item in [fm contentsOfDirectoryAtPath:from.path error:nil] ?: @[]) {
+    if ([item isEqualToString:@"Lead"] || [item isEqualToString:@"lead-extensions"]) continue;
+    NSString *to = [client.path stringByAppendingPathComponent:item];
     if ([fm fileExistsAtPath:to]) continue;
     NSError *error = nil;
-    if (![fm moveItemAtPath:from toPath:to error:&error]) {
+    if (![fm moveItemAtPath:[from.path stringByAppendingPathComponent:item] toPath:to error:&error]) {
       NSLog(@"[Lead] SideloadFix: moving %@ failed: %@", item, error);
     }
   }
-  NSLog(@"[Lead] SideloadFix: moved the old fixer's data into %@", container.path);
+  NSLog(@"[Lead] SideloadFix: moved existing data from %@ into %@", from.path, client.path);
 }
 
-// Extensions leave a note in the shared folder, so the app's diagnostics can tell
+// Extensions leave a note in the client folder, so the app's diagnostics can tell
 // that Lead ran inside them and which group they landed in.
 static void LeadMarkExtension(NSURL *container, NSString *group) {
   if (!LeadIsAppExtension()) return;
@@ -128,16 +139,83 @@ static void LeadMarkExtension(NSURL *container, NSString *group) {
   [note writeToFile:[folder stringByAppendingPathComponent:name] atomically:YES encoding:NSUTF8StringEncoding error:nil];
 }
 
+// The installed app, as "<install UUID>-<Name>.app": the same string in the app and
+// in its extensions (they live inside its bundle), whatever bundle ids or group
+// names a signer gave them.
+static NSString *LeadHostKey(void) {
+  NSString *path = [NSBundle mainBundle].bundlePath;
+  if (LeadIsAppExtension()) path = path.stringByDeletingLastPathComponent.stringByDeletingLastPathComponent;
+  NSString *key = [NSString stringWithFormat:@"%@-%@", path.stringByDeletingLastPathComponent.lastPathComponent, path.lastPathComponent];
+  return [[key componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/:"]] componentsJoinedByString:@"_"];
+}
+
+// The app records which folder is its own; an extension follows that record even
+// when the group name it asks for differs from the app's.
+static void LeadRecordHost(NSURL *base, NSURL *client) {
+  if (LeadIsAppExtension()) return;
+  NSString *folder = [base.path stringByAppendingPathComponent:@"Lead/_hosts"];
+  [[NSFileManager defaultManager] createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
+  [client.lastPathComponent writeToFile:[folder stringByAppendingPathComponent:LeadHostKey()] atomically:YES encoding:NSUTF8StringEncoding error:nil];
+}
+
+static NSString *LeadRecordedHostFolder(NSURL *base) {
+  NSString *record = [base.path stringByAppendingPathComponent:[@"Lead/_hosts" stringByAppendingPathComponent:LeadHostKey()]];
+  NSString *name = [NSString stringWithContentsOfFile:record encoding:NSUTF8StringEncoding error:nil];
+  return name.length ? name : nil;
+}
+
+// Every extension that runs leaves "<what it asked for> → <folder it got>" in one
+// shared place, so the app's diagnostics can show a mismatch.
+static void LeadNoteExtension(NSURL *base, NSString *requested, NSURL *client) {
+  if (!LeadIsAppExtension() || !base) return;
+  NSString *folder = [base.path stringByAppendingPathComponent:@"Lead/_extensions"];
+  [[NSFileManager defaultManager] createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
+  NSString *note = [NSString stringWithFormat:@"%.0f asked=%@ got=%@ data=%d", [NSDate date].timeIntervalSince1970, requested,
+                    client.lastPathComponent, LeadHasTelegramData(client)];
+  [note writeToFile:[folder stringByAppendingPathComponent:[NSBundle mainBundle].bundlePath.lastPathComponent ?: @"extension"]
+         atomically:YES encoding:NSUTF8StringEncoding error:nil];
+}
+
+// A folder for Lead's own notes that the app and its extensions both reach, whatever
+// group names they ask Telegram's questions with: the settings an extension must
+// follow, and what it saw while the app wasn't running. nil without a shared group.
+NSString *LeadSharedNotesPath(void) {
+  static NSString *cached;
+  static dispatch_once_t once;
+  dispatch_once(&once, ^{
+    SEL selector = @selector(containerURLForSecurityApplicationGroupIdentifier:);
+    NSFileManager *fm = [NSFileManager defaultManager];
+    // Lead's constructors run in no fixed order; before the swizzle the method is the original.
+    NSURL *(*original)(id, SEL, NSString *) = sOrigContainerURL ?: (NSURL *(*)(id, SEL, NSString *))[fm methodForSelector:selector];
+    NSURL *chosen = nil;
+    for (NSString *group in [LeadEntitledAppGroups() sortedArrayUsingSelector:@selector(compare:)]) {
+      NSURL *root = original(fm, selector, group);
+      if (!root) continue;
+      if (!chosen) chosen = root;
+      if (LeadRecordedHostFolder(root)) { chosen = root; break; }
+    }
+    if (!chosen) return;
+    NSString *folder = [chosen.path stringByAppendingPathComponent:[@"Lead/_shared" stringByAppendingPathComponent:LeadHostKey()]];
+    [fm createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
+    cached = folder;
+  });
+  return cached;
+}
+
 static NSURL *LeadResolveContainer(id self, SEL _cmd, NSString *group) {
   NSURL *url = sOrigContainerURL(self, _cmd, group);
   if (url) {
-    LeadMigratePrivateFolderIfNeeded(url);
+    // The signature has this client's own group: nothing to share, nothing to move
+    // except what the old fixer left in <Documents>/AppGroup.
+    LeadClaimData(LeadPrivateGroupFolder(), url);
     LeadMarkExtension(url, group);
     return url;
   }
+  NSURL *legacyPrivate = LeadPrivateGroupFolder();
   // The app and each extension resolve this on their own, and their entitlements
-  // may list the groups in different orders. Pick the same one everywhere: the
-  // group that already holds Telegram's data, else the first by name.
+  // may list the groups in different orders, so the choice must not depend on it:
+  // the group holding this client's folder, else one with unclaimed data at its
+  // root, else the first by name.
   NSMutableArray<NSString *> *candidates = [NSMutableArray array];
   NSMutableDictionary<NSString *, NSURL *> *urls = [NSMutableDictionary dictionary];
   for (NSString *entitled in [LeadEntitledAppGroups() sortedArrayUsingSelector:@selector(compare:)]) {
@@ -147,25 +225,50 @@ static NSURL *LeadResolveContainer(id self, SEL _cmd, NSString *group) {
     [candidates addObject:entitled];
     urls[entitled] = candidate;
   }
-  NSString *chosen = candidates.firstObject;
-  for (NSString *entitled in candidates) {
-    if ([[NSFileManager defaultManager] fileExistsAtPath:[urls[entitled].path stringByAppendingPathComponent:@"telegram-data"]]) {
-      chosen = entitled;
-      break;
+  NSString *chosen = nil;
+  NSString *name = [[group componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/:"]] componentsJoinedByString:@"_"];
+  // An extension goes where its app went.
+  if (LeadIsAppExtension()) {
+    for (NSString *entitled in candidates) {
+      NSString *recorded = LeadRecordedHostFolder(urls[entitled]);
+      if (recorded) {
+        NSURL *client = [[urls[entitled] URLByAppendingPathComponent:@"Lead"] URLByAppendingPathComponent:recorded isDirectory:YES];
+        os_unfair_lock_lock(&sResolvedLock);
+        sChosenGroups[group] = entitled;
+        os_unfair_lock_unlock(&sResolvedLock);
+        LeadNoteExtension(urls[entitled], group, client);
+        LeadMarkExtension(client, entitled);
+        return client;
+      }
     }
   }
+  for (NSString *entitled in candidates) {
+    NSURL *existing = [[urls[entitled] URLByAppendingPathComponent:@"Lead"] URLByAppendingPathComponent:name];
+    if (LeadHasTelegramData(existing)) { chosen = entitled; break; }
+  }
+  if (!chosen) {
+    for (NSString *entitled in candidates) {
+      if (LeadHasTelegramData(urls[entitled])) { chosen = entitled; break; }
+    }
+  }
+  if (!chosen) chosen = candidates.firstObject;
+
+  NSURL *base = chosen ? urls[chosen] : legacyPrivate;
+  NSURL *client = LeadClientFolder(base, group);
   if (chosen) {
-    url = urls[chosen];
-    NSLog(@"[Lead] SideloadFix: %@ → entitled group %@", group, chosen);
+    LeadClaimData(base, client);
+    LeadRecordHost(base, client);
+    LeadNoteExtension(base, group, client);
     os_unfair_lock_lock(&sResolvedLock);
     sChosenGroups[group] = chosen;
     os_unfair_lock_unlock(&sResolvedLock);
-    LeadMigratePrivateFolderIfNeeded(url);
-    LeadMarkExtension(url, chosen);
-    return url;
+    NSLog(@"[Lead] SideloadFix: %@ → %@/Lead/%@", group, chosen, client.lastPathComponent);
+  } else {
+    NSLog(@"[Lead] SideloadFix: %@ → private folder (no app group in the signature)", group);
   }
-  NSLog(@"[Lead] SideloadFix: %@ → private folder (no app group in the signature)", group);
-  return LeadPrivateGroupFolder();
+  LeadClaimData(legacyPrivate, client);
+  LeadMarkExtension(client, chosen ?: @"private");
+  return client;
 }
 
 static NSURL *LeadContainerURL(id self, SEL _cmd, NSString *group) {
@@ -225,8 +328,16 @@ NSString *LeadSideloadFixSummary(void) {
   NSDictionary<NSString *, NSURL *> *snapshot = [sResolvedGroups copy];
   NSDictionary<NSString *, NSString *> *chosen = [sChosenGroups copy];
   os_unfair_lock_unlock(&sResolvedLock);
+  for (NSString *entitled in LeadEntitledAppGroups()) {
+    NSURL *root = sOrigContainerURL ? sOrigContainerURL([NSFileManager defaultManager], @selector(containerURLForSecurityApplicationGroupIdentifier:), entitled) : nil;
+    NSString *folder = [root.path stringByAppendingPathComponent:@"Lead/_extensions"];
+    for (NSString *name in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folder error:nil] ?: @[]) {
+      NSString *note = [NSString stringWithContentsOfFile:[folder stringByAppendingPathComponent:name] encoding:NSUTF8StringEncoding error:nil];
+      [extensions addObject:[NSString stringWithFormat:@"%@(%@)", name, note ?: @"?"]];
+    }
+  }
   [snapshot enumerateKeysAndObjectsUsingBlock:^(NSString *group, NSURL *url, __unused BOOL *stop) {
-    NSString *kind = [url.path containsString:@"/Documents/AppGroup"] ? @"private" : [NSString stringWithFormat:@"shared:%@", chosen[group] ?: group];
+    NSString *kind = [url.path containsString:@"/Documents/AppGroup"] ? @"private" : [NSString stringWithFormat:@"shared:%@%@", chosen[group] ?: group, [url.path containsString:@"/Lead/"] ? @"/Lead/…" : @""];
     [resolved addObject:[NSString stringWithFormat:@"%@=%@", group, kind]];
     NSString *folder = [url.path stringByAppendingPathComponent:@"lead-extensions"];
     for (NSString *name in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:folder error:nil] ?: @[]) {

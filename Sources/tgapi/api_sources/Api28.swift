@@ -1,3 +1,149 @@
+extension Api.phone {
+    enum GroupParticipants: TypeConstructorDescription {
+        class Cons_groupParticipants: TypeConstructorDescription {
+            var count: Int32
+            var participants: [Api.GroupCallParticipant]
+            var nextOffset: String
+            var chats: [Api.Chat]
+            var users: [Api.User]
+            var version: Int32
+            init(count: Int32, participants: [Api.GroupCallParticipant], nextOffset: String, chats: [Api.Chat], users: [Api.User], version: Int32) {
+                self.count = count
+                self.participants = participants
+                self.nextOffset = nextOffset
+                self.chats = chats
+                self.users = users
+                self.version = version
+            }
+        }
+        case groupParticipants(Cons_groupParticipants)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .groupParticipants(let _data):
+                if boxed {
+                    buffer.appendInt32(-193506890)
+                }
+                serializeInt32(_data.count, buffer: buffer, boxed: false)
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.participants.count))
+                for item in _data.participants {
+                    item.serialize(buffer, true)
+                }
+                serializeString(_data.nextOffset, buffer: buffer, boxed: false)
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.chats.count))
+                for item in _data.chats {
+                    item.serialize(buffer, true)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.users.count))
+                for item in _data.users {
+                    item.serialize(buffer, true)
+                }
+                serializeInt32(_data.version, buffer: buffer, boxed: false)
+                break
+            }
+        }
+
+        static func parse_groupParticipants(_ reader: BufferReader) -> GroupParticipants? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: [Api.GroupCallParticipant]?
+            if let _ = reader.readInt32() {
+                _2 = Api.parseVector(reader, elementSignature: 0, elementType: Api.GroupCallParticipant.self)
+            }
+            var _3: String?
+            _3 = parseString(reader)
+            var _4: [Api.Chat]?
+            if let _ = reader.readInt32() {
+                _4 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
+            }
+            var _5: [Api.User]?
+            if let _ = reader.readInt32() {
+                _5 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
+            }
+            var _6: Int32?
+            _6 = reader.readInt32()
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
+                return Api.phone.GroupParticipants.groupParticipants(Cons_groupParticipants(count: _1!, participants: _2!, nextOffset: _3!, chats: _4!, users: _5!, version: _6!))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
+extension Api.phone {
+    enum JoinAsPeers: TypeConstructorDescription {
+        class Cons_joinAsPeers: TypeConstructorDescription {
+            var peers: [Api.Peer]
+            var chats: [Api.Chat]
+            var users: [Api.User]
+            init(peers: [Api.Peer], chats: [Api.Chat], users: [Api.User]) {
+                self.peers = peers
+                self.chats = chats
+                self.users = users
+            }
+        }
+        case joinAsPeers(Cons_joinAsPeers)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .joinAsPeers(let _data):
+                if boxed {
+                    buffer.appendInt32(-1343921601)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.peers.count))
+                for item in _data.peers {
+                    item.serialize(buffer, true)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.chats.count))
+                for item in _data.chats {
+                    item.serialize(buffer, true)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.users.count))
+                for item in _data.users {
+                    item.serialize(buffer, true)
+                }
+                break
+            }
+        }
+
+        static func parse_joinAsPeers(_ reader: BufferReader) -> JoinAsPeers? {
+            var _1: [Api.Peer]?
+            if let _ = reader.readInt32() {
+                _1 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Peer.self)
+            }
+            var _2: [Api.Chat]?
+            if let _ = reader.readInt32() {
+                _2 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
+            }
+            var _3: [Api.User]?
+            if let _ = reader.readInt32() {
+                _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            if _c1 && _c2 && _c3 {
+                return Api.phone.JoinAsPeers.joinAsPeers(Cons_joinAsPeers(peers: _1!, chats: _2!, users: _3!))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
 extension Api.premium {
     enum MyBoosts: TypeConstructorDescription {
         class Cons_myBoosts: TypeConstructorDescription {
@@ -1600,144 +1746,5 @@ extension Api.wallet {
                 return nil
             }
         }
-    }
-}
-extension Api.wallet {
-    enum Transactions: TypeConstructorDescription {
-        class Cons_transactions: TypeConstructorDescription {
-            var flags: Int32
-            var balance: Int64
-            var transactions: [Api.WalletTransaction]
-            var nextOffset: String?
-            var chats: [Api.Chat]
-            var users: [Api.User]
-            init(flags: Int32, balance: Int64, transactions: [Api.WalletTransaction], nextOffset: String?, chats: [Api.Chat], users: [Api.User]) {
-                self.flags = flags
-                self.balance = balance
-                self.transactions = transactions
-                self.nextOffset = nextOffset
-                self.chats = chats
-                self.users = users
-            }
-        }
-        case transactions(Cons_transactions)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .transactions(let _data):
-                if boxed {
-                    buffer.appendInt32(1126356389)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeInt64(_data.balance, buffer: buffer, boxed: false)
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.transactions.count))
-                for item in _data.transactions {
-                    item.serialize(buffer, true)
-                }
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    serializeString(_data.nextOffset!, buffer: buffer, boxed: false)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.chats.count))
-                for item in _data.chats {
-                    item.serialize(buffer, true)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.users.count))
-                for item in _data.users {
-                    item.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        static func parse_transactions(_ reader: BufferReader) -> Transactions? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Int64?
-            _2 = reader.readInt64()
-            var _3: [Api.WalletTransaction]?
-            if let _ = reader.readInt32() {
-                _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.WalletTransaction.self)
-            }
-            var _4: String?
-            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
-                _4 = parseString(reader)
-            }
-            var _5: [Api.Chat]?
-            if let _ = reader.readInt32() {
-                _5 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
-            }
-            var _6: [Api.User]?
-            if let _ = reader.readInt32() {
-                _6 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.wallet.Transactions.transactions(Cons_transactions(flags: _1!, balance: _2!, transactions: _3!, nextOffset: _4, chats: _5!, users: _6!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api.functions.messages {
-    static func sendMedia(flags: Int32, peer: Api.InputPeer, replyTo: Api.InputReplyTo?, media: Api.InputMedia, message: String, randomId: Int64, replyMarkup: Api.ReplyMarkup?, entities: [Api.MessageEntity]?, scheduleDate: Int32?, scheduleRepeatPeriod: Int32?, sendAs: Api.InputPeer?, quickReplyShortcut: Api.InputQuickReplyShortcut?, effect: Int64?, allowPaidStars: Int64?, suggestedPost: Api.SuggestedPost?) -> (FunctionDescription, Buffer, DeserializeFunctionResponse<Api.Updates>) {
-        let buffer = Buffer()
-        buffer.appendInt32(53536639)
-        serializeInt32(flags, buffer: buffer, boxed: false)
-        peer.serialize(buffer, true)
-        if Int(flags) & Int(1 << 0) != 0 {
-            replyTo!.serialize(buffer, true)
-        }
-        media.serialize(buffer, true)
-        serializeString(message, buffer: buffer, boxed: false)
-        serializeInt64(randomId, buffer: buffer, boxed: false)
-        if Int(flags) & Int(1 << 2) != 0 {
-            replyMarkup!.serialize(buffer, true)
-        }
-        if Int(flags) & Int(1 << 3) != 0 {
-            buffer.appendInt32(481674261)
-            buffer.appendInt32(Int32(entities!.count))
-            for item in entities! {
-                item.serialize(buffer, true)
-            }
-        }
-        if Int(flags) & Int(1 << 10) != 0 {
-            serializeInt32(scheduleDate!, buffer: buffer, boxed: false)
-        }
-        if Int(flags) & Int(1 << 24) != 0 {
-            serializeInt32(scheduleRepeatPeriod!, buffer: buffer, boxed: false)
-        }
-        if Int(flags) & Int(1 << 13) != 0 {
-            sendAs!.serialize(buffer, true)
-        }
-        if Int(flags) & Int(1 << 17) != 0 {
-            quickReplyShortcut!.serialize(buffer, true)
-        }
-        if Int(flags) & Int(1 << 18) != 0 {
-            serializeInt64(effect!, buffer: buffer, boxed: false)
-        }
-        if Int(flags) & Int(1 << 21) != 0 {
-            serializeInt64(allowPaidStars!, buffer: buffer, boxed: false)
-        }
-        if Int(flags) & Int(1 << 22) != 0 {
-            suggestedPost!.serialize(buffer, true)
-        }
-        return (FunctionDescription(name: "messages.sendMedia", parameters: []), buffer, DeserializeFunctionResponse { (buffer: Buffer) -> Api.Updates? in
-            let reader = BufferReader(buffer)
-            var result: Api.Updates?
-            if let signature = reader.readInt32() {
-                result = Api.parse(reader, signature: signature) as? Api.Updates
-            }
-            return result
-        })
     }
 }

@@ -222,6 +222,26 @@ extension Api {
                 self.webpage = webpage
             }
         }
+        class Cons_messageMediaWidget: TypeConstructorDescription {
+            var flags: Int32
+            var width: Int32
+            var height: Int32
+            var payload: Buffer
+            var publicData: String?
+            var publicDataHash: Int64?
+            var chatData: String?
+            var widgetId: Int64?
+            init(flags: Int32, width: Int32, height: Int32, payload: Buffer, publicData: String?, publicDataHash: Int64?, chatData: String?, widgetId: Int64?) {
+                self.flags = flags
+                self.width = width
+                self.height = height
+                self.payload = payload
+                self.publicData = publicData
+                self.publicDataHash = publicDataHash
+                self.chatData = chatData
+                self.widgetId = widgetId
+            }
+        }
         case messageMediaContact(Cons_messageMediaContact)
         case messageMediaDice(Cons_messageMediaDice)
         case messageMediaDocument(Cons_messageMediaDocument)
@@ -241,6 +261,7 @@ extension Api {
         case messageMediaVenue(Cons_messageMediaVenue)
         case messageMediaVideoStream(Cons_messageMediaVideoStream)
         case messageMediaWebPage(Cons_messageMediaWebPage)
+        case messageMediaWidget(Cons_messageMediaWidget)
 
         func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
             switch self {
@@ -489,6 +510,27 @@ extension Api {
                 }
                 serializeInt32(_data.flags, buffer: buffer, boxed: false)
                 _data.webpage.serialize(buffer, true)
+                break
+            case .messageMediaWidget(let _data):
+                if boxed {
+                    buffer.appendInt32(574157332)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt32(_data.width, buffer: buffer, boxed: false)
+                serializeInt32(_data.height, buffer: buffer, boxed: false)
+                serializeBytes(_data.payload, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 3) != 0 {
+                    serializeString(_data.publicData!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 3) != 0 {
+                    serializeInt64(_data.publicDataHash!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 4) != 0 {
+                    serializeString(_data.chatData!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 5) != 0 {
+                    serializeInt64(_data.widgetId!, buffer: buffer, boxed: false)
+                }
                 break
             }
         }
@@ -961,6 +1003,46 @@ extension Api {
             let _c2 = _2 != nil
             if _c1 && _c2 {
                 return Api.MessageMedia.messageMediaWebPage(Cons_messageMediaWebPage(flags: _1!, webpage: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_messageMediaWidget(_ reader: BufferReader) -> MessageMedia? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int32?
+            _2 = reader.readInt32()
+            var _3: Int32?
+            _3 = reader.readInt32()
+            var _4: Buffer?
+            _4 = parseBytes(reader)
+            var _5: String?
+            if Int(_1 ?? 0) & Int(1 << 3) != 0 {
+                _5 = parseString(reader)
+            }
+            var _6: Int64?
+            if Int(_1 ?? 0) & Int(1 << 3) != 0 {
+                _6 = reader.readInt64()
+            }
+            var _7: String?
+            if Int(_1 ?? 0) & Int(1 << 4) != 0 {
+                _7 = parseString(reader)
+            }
+            var _8: Int64?
+            if Int(_1 ?? 0) & Int(1 << 5) != 0 {
+                _8 = reader.readInt64()
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 3) == 0) || _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 3) == 0) || _6 != nil
+            let _c7 = (Int(_1 ?? 0) & Int(1 << 4) == 0) || _7 != nil
+            let _c8 = (Int(_1 ?? 0) & Int(1 << 5) == 0) || _8 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 {
+                return Api.MessageMedia.messageMediaWidget(Cons_messageMediaWidget(flags: _1!, width: _2!, height: _3!, payload: _4!, publicData: _5, publicDataHash: _6, chatData: _7, widgetId: _8))
             }
             else {
                 return nil
@@ -1697,88 +1779,6 @@ extension Api {
             let _c6 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _6 != nil
             if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
                 return Api.MyBoost.myBoost(Cons_myBoost(flags: _1!, slot: _2!, peer: _3, date: _4!, expires: _5!, cooldownUntilDate: _6))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api {
-    enum NotificationSound: TypeConstructorDescription {
-        class Cons_notificationSoundLocal: TypeConstructorDescription {
-            var title: String
-            var data: String
-            init(title: String, data: String) {
-                self.title = title
-                self.data = data
-            }
-        }
-        class Cons_notificationSoundRingtone: TypeConstructorDescription {
-            var id: Int64
-            init(id: Int64) {
-                self.id = id
-            }
-        }
-        case notificationSoundDefault
-        case notificationSoundLocal(Cons_notificationSoundLocal)
-        case notificationSoundNone
-        case notificationSoundRingtone(Cons_notificationSoundRingtone)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .notificationSoundDefault:
-                if boxed {
-                    buffer.appendInt32(-1746354498)
-                }
-                break
-            case .notificationSoundLocal(let _data):
-                if boxed {
-                    buffer.appendInt32(-2096391452)
-                }
-                serializeString(_data.title, buffer: buffer, boxed: false)
-                serializeString(_data.data, buffer: buffer, boxed: false)
-                break
-            case .notificationSoundNone:
-                if boxed {
-                    buffer.appendInt32(1863070943)
-                }
-                break
-            case .notificationSoundRingtone(let _data):
-                if boxed {
-                    buffer.appendInt32(-9666487)
-                }
-                serializeInt64(_data.id, buffer: buffer, boxed: false)
-                break
-            }
-        }
-
-        static func parse_notificationSoundDefault(_ reader: BufferReader) -> NotificationSound? {
-            return Api.NotificationSound.notificationSoundDefault
-        }
-        static func parse_notificationSoundLocal(_ reader: BufferReader) -> NotificationSound? {
-            var _1: String?
-            _1 = parseString(reader)
-            var _2: String?
-            _2 = parseString(reader)
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.NotificationSound.notificationSoundLocal(Cons_notificationSoundLocal(title: _1!, data: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        static func parse_notificationSoundNone(_ reader: BufferReader) -> NotificationSound? {
-            return Api.NotificationSound.notificationSoundNone
-        }
-        static func parse_notificationSoundRingtone(_ reader: BufferReader) -> NotificationSound? {
-            var _1: Int64?
-            _1 = reader.readInt64()
-            let _c1 = _1 != nil
-            if _c1 {
-                return Api.NotificationSound.notificationSoundRingtone(Cons_notificationSoundRingtone(id: _1!))
             }
             else {
                 return nil

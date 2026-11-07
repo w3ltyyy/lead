@@ -1,4 +1,118 @@
 extension Api {
+    enum WallPaper: TypeConstructorDescription {
+        class Cons_wallPaper: TypeConstructorDescription {
+            var id: Int64
+            var flags: Int32
+            var accessHash: Int64
+            var slug: String
+            var document: Api.Document
+            var settings: Api.WallPaperSettings?
+            init(id: Int64, flags: Int32, accessHash: Int64, slug: String, document: Api.Document, settings: Api.WallPaperSettings?) {
+                self.id = id
+                self.flags = flags
+                self.accessHash = accessHash
+                self.slug = slug
+                self.document = document
+                self.settings = settings
+            }
+        }
+        class Cons_wallPaperNoFile: TypeConstructorDescription {
+            var id: Int64
+            var flags: Int32
+            var settings: Api.WallPaperSettings?
+            init(id: Int64, flags: Int32, settings: Api.WallPaperSettings?) {
+                self.id = id
+                self.flags = flags
+                self.settings = settings
+            }
+        }
+        case wallPaper(Cons_wallPaper)
+        case wallPaperNoFile(Cons_wallPaperNoFile)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .wallPaper(let _data):
+                if boxed {
+                    buffer.appendInt32(-1539849235)
+                }
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.accessHash, buffer: buffer, boxed: false)
+                serializeString(_data.slug, buffer: buffer, boxed: false)
+                _data.document.serialize(buffer, true)
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    _data.settings!.serialize(buffer, true)
+                }
+                break
+            case .wallPaperNoFile(let _data):
+                if boxed {
+                    buffer.appendInt32(-528465642)
+                }
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    _data.settings!.serialize(buffer, true)
+                }
+                break
+            }
+        }
+
+        static func parse_wallPaper(_ reader: BufferReader) -> WallPaper? {
+            var _1: Int64?
+            _1 = reader.readInt64()
+            var _2: Int32?
+            _2 = reader.readInt32()
+            var _3: Int64?
+            _3 = reader.readInt64()
+            var _4: String?
+            _4 = parseString(reader)
+            var _5: Api.Document?
+            if let signature = reader.readInt32() {
+                _5 = Api.parse(reader, signature: signature) as? Api.Document
+            }
+            var _6: Api.WallPaperSettings?
+            if Int(_2 ?? 0) & Int(1 << 2) != 0 {
+                if let signature = reader.readInt32() {
+                    _6 = Api.parse(reader, signature: signature) as? Api.WallPaperSettings
+                }
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = (Int(_2 ?? 0) & Int(1 << 2) == 0) || _6 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
+                return Api.WallPaper.wallPaper(Cons_wallPaper(id: _1!, flags: _2!, accessHash: _3!, slug: _4!, document: _5!, settings: _6))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_wallPaperNoFile(_ reader: BufferReader) -> WallPaper? {
+            var _1: Int64?
+            _1 = reader.readInt64()
+            var _2: Int32?
+            _2 = reader.readInt32()
+            var _3: Api.WallPaperSettings?
+            if Int(_2 ?? 0) & Int(1 << 2) != 0 {
+                if let signature = reader.readInt32() {
+                    _3 = Api.parse(reader, signature: signature) as? Api.WallPaperSettings
+                }
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = (Int(_2 ?? 0) & Int(1 << 2) == 0) || _3 != nil
+            if _c1 && _c2 && _c3 {
+                return Api.WallPaper.wallPaperNoFile(Cons_wallPaperNoFile(id: _1!, flags: _2!, settings: _3))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
+extension Api {
     enum WallPaperSettings: TypeConstructorDescription {
         class Cons_wallPaperSettings: TypeConstructorDescription {
             var flags: Int32
@@ -1261,6 +1375,106 @@ extension Api {
         }
     }
 }
+extension Api {
+    enum WidgetQueryType: TypeConstructorDescription {
+        class Cons_widgetQueryTypeData: TypeConstructorDescription {
+            var flags: Int32
+            init(flags: Int32) {
+                self.flags = flags
+            }
+        }
+        class Cons_widgetQueryTypeSentTransaction: TypeConstructorDescription {
+            var wallet: Api.UserWallet
+            var msgHash: String
+            init(wallet: Api.UserWallet, msgHash: String) {
+                self.wallet = wallet
+                self.msgHash = msgHash
+            }
+        }
+        class Cons_widgetQueryTypeSignData: TypeConstructorDescription {
+            var wallet: Api.UserWallet
+            var signData: Api.DataJSON
+            init(wallet: Api.UserWallet, signData: Api.DataJSON) {
+                self.wallet = wallet
+                self.signData = signData
+            }
+        }
+        case widgetQueryTypeData(Cons_widgetQueryTypeData)
+        case widgetQueryTypeSentTransaction(Cons_widgetQueryTypeSentTransaction)
+        case widgetQueryTypeSignData(Cons_widgetQueryTypeSignData)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .widgetQueryTypeData(let _data):
+                if boxed {
+                    buffer.appendInt32(383307531)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                break
+            case .widgetQueryTypeSentTransaction(let _data):
+                if boxed {
+                    buffer.appendInt32(-12897356)
+                }
+                _data.wallet.serialize(buffer, true)
+                serializeString(_data.msgHash, buffer: buffer, boxed: false)
+                break
+            case .widgetQueryTypeSignData(let _data):
+                if boxed {
+                    buffer.appendInt32(421545948)
+                }
+                _data.wallet.serialize(buffer, true)
+                _data.signData.serialize(buffer, true)
+                break
+            }
+        }
+
+        static func parse_widgetQueryTypeData(_ reader: BufferReader) -> WidgetQueryType? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.WidgetQueryType.widgetQueryTypeData(Cons_widgetQueryTypeData(flags: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_widgetQueryTypeSentTransaction(_ reader: BufferReader) -> WidgetQueryType? {
+            var _1: Api.UserWallet?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.UserWallet
+            }
+            var _2: String?
+            _2 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.WidgetQueryType.widgetQueryTypeSentTransaction(Cons_widgetQueryTypeSentTransaction(wallet: _1!, msgHash: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_widgetQueryTypeSignData(_ reader: BufferReader) -> WidgetQueryType? {
+            var _1: Api.UserWallet?
+            if let signature = reader.readInt32() {
+                _1 = Api.parse(reader, signature: signature) as? Api.UserWallet
+            }
+            var _2: Api.DataJSON?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.DataJSON
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.WidgetQueryType.widgetQueryTypeSignData(Cons_widgetQueryTypeSignData(wallet: _1!, signData: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
 extension Api.account {
     enum AutoSaveSettings: TypeConstructorDescription {
         class Cons_autoSaveSettings: TypeConstructorDescription {
@@ -1565,202 +1779,6 @@ extension Api.account {
             let _c3 = _3 != nil
             if _c1 && _c2 && _c3 {
                 return Api.account.PrivacyRules.privacyRules(Cons_privacyRules(rules: _1!, chats: _2!, users: _3!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api.account {
-    enum ResolvedBusinessChatLinks: TypeConstructorDescription {
-        class Cons_resolvedBusinessChatLinks: TypeConstructorDescription {
-            var flags: Int32
-            var peer: Api.Peer
-            var message: String
-            var entities: [Api.MessageEntity]?
-            var chats: [Api.Chat]
-            var users: [Api.User]
-            init(flags: Int32, peer: Api.Peer, message: String, entities: [Api.MessageEntity]?, chats: [Api.Chat], users: [Api.User]) {
-                self.flags = flags
-                self.peer = peer
-                self.message = message
-                self.entities = entities
-                self.chats = chats
-                self.users = users
-            }
-        }
-        case resolvedBusinessChatLinks(Cons_resolvedBusinessChatLinks)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .resolvedBusinessChatLinks(let _data):
-                if boxed {
-                    buffer.appendInt32(-1708937439)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                _data.peer.serialize(buffer, true)
-                serializeString(_data.message, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    buffer.appendInt32(481674261)
-                    buffer.appendInt32(Int32(_data.entities!.count))
-                    for item in _data.entities! {
-                        item.serialize(buffer, true)
-                    }
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.chats.count))
-                for item in _data.chats {
-                    item.serialize(buffer, true)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.users.count))
-                for item in _data.users {
-                    item.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        static func parse_resolvedBusinessChatLinks(_ reader: BufferReader) -> ResolvedBusinessChatLinks? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Api.Peer?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.Peer
-            }
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: [Api.MessageEntity]?
-            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
-                if let _ = reader.readInt32() {
-                    _4 = Api.parseVector(reader, elementSignature: 0, elementType: Api.MessageEntity.self)
-                }
-            }
-            var _5: [Api.Chat]?
-            if let _ = reader.readInt32() {
-                _5 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
-            }
-            var _6: [Api.User]?
-            if let _ = reader.readInt32() {
-                _6 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.account.ResolvedBusinessChatLinks.resolvedBusinessChatLinks(Cons_resolvedBusinessChatLinks(flags: _1!, peer: _2!, message: _3!, entities: _4, chats: _5!, users: _6!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api.auth {
-    enum Authorization: TypeConstructorDescription {
-        class Cons_authorization: TypeConstructorDescription {
-            var flags: Int32
-            var otherwiseReloginDays: Int32?
-            var tmpSessions: Int32?
-            var futureAuthToken: Buffer?
-            var user: Api.User
-            init(flags: Int32, otherwiseReloginDays: Int32?, tmpSessions: Int32?, futureAuthToken: Buffer?, user: Api.User) {
-                self.flags = flags
-                self.otherwiseReloginDays = otherwiseReloginDays
-                self.tmpSessions = tmpSessions
-                self.futureAuthToken = futureAuthToken
-                self.user = user
-            }
-        }
-        class Cons_authorizationSignUpRequired: TypeConstructorDescription {
-            var flags: Int32
-            var termsOfService: Api.help.TermsOfService?
-            init(flags: Int32, termsOfService: Api.help.TermsOfService?) {
-                self.flags = flags
-                self.termsOfService = termsOfService
-            }
-        }
-        case authorization(Cons_authorization)
-        case authorizationSignUpRequired(Cons_authorizationSignUpRequired)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .authorization(let _data):
-                if boxed {
-                    buffer.appendInt32(782418132)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 1) != 0 {
-                    serializeInt32(_data.otherwiseReloginDays!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    serializeInt32(_data.tmpSessions!, buffer: buffer, boxed: false)
-                }
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    serializeBytes(_data.futureAuthToken!, buffer: buffer, boxed: false)
-                }
-                _data.user.serialize(buffer, true)
-                break
-            case .authorizationSignUpRequired(let _data):
-                if boxed {
-                    buffer.appendInt32(1148485274)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 0) != 0 {
-                    _data.termsOfService!.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        static func parse_authorization(_ reader: BufferReader) -> Authorization? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Int32?
-            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
-                _2 = reader.readInt32()
-            }
-            var _3: Int32?
-            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
-                _3 = reader.readInt32()
-            }
-            var _4: Buffer?
-            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
-                _4 = parseBytes(reader)
-            }
-            var _5: Api.User?
-            if let signature = reader.readInt32() {
-                _5 = Api.parse(reader, signature: signature) as? Api.User
-            }
-            let _c1 = _1 != nil
-            let _c2 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _2 != nil
-            let _c3 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _3 != nil
-            let _c4 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _4 != nil
-            let _c5 = _5 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 {
-                return Api.auth.Authorization.authorization(Cons_authorization(flags: _1!, otherwiseReloginDays: _2, tmpSessions: _3, futureAuthToken: _4, user: _5!))
-            }
-            else {
-                return nil
-            }
-        }
-        static func parse_authorizationSignUpRequired(_ reader: BufferReader) -> Authorization? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Api.help.TermsOfService?
-            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
-                if let signature = reader.readInt32() {
-                    _2 = Api.parse(reader, signature: signature) as? Api.help.TermsOfService
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _2 != nil
-            if _c1 && _c2 {
-                return Api.auth.Authorization.authorizationSignUpRequired(Cons_authorizationSignUpRequired(flags: _1!, termsOfService: _2))
             }
             else {
                 return nil

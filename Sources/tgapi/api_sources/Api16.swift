@@ -1,4 +1,74 @@
 extension Api {
+    enum PhoneCallDiscardReason: TypeConstructorDescription {
+        class Cons_phoneCallDiscardReasonMigrateConferenceCall: TypeConstructorDescription {
+            var slug: String
+            init(slug: String) {
+                self.slug = slug
+            }
+        }
+        case phoneCallDiscardReasonBusy
+        case phoneCallDiscardReasonDisconnect
+        case phoneCallDiscardReasonHangup
+        case phoneCallDiscardReasonMigrateConferenceCall(Cons_phoneCallDiscardReasonMigrateConferenceCall)
+        case phoneCallDiscardReasonMissed
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .phoneCallDiscardReasonBusy:
+                if boxed {
+                    buffer.appendInt32(-84416311)
+                }
+                break
+            case .phoneCallDiscardReasonDisconnect:
+                if boxed {
+                    buffer.appendInt32(-527056480)
+                }
+                break
+            case .phoneCallDiscardReasonHangup:
+                if boxed {
+                    buffer.appendInt32(1471006352)
+                }
+                break
+            case .phoneCallDiscardReasonMigrateConferenceCall(let _data):
+                if boxed {
+                    buffer.appendInt32(-1615072777)
+                }
+                serializeString(_data.slug, buffer: buffer, boxed: false)
+                break
+            case .phoneCallDiscardReasonMissed:
+                if boxed {
+                    buffer.appendInt32(-2048646399)
+                }
+                break
+            }
+        }
+
+        static func parse_phoneCallDiscardReasonBusy(_ reader: BufferReader) -> PhoneCallDiscardReason? {
+            return Api.PhoneCallDiscardReason.phoneCallDiscardReasonBusy
+        }
+        static func parse_phoneCallDiscardReasonDisconnect(_ reader: BufferReader) -> PhoneCallDiscardReason? {
+            return Api.PhoneCallDiscardReason.phoneCallDiscardReasonDisconnect
+        }
+        static func parse_phoneCallDiscardReasonHangup(_ reader: BufferReader) -> PhoneCallDiscardReason? {
+            return Api.PhoneCallDiscardReason.phoneCallDiscardReasonHangup
+        }
+        static func parse_phoneCallDiscardReasonMigrateConferenceCall(_ reader: BufferReader) -> PhoneCallDiscardReason? {
+            var _1: String?
+            _1 = parseString(reader)
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.PhoneCallDiscardReason.phoneCallDiscardReasonMigrateConferenceCall(Cons_phoneCallDiscardReasonMigrateConferenceCall(slug: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_phoneCallDiscardReasonMissed(_ reader: BufferReader) -> PhoneCallDiscardReason? {
+            return Api.PhoneCallDiscardReason.phoneCallDiscardReasonMissed
+        }
+    }
+}
+extension Api {
     enum PhoneCallProtocol: TypeConstructorDescription {
         class Cons_phoneCallProtocol: TypeConstructorDescription {
             var flags: Int32

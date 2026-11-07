@@ -139,6 +139,10 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
 
   if ([code isEqualToString:@"ar"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"سجل التعديلات",
+      @"ANTI_EDIT_SUBTITLE" : @"يبقي آخر نص معدَّل ظاهرًا ويحفظ الإصدارات السابقة.",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"يخفي المؤشر عند رفع رسالة فيديو دائرية.",
+      @"DISCLAIMER" : @"إخلاء المسؤولية",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"إظهار المحادثات المحجوبة بسبب App Store",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"يفتح القنوات والمنشورات المخفية على iPhone فقط بسبب قواعد App Store. أعد تشغيل التطبيق بعد التفعيل.",
       @"GHOST_MODE_SECTION_HEADER" : @"وضع الشبح",
@@ -250,6 +254,9 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"ja"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"編集履歴",
+      @"ANTI_EDIT_SUBTITLE" : @"最新の編集テキストを表示したまま、以前のバージョンを保存します。",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"丸いビデオメッセージのアップロード中のインジケーターを隠します。",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"App Storeでブロックされたチャットを表示",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"App Storeの規約によりiPhoneでのみ非表示のチャンネルや投稿を開きます。オンにした後はアプリを再起動してください。",
       @"GHOST_MODE_SECTION_HEADER" : @"ゴーストモード",
@@ -514,6 +521,9 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"es"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"Historial de ediciones",
+      @"ANTI_EDIT_SUBTITLE" : @"Mantiene visible el último texto editado y guarda las versiones anteriores.",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"Oculta el indicador al subir un videomensaje.",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"Mostrar chats bloqueados por App Store",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Abre canales y publicaciones ocultos solo en iPhone por las normas de App Store. Reinicia la app tras activarlo.",
       @"GHOST_MODE_SECTION_HEADER" : @"Modo Fantasma",
@@ -646,6 +656,9 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"it"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"Cronologia modifiche",
+      @"ANTI_EDIT_SUBTITLE" : @"Mantiene visibile l’ultimo testo modificato e salva le versioni precedenti.",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"Nasconde l’indicatore durante il caricamento di un videomessaggio.",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"Mostra chat bloccate da App Store",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Apre canali e post nascosti solo su iPhone dalle regole di App Store. Riavvia l'app dopo averlo attivato.",
       @"GHOST_MODE_SECTION_HEADER" : @"Modalità Fantasma",
@@ -783,6 +796,10 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"cn"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"编辑历史",
+      @"ANTI_EDIT_SUBTITLE" : @"保留最新编辑的文本并保存之前的版本。",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"上传圆形视频消息时隐藏提示。",
+      @"DISCLAIMER" : @"免责声明",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"显示被 App Store 屏蔽的聊天",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"打开仅因 App Store 规则在 iPhone 上被隐藏的频道和帖子。开启后请重启应用。",
       @"GHOST_MODE_SECTION_HEADER" : @"隐身模式",
@@ -883,6 +900,7 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"ru"]) {
     return @{
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"Скрывать индикатор при загрузке видеосообщения.",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"Показывать чаты, скрытые App Store",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Открывает каналы и посты, скрытые только на iPhone по правилам App Store. После включения перезапусти приложение.",
       @"GHOST_MODE_SECTION_HEADER" : @"Режим призрака",
@@ -1010,6 +1028,10 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"fr"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"Historique des modifications",
+      @"ANTI_EDIT_SUBTITLE" : @"Garde visible le dernier texte modifié et enregistre les versions précédentes.",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"Masque l’indicateur lors de l’envoi d’une vidéo ronde.",
+      @"DISCLAIMER" : @"Avertissement",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"Afficher les chats bloqués par l'App Store",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Ouvre les canaux et publications masqués uniquement sur iPhone par les règles de l'App Store. Redémarrez l'app après l'activation.",
       @"GHOST_MODE_SECTION_HEADER" : @"Mode Fantôme",
@@ -1153,6 +1175,9 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"vn"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"Lịch sử chỉnh sửa",
+      @"ANTI_EDIT_SUBTITLE" : @"Giữ văn bản đã sửa mới nhất và lưu các phiên bản trước.",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"Ẩn chỉ báo khi tải lên tin nhắn video tròn.",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"Hiện trò chuyện bị App Store chặn",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"Mở các kênh và bài đăng chỉ bị ẩn trên iPhone theo quy định của App Store. Khởi động lại ứng dụng sau khi bật.",
       @"GHOST_MODE_SECTION_HEADER" : @"Chế độ ma",
@@ -1279,6 +1304,9 @@ static inline NSDictionary *GetAllTranslations(NSString *code) {
   }
   if ([code isEqualToString:@"tw"]) {
     return @{
+      @"ANTI_EDIT_TITLE" : @"編輯紀錄",
+      @"ANTI_EDIT_SUBTITLE" : @"保留最新編輯的文字並儲存先前的版本。",
+      @"DISABLE_UPLOADING_ROUND_VIDEO_STATUS_SUBTITLE" : @"上傳圓形影片訊息時隱藏提示。",
       @"SHOW_IOS_RESTRICTED_TITLE" : @"顯示被 App Store 封鎖的聊天",
       @"SHOW_IOS_RESTRICTED_SUBTITLE" : @"開啟僅因 App Store 規則在 iPhone 上被隱藏的頻道和貼文。開啟後請重新啟動 App。",
       @"GHOST_MODE_SECTION_HEADER" : @"隱身模式",

@@ -17,6 +17,8 @@ typedef NS_ENUM(NSInteger, LeadRowStyle) {
 // Live trailing text (counts, coordinates, sizes). May be called often; keep it cheap.
 @property (nonatomic, copy) NSString *(^valueBlock)(void);
 @property (nonatomic, copy) void (^tapBlock)(UIViewController *host);
+// Runs after a toggle row changes its setting.
+@property (nonatomic, copy) void (^toggleBlock)(BOOL on, UIViewController *host);
 + (instancetype)toggle:(NSString *)key title:(NSString *)titleKey subtitle:(NSString *)subtitleKey symbol:(NSString *)symbol;
 + (instancetype)link:(NSString *)titleKey symbol:(NSString *)symbol tap:(void (^)(UIViewController *host))tap;
 - (NSString *)title;
@@ -64,6 +66,8 @@ NSString *LeadRegistrationEstimate(long long userId);
 // Settings transfer through the clipboard (JSON).
 void LeadExportSettings(UIViewController *host);
 void LeadImportSettings(UIViewController *host);
+// Reads the account's real 18+ setting into the switch, quietly.
+void LeadRefreshContentSettings(void);
 // Defined in Hooks.xm: MtProtoKit requests seen so far, and seconds since Lead loaded.
 // No traffic a while after launch means Telegram runs its Rust engine.
 long long LeadNetworkHookActivity(void);
@@ -71,9 +75,15 @@ long long LeadNetworkHookActivity(void);
 NSString *LeadDiagStateLine(void);
 NSString *LeadDiagSignLine(void);
 double LeadTweakUptime(void);
+// Lead in the notification service extension's binary: 1 yes, 0 no, -1 no such extension.
+NSInteger LeadExtensionInjected(void);
 #ifdef __cplusplus
 }
 #endif
+
+// What of Lead works with this client, checked live.
+@interface LeadCompatViewController : UITableViewController
+@end
 
 // A page of LeadSections (Messages, Content, Ghost Mode, …).
 @interface LeadPageViewController : UITableViewController

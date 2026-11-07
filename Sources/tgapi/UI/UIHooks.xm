@@ -5,6 +5,7 @@
 #import "LeadMenu.h"
 #import "../Headers.h"
 #import <objc/runtime.h>
+#import <os/lock.h>
 #import <objc/message.h>
 
 @interface ASDisplayNode : NSObject
@@ -682,87 +683,18 @@ static void LeadLayoutVideoToVoiceButton(id interfaceView) {
 
 %end
 
-static BOOL _leadGestureAttached = NO;
-
-// Helper target object for late-attached gestures
-@interface LeadGestureTarget : NSObject
-@end
-@implementation LeadGestureTarget
-- (void)handleLongPress:(UILongPressGestureRecognizer *)gr {
-    if (gr.state == UIGestureRecognizerStateBegan) showUI();
-}
-@end
-static LeadGestureTarget *_leadGestureTarget = nil;
-
-static void tryAttachLeadGesture(void);
-
 %hook TGLocalization
 - (id)get:(id)key {
     TGLocalizationShared = self;
-    if (!_leadGestureAttached) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            tryAttachLeadGesture();
-        });
-    }
     return %orig;
 }
 
 - (id)initWithVersion:(int)a code:(id)b dict:(id)c isActive:(BOOL)d {
     TGLocalization *instance = %orig;
-    if (instance) {
-        TGLocalizationShared = instance;
-        // Settings may already be rendered — try to attach gesture now
-        if (!_leadGestureAttached) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                tryAttachLeadGesture();
-            });
-        }
-    }
+    if (instance) TGLocalizationShared = instance;
     return instance;
 }
 %end
-
-static void tryAttachLeadGestureInView(UIView *view) {
-    if (!view) return;
-    if ([NSStringFromClass([view class]) isEqualToString:@"Display.AccessibilityAreaNode"]) {
-        NSString *label = view.accessibilityLabel;
-        TGLocalization *loc = getActiveTGLocalization();
-        if (label.length > 0 && loc) {
-            NSString *supportStr = [loc get:@"Settings.Support"];
-            if (supportStr.length > 0 && ![supportStr isEqualToString:@"Settings.Support"] &&
-                [[label lowercaseString] containsString:[supportStr lowercaseString]]) {
-                UIView *parent = view.superview;
-                if (parent) {
-                    BOOL alreadyHas = NO;
-                    for (UIGestureRecognizer *g in parent.gestureRecognizers) {
-                        if ([g isKindOfClass:[UILongPressGestureRecognizer class]]) {
-                            alreadyHas = YES; break;
-                        }
-                    }
-                    if (!alreadyHas) {
-                        if (!_leadGestureTarget) _leadGestureTarget = [LeadGestureTarget new];
-                        UILongPressGestureRecognizer *gr = [[UILongPressGestureRecognizer alloc]
-                            initWithTarget:_leadGestureTarget action:@selector(handleLongPress:)];
-                        [parent addGestureRecognizer:gr];
-                        _leadGestureAttached = YES;
-                        customLog2(@"[Lead] late-attach OK: %@", label);
-                    }
-                }
-            }
-        }
-        return;
-    }
-    for (UIView *sub in view.subviews) {
-        tryAttachLeadGestureInView(sub);
-        if (_leadGestureAttached) return;
-    }
-}
-
-static void tryAttachLeadGesture(void) {
-    if (_leadGestureAttached) return;
-    UIWindow *window = LeadMainWindow();
-    if (window) tryAttachLeadGestureInView(window);
-}
 
 void showUI() {
 	[Lead presentMenu];
@@ -791,7 +723,10 @@ void showUI() {
 - (void)setAccessibilityLabel:(NSString *)label {
     %orig;
 
-    if (![NSStringFromClass([self class]) isEqualToString:@"Display.AccessibilityAreaNode"]) return;
+    // Runs for every labelled node; the class check has to stay cheap.
+    static Class areaNodeClass = Nil;
+    if (!areaNodeClass) areaNodeClass = NSClassFromString(@"Display.AccessibilityAreaNode");
+    if ([self class] != areaNodeClass) return;
     if (!label || label.length == 0) return;
 
     ASDisplayNode *parent = [self supernode];
@@ -957,7 +892,7 @@ static void showWelcomeAlertIfNeeded() {
 
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:@"Lead"
-        message:@"Lead has been successfully injected into Telegram.\n\nTo open the tweak menu: tap the shield button in the top-right corner of Settings, or long-press the \"Ask a Question\" row."
+        message:@"Lead has been successfully injected into Telegram.\n\nTo open the tweak menu: long-press the \"Ask a Question\" row in Settings."
         preferredStyle:UIAlertControllerStyleAlert];
 
     void (^markShown)(void) = ^{
@@ -1075,6 +1010,8 @@ static void injectBadgeToNode(ASDisplayNode *textNode, ASDisplayNode *headerNode
 
 @interface LeadGhostProfileTarget : NSObject
 @property(nonatomic, assign) long long peerId;
+@property(nonatomic, copy) NSString *primaryKey;
+@property(nonatomic, copy) NSArray *aliases;
 @property(nonatomic, copy) NSString *peerTitle;
 @property(nonatomic, weak) UIBarButtonItem *barItem;
 @property(nonatomic, weak) UIViewController *controller;
@@ -1083,6 +1020,7 @@ static void injectBadgeToNode(ASDisplayNode *textNode, ASDisplayNode *headerNode
 @implementation LeadGhostProfileTarget
 static char LeadGhostTargetKey;
 static void LeadInstallGhostNavItem(UIViewController *controller);
+static void LeadInstallProfileItems(UIViewController *controller);
 static BOOL LeadIsUsableGhostTitle(NSString *title);
 static NSString *LeadPeerTitleFromObject(id object);
 
@@ -1112,10 +1050,9 @@ static void LeadUpdateGhostBarItem(UIBarButtonItem *item, BOOL enabled) {
 }
 
 - (void)toggleGhostException {
-    long long looseId = self.peerId;
-    if (looseId == 0) return;
-    NSString *primaryKey = LeadPeerKey(@"peer", looseId);
-    NSArray *aliases = LeadGhostAliasesForLooseId(looseId, primaryKey);
+    NSString *primaryKey = self.primaryKey;
+    NSArray *aliases = self.aliases;
+    if (primaryKey.length == 0) return;
     BOOL enabled = LeadIsGhostPeerEnabledForKeys(aliases);
 
     // Data is definitely loaded by toggle time — retry if we stored a bad title.
@@ -1136,8 +1073,10 @@ static void LeadUpdateGhostBarItem(UIBarButtonItem *item, BOOL enabled) {
     }
     UIViewController *controller = self.controller;
     if (controller) {
+        // The whole set, so on the old base the item moves back into the header row
+        // instead of staying on the bar over Telegram's own buttons.
         dispatch_async(dispatch_get_main_queue(), ^{
-            LeadInstallGhostNavItem(controller);
+            LeadInstallProfileItems(controller);
         });
     }
 }
@@ -1203,19 +1142,7 @@ static BOOL LeadIsCurrentUserPeer(long long peerId) {
 static BOOL LeadGhostControlsShouldBeVisible(void) {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     if (![defaults boolForKey:kGhostModeEnabled]) return NO;
-
-    NSArray *keys = @[
-        kDisableOnlineStatus, kDisableTypingStatus, kDisableRecordingVideoStatus,
-        kDisableUploadingVideoStatus, kDisableRecordingVoiceStatus,
-        kDisableUploadingVoiceStatus, kDisableUploadingPhotoStatus,
-        kDisableUploadingFileStatus, kDisableChoosingLocationStatus,
-        kDisableChoosingContactStatus, kDisablePlayingGameStatus,
-        kDisableRecordingRoundVideoStatus, kDisableUploadingRoundVideoStatus,
-        kDisableSpeakingInGroupCallStatus, kDisableChoosingStickerStatus,
-        kDisableEmojiInteractionStatus, kDisableEmojiAcknowledgementStatus,
-        kDisableMessageReadReceipt, kDisableStoriesReadReceipt
-    ];
-    for (NSString *key in keys) {
+    for (NSString *key in LeadGhostFeatureKeys()) {
         if ([defaults boolForKey:key]) return YES;
     }
     return NO;
@@ -1285,8 +1212,12 @@ static void LeadInstallGhostNavItem(UIViewController *controller) {
             return;
         }
 
+        // Channels share a namespace with supergroups. Nobody sees who read a broadcast
+        // channel, but a supergroup is a chat like any other; until the profile has
+        // loaded the two can't be told apart, and a later pass adds the button.
         NSInteger peerNamespace = LeadPeerNamespaceFromObject(controller);
-        if (peerNamespace == 2) {
+        BOOL isSupergroup = peerNamespace == 2 && [TLParser channelKindFromController:controller].intValue == 1;
+        if (peerNamespace == 2 && !isSupergroup) {
             if (ghostItem) {
                 [UIView performWithoutAnimation:^{
                     controller.navigationItem.rightBarButtonItems = rightItems;
@@ -1295,8 +1226,8 @@ static void LeadInstallGhostNavItem(UIViewController *controller) {
             return;
         }
 
-        NSString *primaryKey = LeadPeerKey(@"peer", peerId);
-        NSArray *aliases = LeadGhostAliasesForLooseId(peerId, primaryKey);
+        NSString *primaryKey = isSupergroup ? LeadPeerKey(@"channel", peerId) : LeadPeerKey(@"peer", peerId);
+        NSArray *aliases = isSupergroup ? @[ primaryKey ] : LeadGhostAliasesForLooseId(peerId, primaryKey);
         BOOL enabled = LeadIsGhostPeerEnabledForKeys(aliases);
         [[NSUserDefaults standardUserDefaults]
             setObject:@{@"peerId": @(peerId), @"time": @([[NSDate date] timeIntervalSince1970])}
@@ -1325,6 +1256,8 @@ static void LeadInstallGhostNavItem(UIViewController *controller) {
         NSString *title = LeadPeerTitleFromObject(controller);
         if (!LeadIsUsableGhostTitle(title)) title = primaryKey;
         target.peerId = peerId;
+        target.primaryKey = primaryKey;
+        target.aliases = aliases;
         target.peerTitle = title;
         target.barItem = ghostItem;
         target.controller = controller;
@@ -1397,31 +1330,211 @@ static NSHashTable *activeMessageNodes = nil;
 }
 @end
 
+typedef NS_ENUM(NSInteger, LeadNodeKind) {
+    LeadNodeKindOther,
+    LeadNodeKindMessageItem,      // ChatMessage…ItemNode: deleted/edited/timer badges
+    LeadNodeKindProfileHeader,    // the name/avatar header of a profile or Settings
+    LeadNodeKindHeaderButtons,    // PeerInfoHeaderNavigationButtonContainerNode (pre-13.1 base)
+};
+
+static char LeadHeaderInjectKey;
+static char LeadHeaderInjectPendingKey;
+
+static void LeadInjectProfileHeader(ASDisplayNode *header) {
+    long long peerId = LeadPeerIdFromObject(header);
+    if (peerId == 0) {
+        peerId = [[NSUserDefaults standardUserDefaults] integerForKey:@"LeadLastKnownUserId"];
+    }
+    recursiveSearchAndInject(header, header, peerId);
+}
+
+// Class → kind, worked out once per class instead of string checks on every layout.
+static LeadNodeKind LeadNodeKindForClass(Class cls) {
+    static NSMapTable<Class, NSNumber *> *cache;
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{ cache = [NSMapTable strongToStrongObjectsMapTable]; });
+    os_unfair_lock_lock(&lock);
+    NSNumber *known = [cache objectForKey:cls];
+    os_unfair_lock_unlock(&lock);
+    if (known) return (LeadNodeKind)known.integerValue;
+
+    NSString *name = NSStringFromClass(cls);
+    LeadNodeKind kind = LeadNodeKindOther;
+    if ([name hasSuffix:@"PeerInfoHeaderNavigationButtonContainerNode"]) {
+        kind = LeadNodeKindHeaderButtons;
+    } else if ([name hasSuffix:@"PeerInfoHeaderNode"] || [name containsString:@"UserInfoHeader"] || [name containsString:@"ContactInfoHeader"]) {
+        kind = LeadNodeKindProfileHeader;
+    } else if ([name containsString:@"ChatMessage"] && [name containsString:@"ItemNode"]) {
+        kind = LeadNodeKindMessageItem;
+    }
+    os_unfair_lock_lock(&lock);
+    [cache setObject:@(kind) forKey:cls];
+    os_unfair_lock_unlock(&lock);
+    return kind;
+}
+
+// Profiles on the pre-13.1 base (Swiftgram 13.0) draw their own Edit/More buttons
+// in PeerInfoHeaderNavigationButtonContainerNode, over the navigation bar; bar
+// items added there land on top of them. There Lead's two buttons move out of the
+// bar into a small row placed just left of the header's own buttons.
+static char LeadHeaderRowKey;
+
+// Associated objects can't be weak; this box holds the row weakly for the container.
+@interface LeadWeakBox : NSObject
+@property (nonatomic, weak) id value;
+@end
+@implementation LeadWeakBox
+@end
+
+@interface LeadHeaderButtonRow : UIView
+@property (nonatomic, strong) NSArray<UIBarButtonItem *> *items;
+@property (nonatomic, weak) ASDisplayNode *container;
+- (void)reload;
+- (void)place;
+@end
+
+@implementation LeadHeaderButtonRow
+- (void)reload {
+    for (UIView *view in self.subviews) [view removeFromSuperview];
+    CGFloat side = 40, gap = 8, x = 0;
+    for (UIBarButtonItem *item in self.items) {
+        UIVisualEffectView *glass = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemThinMaterial]];
+        glass.frame = CGRectMake(x, 0, side, side);
+        glass.layer.cornerRadius = side / 2;
+        glass.clipsToBounds = YES;
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+        button.frame = glass.bounds;
+        UIImage *image = [item.image imageWithConfiguration:[UIImageSymbolConfiguration configurationWithPointSize:17 weight:UIImageSymbolWeightSemibold]];
+        [button setImage:image forState:UIControlStateNormal];
+        button.tintColor = item.tintColor ?: UIColor.labelColor;
+        button.accessibilityLabel = item.accessibilityLabel;
+        objc_setAssociatedObject(button, &LeadHeaderRowKey, item, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [button addTarget:self action:@selector(tapped:) forControlEvents:UIControlEventTouchUpInside];
+        [glass.contentView addSubview:button];
+        [self addSubview:glass];
+        x += side + gap;
+    }
+    CGRect frame = self.frame;
+    frame.size = CGSizeMake(MAX(0, x - gap), side);
+    self.frame = frame;
+}
+
+- (void)tapped:(UIButton *)button {
+    UIBarButtonItem *item = objc_getAssociatedObject(button, &LeadHeaderRowKey);
+    if (item.target && item.action) {
+        ((void (*)(id, SEL, id))objc_msgSend)(item.target, item.action, item);
+    }
+    // The ghost item swaps its icon and tint after a toggle.
+    dispatch_async(dispatch_get_main_queue(), ^{ [self reload]; [self place]; });
+}
+
+// Just left of the leftmost visible header button on the right half.
+- (void)place {
+    ASDisplayNode *container = self.container;
+    UIView *host = self.superview;
+    if (!container.view || !host) { self.hidden = YES; return; }
+    CGFloat minX = CGFLOAT_MAX, midY = 0;
+    for (ASDisplayNode *child in container.subnodes ?: @[]) {
+        UIView *view = child.view;
+        if (!view || view.hidden || view.alpha < 0.01 || view.bounds.size.width < 1) continue;
+        CGRect frame = [host convertRect:view.bounds fromView:view];
+        if (CGRectGetMidX(frame) < host.bounds.size.width / 2) continue;
+        if (CGRectGetMinX(frame) < minX) {
+            minX = CGRectGetMinX(frame);
+            midY = CGRectGetMidY(frame);
+        }
+    }
+    if (minX == CGFLOAT_MAX) { self.hidden = YES; return; }
+    self.hidden = NO;
+    CGRect frame = self.frame;
+    frame.origin = CGPointMake(minX - 8 - frame.size.width, midY - frame.size.height / 2);
+    self.frame = frame;
+    [host bringSubviewToFront:self];
+}
+@end
+
+static ASDisplayNode *LeadNodeForView(UIView *view) {
+    SEL getter = NSSelectorFromString(@"asyncdisplaykit_node");
+    if (![view respondsToSelector:getter]) return nil;
+    return ((id (*)(id, SEL))objc_msgSend)(view, getter);
+}
+
+static void LeadPlaceHeaderRow(UIViewController *controller) {
+    ASDisplayNode *root = LeadNodeForView(controller.view);
+    ASDisplayNode *container = root ? findNodeByClassNamePrefix(root, @"PeerInfoHeaderNavigationButtonContainerNode") : nil;
+    LeadHeaderButtonRow *row = objc_getAssociatedObject(controller, &LeadHeaderRowKey);
+    if (!container) {
+        [row removeFromSuperview];
+        objc_setAssociatedObject(controller, &LeadHeaderRowKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        return;
+    }
+    NSMutableArray *native = [NSMutableArray array];
+    NSMutableArray *ours = [NSMutableArray array];
+    for (UIBarButtonItem *item in controller.navigationItem.rightBarButtonItems ?: @[]) {
+        BOOL isLead = [item.accessibilityIdentifier isEqualToString:@"LeadGhostExceptionBarItem"] ||
+                      [item.accessibilityIdentifier isEqualToString:@"LeadPeerInfoBarItem"];
+        [(isLead ? ours : native) addObject:item];
+    }
+    if (ours.count) {
+        [UIView performWithoutAnimation:^{
+            controller.navigationItem.rightBarButtonItems = native;
+        }];
+    } else if (row) {
+        // Nothing new to move: keep the row as is (the items already live in it).
+        ours = [row.items mutableCopy];
+    }
+    if (!row) {
+        row = [LeadHeaderButtonRow new];
+        objc_setAssociatedObject(controller, &LeadHeaderRowKey, row, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    if (row.superview != controller.view) [controller.view addSubview:row];
+    row.container = container;
+    LeadWeakBox *box = [LeadWeakBox new];
+    box.value = row;
+    objc_setAssociatedObject(container, &LeadHeaderRowKey, box, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    row.items = ours;
+    [row reload];
+    [row place];
+    row.hidden = row.hidden || ours.count == 0;
+}
+
 %hook ASDisplayNode
 - (void)layout {
     %orig;
-    
-    NSString *cls = NSStringFromClass([self class]);
-    BOOL isProfileHeader = [cls containsString:@"Profile"] || 
-                           [cls containsString:@"UserInfo"] || 
-                           [cls containsString:@"ContactInfo"] ||
-                           [cls containsString:@"PeerInfo"] ||
-                           [cls containsString:@"UserNode"] ||
-                           [cls containsString:@"Settings"];
-    
-    if (isProfileHeader) {
-        long long peerId = 0;
-        peerId = LeadPeerIdFromObject(self);
-        
-        if (peerId == 0 && ([cls containsString:@"Settings"] || [cls containsString:@"Profile"])) {
-            peerId = [[NSUserDefaults standardUserDefaults] integerForKey:@"LeadLastKnownUserId"];
-        }
-        recursiveSearchAndInject(self, self, peerId);
 
+    // Runs for every node Telegram lays out, so decide what the class is once.
+    LeadNodeKind nodeKind = LeadNodeKindForClass([self class]);
+    if (nodeKind == LeadNodeKindOther) return;
+
+    if (nodeKind == LeadNodeKindHeaderButtons) {
+        LeadHeaderButtonRow *row = ((LeadWeakBox *)objc_getAssociatedObject(self, &LeadHeaderRowKey)).value;
+        if (row) dispatch_async(dispatch_get_main_queue(), ^{ [row place]; });
+        return;
     }
 
-    NSString *className = NSStringFromClass([self class]);
-    if (![className containsString:@"ChatMessage"] || ![className containsString:@"ItemNode"]) {
+    if (nodeKind == LeadNodeKindProfileHeader) {
+        // The header lays out on every scroll step; the badge doesn't need that.
+        CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
+        NSNumber *last = objc_getAssociatedObject(self, &LeadHeaderInjectKey);
+        if (last && now - last.doubleValue < 0.3) {
+            // One more run after the burst: the last layout may be the one that has the
+            // peer loaded, and the badge must not stay on what the first one saw.
+            if (!objc_getAssociatedObject(self, &LeadHeaderInjectPendingKey)) {
+                objc_setAssociatedObject(self, &LeadHeaderInjectPendingKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                __weak ASDisplayNode *weakHeader = (ASDisplayNode *)self;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.35 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    ASDisplayNode *header = weakHeader;
+                    if (!header) return;
+                    objc_setAssociatedObject(header, &LeadHeaderInjectPendingKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    objc_setAssociatedObject(header, &LeadHeaderInjectKey, @(CFAbsoluteTimeGetCurrent()), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                    LeadInjectProfileHeader(header);
+                });
+            }
+            return;
+        }
+        objc_setAssociatedObject(self, &LeadHeaderInjectKey, @(now), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        LeadInjectProfileHeader((ASDisplayNode *)self);
         return;
     }
     
@@ -1602,6 +1715,7 @@ static void LeadInstallPeerInfoItem(UIViewController *controller) {
 static void LeadInstallProfileItems(UIViewController *controller) {
     LeadInstallGhostNavItem(controller);
     LeadInstallPeerInfoItem(controller);
+    LeadPlaceHeaderRow(controller);
 }
 
 %hook _TtC14PeerInfoScreen18PeerInfoScreenImpl
@@ -1613,6 +1727,10 @@ static void LeadInstallProfileItems(UIViewController *controller) {
         LeadInstallProfileItems(controller);
     });
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        LeadInstallProfileItems(controller);
+    });
+    // A big group's profile can take a while to load, and its button waits for that.
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         LeadInstallProfileItems(controller);
     });
 }

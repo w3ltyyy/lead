@@ -129,8 +129,11 @@ static NSString *const kHeaderId = @"LeadHeader";
   if (row.style == LeadRowStyleToggle) {
     [cell showToggle:row.isOn];
     NSString *key = row.defaultsKey;
+    __weak typeof(self) weakSelf = self;
+    void (^toggleBlock)(BOOL, UIViewController *) = row.toggleBlock;
     cell.onToggle = ^(BOOL on) {
       LeadSetBool(key, on);
+      if (toggleBlock) toggleBlock(on, weakSelf);
     };
   } else {
     [cell showValue:row.valueBlock ? row.valueBlock() : nil chevron:row.style == LeadRowStyleLink];
@@ -322,6 +325,11 @@ static NSString *LeadGhostUserId(NSDictionary *record) {
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
+  NSString *recordKey = self.records[indexPath.row][@"key"];
+  if ([recordKey hasPrefix:@"channel:"]) {
+    LeadOpenTelegramURL([NSString stringWithFormat:@"tg://privatepost?channel=%@&post=1", [recordKey substringFromIndex:8]]);
+    return;
+  }
   NSString *userId = LeadGhostUserId(self.records[indexPath.row]);
   if (userId.length == 0) {
     [LeadToast showText:LeadL(@"UI_OPEN_PROFILE_FAILED") symbol:@"exclamationmark.circle" inView:self.view];

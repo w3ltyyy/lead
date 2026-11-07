@@ -7,6 +7,11 @@
 // messages.readDiscussion#f731a9f4 — read receipt for comment threads / topics
 #define kMessagesReadDiscussion -147740172
 #define kStoriesReadStories -1521034552
+// stories.incrementStoryViews#b2028afb — sent instead of readStories for stories opened from a profile
+#define kStoriesIncrementViews -1308456197
+// Secret chats: messages.readEncryptedHistory#7f4b690a, messages.setEncryptedTyping#791451ed
+#define kMessagesReadEncryptedHistory 2135648522
+#define kMessagesSetEncryptedTyping 2031374829
 #define kGetSponsoredMessages 1030547536
 #define kGetSponsoredMessagesLegacy -1680673735
 #define kGetSponsoredPeers -1228356717
@@ -84,6 +89,16 @@
 #define kDisableAllAds @"disableAllAds"
 #define kDisableForwardRestriction @"disableForwardRestriction"
 #define kLeadDiagnostics @"LeadDiagnostics"
+// account.setContentSettings: the switch Telegram only shows when 18+ content is already on.
+#define kSensitiveContent @"LeadSensitiveContent"
+#define kAccountGetContentSettings -1952756306 // account.getContentSettings#8b9b4dae
+#define kAccountSetContentSettings -1250643605 // account.setContentSettings#b574b16b
+// Name shown for this device in Active Sessions.
+#define kFakeDeviceEnabled @"LeadFakeDeviceEnabled"
+#define kFakeDeviceName @"LeadFakeDeviceName"
+// TL layers Lead's parser understands (Sources/tgapi/api_sources).
+#define kLeadApiLayerMin 232
+#define kLeadApiLayerMax 233
 // Hide the proxy sponsor channel and PSA banners from help.getPromoData.
 #define kHideProxyPromo @"LeadHideProxyPromo"
 
@@ -117,6 +132,7 @@
 #define kMessagesSendMultiMedia 469278068     // messages.sendMultiMedia#1bf89d74
 #define kMessagesSendInlineBotResult -1060145594 // messages.sendInlineBotResult#c0cf7646
 #define kMessagesForwardMessages 326126204    // messages.forwardMessages#13704a7c
+#define kUpdatesGetDifference 432207715      // updates.getDifference#19c2f763
 #define kHelpGetPromoData -1063816159         // help.getPromoData#c0977421
 #define kChannelsReadMessageContents -357180360 // channels.readMessageContents#eab5dc38
 #define kMessagesDeleteMessages -443640366     // messages.deleteMessages#e58e95d2

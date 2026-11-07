@@ -1,8 +1,8 @@
 #import "LeadDesign.h"
 #import "Headers.h"
 
-NSString *const kLeadTweakVersion = @"2.0";
-NSString *const kLeadTweakBuild = @"118";
+NSString *const kLeadTweakVersion = @"2.0.3";
+NSString *const kLeadTweakBuild = @"122";
 NSString *const LeadSettingsDidChangeNotification = @"LeadSettingsDidChangeNotification";
 
 static BOOL sLeadNeedsRestart = NO;
@@ -43,6 +43,8 @@ void LeadSetBool(NSString *key, BOOL value) {
   if (key.length == 0) return;
   NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
   [defaults setBool:value forKey:key];
+  // Diagnostics switch themselves off 30 minutes after they're turned on.
+  if ([key isEqualToString:kLeadDiagnostics]) [defaults removeObjectForKey:@"LeadDiagnosticsSince"];
   [defaults synchronize];
   // These are read at the moment they matter, so they apply without a restart.
   static NSSet<NSString *> *liveKeys;

@@ -75,8 +75,8 @@ bool shouldFakeLocation() {
 	if (!shouldFakeLocation()) return;
 		
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	CGFloat savedLongitude = [defaults floatForKey:FAKE_LONGITUDE_KEY];
-	CGFloat savedLatitude = [defaults floatForKey:FAKE_LATITUDE_KEY];
+	CGFloat savedLongitude = [defaults doubleForKey:FAKE_LONGITUDE_KEY];
+	CGFloat savedLatitude = [defaults doubleForKey:FAKE_LATITUDE_KEY];
 	
 	if (!savedLongitude || !savedLatitude) {
 		return;
@@ -116,8 +116,8 @@ bool shouldFakeLocation() {
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	if (shouldFakeLocation()) {
 		
-		CGFloat savedLongitude = [defaults floatForKey:FAKE_LONGITUDE_KEY];
-        CGFloat savedLatitude = [defaults floatForKey:FAKE_LATITUDE_KEY];
+		CGFloat savedLongitude = [defaults doubleForKey:FAKE_LONGITUDE_KEY];
+        CGFloat savedLatitude = [defaults doubleForKey:FAKE_LATITUDE_KEY];
         
 		if (savedLongitude && savedLatitude) {
             CLLocation *fakeLocation = [[CLLocation alloc] initWithLatitude:savedLatitude longitude:savedLongitude];
@@ -138,8 +138,8 @@ bool shouldFakeLocation() {
 	if (shouldFakeLocation()) {
 		
 		// Get Our Saved Location
-		CGFloat savedLongitude = [defaults floatForKey:FAKE_LONGITUDE_KEY];
-        CGFloat savedLatitude = [defaults floatForKey:FAKE_LATITUDE_KEY];
+		CGFloat savedLongitude = [defaults doubleForKey:FAKE_LONGITUDE_KEY];
+        CGFloat savedLatitude = [defaults doubleForKey:FAKE_LATITUDE_KEY];
         
 		if (savedLongitude && savedLatitude) {
             CLLocation *fakeLocation = [[CLLocation alloc] initWithLatitude:savedLatitude longitude:savedLongitude];

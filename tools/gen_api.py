@@ -3,7 +3,11 @@
 # submodules/TelegramApi/swift_scheme.tl, in the same format Telegram's own generator
 # used before 13.1 (Telegram now ships a table-driven engine instead).
 #
-#   python3 tools/gen_api.py <Telegram-iOS>/submodules/TelegramApi/swift_scheme.tl Sources/tgapi/api_sources [--full]
+#   python3 tools/gen_api.py <Telegram-iOS>/submodules/TelegramApi/swift_scheme.tl Sources/tgapi/api_sources [--full] [--extra tools/schema_extra_233.json]
+#
+# --extra adds constructors a released client has but the public repository doesn't
+# yet (recovered from the IPA with tools/extract_schema.py). They only ever add to
+# what Lead can parse, so older clients keep working.
 #
 # Use swift_scheme.tl, not the schema.json next to it: Telegram's build generates
 # from the .tl, and the .json lags behind (in 13.1.1 channel, channelFull and
@@ -424,6 +428,9 @@ def type_sort_key(tl):
     return (1 if ns else 0, ns or '', name)
 
 
+EXTRA = None
+
+
 def load(schema_path):
     if schema_path.endswith('.tl'):
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -431,6 +438,9 @@ def load(schema_path):
         s = convert(schema_path)
     else:
         s = json.load(open(schema_path))
+    if EXTRA:
+        known = {c['id'] for c in s['constructors']}
+        s['constructors'] += [c for c in json.load(open(EXTRA))['constructors'] if c['id'] not in known]
     types = {}
     for c in s['constructors']:
         if c['type'] in SKIP_TYPES or c['predicate'] in ('vector', 'true', 'error', 'null'):
@@ -497,9 +507,14 @@ def write(path, lines):
 
 
 def main():
-    global FULL
-    args = [a for a in sys.argv[1:] if a != '--full']
-    FULL = len(args) != len(sys.argv) - 1
+    global FULL, EXTRA
+    argv = sys.argv[1:]
+    if '--extra' in argv:
+        i = argv.index('--extra')
+        EXTRA = argv[i + 1]
+        del argv[i:i + 2]
+    args = [a for a in argv if a != '--full']
+    FULL = len(args) != len(argv)
     schema, outdir = args[0], args[1]
     old_files = glob.glob(os.path.join(outdir, 'Api[0-9]*.swift'))
     # Keep `indirect` exactly where the previous generation had it (cosmetic only).
@@ -513,10 +528,10 @@ def main():
     # Api0's runtime helpers (parse/parseVector) are carried over from the current Api0.swift.
     tmpl = open(os.path.join(outdir, 'Api0.swift')).read().replace('\nextension Api {\n    static func parse(_ buffer', '\npublic extension Api {\n    static func parse(_ buffer')
     types, methods = load(schema)
-    for f in old_files:
-        os.remove(f)
     helpers_start = tmpl.index('public extension Api {\n    static func parse(_ buffer: Buffer)')
     helpers_end = tmpl.index('    static func serializeObject(')
+    for f in old_files:
+        os.remove(f)
     L = gen_header(types, methods)
     L.append('')
     L.append(tmpl[helpers_start:helpers_end].rstrip('\n'))

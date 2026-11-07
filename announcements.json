@@ -1,9 +1,9 @@
 [
   {
-    "title": "Lead 2.0 is out!",
-    "message": "• Brand-new menu with search\n• Updated for Telegram 13.1.1\n• Saving protected content works again, channels included\n• Edit history, message log and deletion banner\n• Fixed notifications and dozens of bugs",
+    "title": "Lead 2.0.3 is out!",
+    "message": "• Nagram support\n• Turkish language\n• The whole menu is translated into every language",
     "type": "update",
     "url": "https://t.me/Leadgramm",
-    "target_version": "2.0"
+    "target_version": "2.0.3"
   }
 ]

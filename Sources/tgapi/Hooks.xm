@@ -26,6 +26,14 @@ static BOOL LeadComputeIsNotificationExtensionProcess(void) {
          [identity containsString:@"com.apple.usernotifications.service"];
 }
 
+// The one extension that stores messages: NotificationService polls getDifference
+// into the shared database while the app is suspended.
+static BOOL LeadIsNotificationServiceProcess(void) {
+  NSBundle *bundle = [NSBundle mainBundle];
+  NSString *point = bundle.infoDictionary[@"NSExtension"][@"NSExtensionPointIdentifier"] ?: @"";
+  return [point isEqualToString:@"com.apple.usernotifications.service"];
+}
+
 // Called on every request and every incoming message — compute once.
 static BOOL LeadIsNotificationExtensionProcess(void) {
   static BOOL result;
@@ -104,16 +112,46 @@ extern "C" double LeadTweakUptime(void) {
   return sLeadLoadTime > 0 ? CFAbsoluteTimeGetCurrent() - sLeadLoadTime : 0;
 }
 
+// Is Lead wired into the notification service extension's binary? -1: no such extension.
+extern "C" NSInteger LeadExtensionInjected(void) {
+  NSString *plugins = NSBundle.mainBundle.builtInPlugInsPath;
+  for (NSString *plugin in [[NSFileManager defaultManager] contentsOfDirectoryAtPath:plugins error:nil] ?: @[]) {
+    if (![plugin.lowercaseString containsString:@"notificationservice"]) continue;
+    NSBundle *bundle = [NSBundle bundleWithPath:[plugins stringByAppendingPathComponent:plugin]];
+    NSData *binary = bundle.executablePath ? [NSData dataWithContentsOfFile:bundle.executablePath options:NSDataReadingMappedIfSafe error:nil] : nil;
+    NSRange head = NSMakeRange(0, MIN(binary.length, (NSUInteger)(1 << 20)));
+    return binary && ([binary rangeOfData:[@"Lead.dylib" dataUsingEncoding:NSUTF8StringEncoding] options:0 range:head].location != NSNotFound ||
+                      [binary rangeOfData:[@"lead.dylib" dataUsingEncoding:NSUTF8StringEncoding] options:0 range:head].location != NSNotFound);
+  }
+  return -1;
+}
+
 static BOOL LeadIsSendFunction(int32_t functionID) {
   return functionID == kMessagesSendMessage || functionID == kMessagesSendMedia ||
          functionID == kMessagesSendMultiMedia || functionID == kMessagesSendInlineBotResult ||
          functionID == kMessagesForwardMessages;
 }
 
-// Hooks are installed only in the main app (see %ctor): the notification
-// service extension has a tight memory budget and must stay untouched, or iOS
-// falls back to the server's generic "You have a new message" text.
+// Biggest payload the notification service extension will patch: it runs under a
+// tight memory limit, and going over it means the server's "You have a new message".
+static const NSUInteger kLeadExtensionPatchLimit = 2 << 20;
+
+static __weak id sLeadRequestService;
+
+// What's in the notification extension too (see %ctor). While the app is suspended
+// that extension is who stores new messages: unpatched, they reach the database with
+// their timers, noforwards flags and deletions already applied, and the app can't
+// undo that when it opens. Only responses are patched there; it sends nothing of its
+// own that Ghost Mode would need to stop.
 %group NetworkHooks
+
+%hook MTApiEnvironment
+- (id)initWithDeviceModelName:(NSString *)deviceModelName {
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  NSString *custom = [defaults boolForKey:kFakeDeviceEnabled] ? [defaults stringForKey:kFakeDeviceName] : nil;
+  return %orig(custom.length ? custom : deviceModelName);
+}
+%end
 
 %hook MTRequest
 %property(nonatomic, strong) NSData *fakeData;
@@ -124,11 +162,6 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
           metadata:(id)metadata
      shortMetadata:(id)shortMetadata
     responseParser:(id (^)(NSData *))responseParser {
-
-  if (LeadIsNotificationExtensionProcess()) {
-    %orig(payload, metadata, shortMetadata, responseParser);
-    return;
-  }
 
   if (!payload || payload.length < 4 || [metadata isEqual:kLeadReadOnReplyMarker]) {
     %orig(payload, metadata, shortMetadata, responseParser);
@@ -141,6 +174,13 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
   self.functionID = [NSNumber numberWithInt:functionID];
 
   id (^hooked_block)(NSData *) = ^(NSData *inputData) {
+    // File chunks hold nothing to patch; don't copy and scan up to 1 MB per part.
+    BOOL inExtension = LeadIsNotificationExtensionProcess();
+    if (functionID == kUploadGetFile || functionID == kUploadGetCdnFile ||
+        (inExtension && inputData.length > kLeadExtensionPatchLimit)) {
+      return responseParser(inputData);
+    }
+
     NSNumber *functionIDNumber = [NSNumber numberWithUnsignedInt:functionID];
     NSData *parsed =
         [TLParser handleResponse:inputData functionID:functionIDNumber];
@@ -174,12 +214,20 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
         toUse = unrestricted;
     }
 
+    if (inExtension && toUse != inputData) {
+      [TLParser bridgeNotePatched];
+    }
     id result = responseParser(toUse);
     if ([TLParser diagEnabled]) {
       [TLParser diagResponse:functionID inLength:(NSInteger)inputData.length patched:toUse != inputData result:result];
     }
     return result;
   };
+
+  if (LeadIsNotificationExtensionProcess()) {
+    %orig(payload, metadata, shortMetadata, responseParser ? hooked_block : responseParser);
+    return;
+  }
 
   switch (functionID) {
   case kAccountUpdateOnlineStatus:
@@ -196,6 +244,15 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
     break;
   case kStoriesReadStories:
     handleStoriesReadReceipt(self, payload);
+    break;
+  case kStoriesIncrementViews:
+    handleStoriesIncrementViews(self, payload);
+    break;
+  case kMessagesReadEncryptedHistory:
+    handleEncryptedReadReceipt(self, payload);
+    break;
+  case kMessagesSetEncryptedTyping:
+    handleEncryptedTyping(self, payload);
     break;
   case kGetSponsoredMessages:
   case kGetSponsoredMessagesLegacy:
@@ -286,6 +343,12 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
   }
 
   sLeadNetworkRequests++;
+  // File transfers have services of their own, on other data centers, and those can't
+  // take account calls. Online status comes only from the account in use.
+  int32_t requestFunction = request.functionID.intValue;
+  if (requestFunction == kAccountUpdateOnlineStatus || (requestFunction == kUpdatesGetDifference && !sLeadRequestService)) {
+    sLeadRequestService = self;
+  }
 
   // Read on reply: a send into a chat releases the read receipts Ghost Mode held for it.
   if (!request.fakeData && LeadIsSendFunction(request.functionID.intValue) &&
@@ -329,13 +392,16 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
         // Telegram overlays a hidden UITextField with secureTextEntry=YES
         // which causes iOS to black out the screen during screenshots.
         // We hook setSecureTextEntry: and _setSecureContents: to prevent this.
+        // Only plain UITextFields are Telegram's protection trick: password and
+        // passcode fields are TextFieldNodeView, and must keep hiding their text.
         // ============================================================
 
         %hook UITextField
 
     - (void)setSecureTextEntry : (BOOL)enabled {
-  if (enabled && [[NSUserDefaults standardUserDefaults]
-                     boolForKey:kDisableScreenshotNotification]) {
+  if (enabled && [self class] == [UITextField class] &&
+      [[NSUserDefaults standardUserDefaults]
+          boolForKey:kDisableScreenshotNotification]) {
     %orig(NO);
     return;
   }
@@ -358,23 +424,18 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
 %end
 
 // ============================================================
-// Anti-Revoke: block incoming delete-message updates from server.
-// Strategy: Replace the update constructor word with an unknown
-// dummy value (0x00000001) so Telegram discards the entire update.
-// Zeroing IDs is unreliable — killing the constructor is definitive.
+// Anti-Revoke: keep messages the server says were deleted.
+// The ids inside the update are zeroed: Telegram processes "delete
+// [0,0,...]", which matches nothing, and pts/layout stay intact.
 //
-// updateDeleteMessages       constructor: -1576161051 (0xA20DB722)
-// updateDeleteChannelMessages constructor: -1020437742 (0xC37521C9)
+// updateDeleteMessages#a20db0e5        -1576161051
+// updateDeleteChannelMessages#c32d5b12 -1020437742
 // ============================================================
 
 #define kUpdateDeleteMessages -1576161051
 #define kUpdateDeleteChannelMessages -1020437742
 
 #define kVectorConstructor 481674261
-
-// Dummy constructor Telegram will not recognize — causes update to be silently
-// skipped
-#define kDummyConstructor 0x00000001
 
 // gzip_packed#3072cfa1 — Telegram wraps large updates in gzip to save bandwidth
 #define kGzipPackedCtor ((int32_t)0x3072CFA1)
@@ -384,9 +445,43 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
     // Returns decompressed NSData, or nil on failure.
     // ============================================================
 
+    // Zeroes the ids that should survive: all of them with Anti-Revoke, otherwise
+    // only messages known to carry a timer (a sender's ordinary deletion is not
+    // Anti-Self-Destruct's or Anti-Auto-Delete's business). channelId 0 = no channel.
+    static BOOL LeadKeepDeletedIds(uint8_t *ids, int32_t count, int64_t channelId, BOOL antiRevoke) {
+  NSMutableArray *kept = [NSMutableArray array];
+  for (int32_t k = 0; k < count; k++) {
+    int32_t messageId = 0;
+    memcpy(&messageId, ids + k * 4, 4);
+    if (messageId == 0)
+      continue;
+    BOOL keep = antiRevoke || (channelId != 0
+                                   ? [TLParser isMessageSelfDestructing:@(messageId) channelId:channelId]
+                                   : [TLParser isMessageSelfDestructing:@(messageId)]);
+    if (!keep)
+      continue;
+    if (channelId != 0) {
+      [TLParser addDeletedId:messageId channelId:channelId];
+    } else {
+      [TLParser addDeletedId:messageId];
+    }
+    [kept addObject:@(messageId)];
+    memset(ids + k * 4, 0, 4);
+  }
+  if (kept.count == 0)
+    return NO;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"LeadMessageDeletedRealtime"
+                      object:nil
+                    userInfo:@{@"ids" : kept}];
+  });
+  return YES;
+}
+
     static NSData *neutralizePayload(NSData *data, BOOL antiRevoke,
                                      BOOL antiSelfDestruct, BOOL antiAutoDelete) {
-  if (!data || data.length < 8)
+  if (!data || data.length < 8 || !(antiRevoke || antiSelfDestruct || antiAutoDelete))
     return nil;
 
   // Handle gzip_packed: Telegram compresses large updates to save bandwidth.
@@ -422,13 +517,8 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
   if (data.length < 16)
     return nil;
 
-  BOOL modified = NO;
-  NSMutableData *mData = [NSMutableData dataWithData:data];
-  uint8_t *bytes = (uint8_t *)mData.mutableBytes;
-  NSUInteger len = mData.length;
-
   int32_t top_w = 0;
-  memcpy(&top_w, bytes, 4);
+  memcpy(&top_w, data.bytes, 4);
   // DO NOT scan file blobs (upload.file, upload.cdnFile, etc.) to prevent false
   // positives in binary media.
   if (top_w == 157948117 || top_w == -242427324 || top_w == -1449145777 ||
@@ -436,106 +526,37 @@ static BOOL LeadIsSendFunction(int32_t functionID) {
     return nil;
   }
 
+  BOOL modified = NO;
+  NSMutableData *mData = [NSMutableData dataWithData:data];
+  uint8_t *bytes = (uint8_t *)mData.mutableBytes;
+  NSUInteger len = mData.length;
+
   for (NSUInteger i = 0; i + 8 <= len; i += 4) {
     int32_t w = 0;
     memcpy(&w, bytes + i, 4);
 
-    // 1. Anti-Revoke & Anti-Self-Destruct: updateDeleteMessages#A20DB0E5
-    // Layout: [ctor:4][vecCtor:4][count
-    // N:4][id1:4]...[idN:4][pts:4][ptsCount:4] Fix: zero ALL message IDs (keep
-    // count=N, pts, ptsCount intact). Telegram processes "delete messages
-    // [0,0,...]" — ID 0 never exists → no-op. TL structure is completely
-    // preserved, no parse failure, no re-fetch.
-    if ((antiRevoke || antiSelfDestruct || antiAutoDelete) && w == kUpdateDeleteMessages &&
-        i + 12 <= len) {
-      int32_t vec = 0;
+    // updateDeleteMessages: [ctor:4][vecCtor:4][count:4][ids…][pts:4][ptsCount:4]
+    if (w == kUpdateDeleteMessages && i + 12 <= len) {
+      int32_t vec = 0, count = 0;
       memcpy(&vec, bytes + i + 4, 4);
-      if (vec == kVectorConstructor) {
-        int32_t count = 0;
-        memcpy(&count, bytes + i + 8, 4);
-        if (count > 0 && count <= 65536) {
-          NSUInteger idsEnd = i + 12 + (NSUInteger)count * 4;
-          if (idsEnd <= len) {
-            NSMutableArray *deletedIdsArr = [NSMutableArray array];
-            for (int32_t k = 0; k < count; k++) {
-              int32_t origId = 0;
-              memcpy(&origId, bytes + i + 12 + k * 4, 4);
-              [NSClassFromString(@"TLParser") addDeletedId:origId];
-              [deletedIdsArr addObject:@(origId)];
-            }
-            if (antiRevoke || antiAutoDelete) {
-              if (deletedIdsArr.count > 0) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                  [[NSNotificationCenter defaultCenter]
-                      postNotificationName:@"LeadMessageDeletedRealtime"
-                                    object:nil
-                                  userInfo:@{@"ids" : deletedIdsArr}];
-                });
-              }
-              memset(bytes + i + 12, 0, (NSUInteger)count * 4);
-              modified = YES;
-            } else if (antiSelfDestruct) {
-              for (int32_t k = 0; k < count; k++) {
-                int32_t origId = 0;
-                memcpy(&origId, bytes + i + 12 + k * 4, 4);
-                if ([NSClassFromString(@"TLParser")
-                        isMessageSelfDestructing:@(origId)]) {
-                  int32_t zero = 0;
-                  memcpy(bytes + i + 12 + k * 4, &zero, 4);
-                  modified = YES;
-                }
-              }
-            }
-          }
-        }
+      memcpy(&count, bytes + i + 8, 4);
+      if (vec == kVectorConstructor && count > 0 && count <= 65536 &&
+          i + 12 + (NSUInteger)count * 4 <= len &&
+          LeadKeepDeletedIds(bytes + i + 12, count, 0, antiRevoke)) {
+        modified = YES;
       }
     }
-    // updateDeleteChannelMessages#C37521C9
-    // Layout: [ctor:4][channelId:8][vecCtor:4][count:4][ids][pts:4][ptsCount:4]
-    else if ((antiRevoke || antiSelfDestruct || antiAutoDelete) &&
-             w == kUpdateDeleteChannelMessages && i + 20 <= len) {
-      int32_t vec = 0;
+    // updateDeleteChannelMessages: [ctor:4][channelId:8][vecCtor:4][count:4][ids…][pts:4][ptsCount:4]
+    else if (w == kUpdateDeleteChannelMessages && i + 20 <= len) {
+      int32_t vec = 0, count = 0;
+      int64_t channelId = 0;
+      memcpy(&channelId, bytes + i + 4, 8);
       memcpy(&vec, bytes + i + 12, 4);
-      if (vec == kVectorConstructor) {
-        int32_t count = 0;
-        memcpy(&count, bytes + i + 16, 4);
-        if (count > 0 && count <= 65536) {
-          NSUInteger idsEnd = i + 20 + (NSUInteger)count * 4;
-          if (idsEnd <= len) {
-            NSMutableArray *deletedIdsArr = [NSMutableArray array];
-            int64_t channelId = 0;
-            memcpy(&channelId, bytes + i + 4, 8);
-            for (int32_t k = 0; k < count; k++) {
-              int32_t origId = 0;
-              memcpy(&origId, bytes + i + 20 + k * 4, 4);
-              [NSClassFromString(@"TLParser") addDeletedId:origId channelId:channelId];
-              [deletedIdsArr addObject:@(origId)];
-            }
-            if (antiRevoke || antiAutoDelete) {
-              if (deletedIdsArr.count > 0) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                  [[NSNotificationCenter defaultCenter]
-                      postNotificationName:@"LeadMessageDeletedRealtime"
-                                    object:nil
-                                  userInfo:@{@"ids" : deletedIdsArr}];
-                });
-              }
-              memset(bytes + i + 20, 0, (NSUInteger)count * 4);
-              modified = YES;
-            } else if (antiSelfDestruct) {
-              for (int32_t k = 0; k < count; k++) {
-                int32_t origId = 0;
-                memcpy(&origId, bytes + i + 20 + k * 4, 4);
-                if ([NSClassFromString(@"TLParser")
-                        isMessageSelfDestructing:@(origId)]) {
-                  int32_t zero = 0;
-                  memcpy(bytes + i + 20 + k * 4, &zero, 4);
-                  modified = YES;
-                }
-              }
-            }
-          }
-        }
+      memcpy(&count, bytes + i + 16, 4);
+      if (vec == kVectorConstructor && count > 0 && count <= 65536 && channelId != 0 &&
+          i + 20 + (NSUInteger)count * 4 <= len &&
+          LeadKeepDeletedIds(bytes + i + 20, count, channelId, antiRevoke)) {
+        modified = YES;
       }
     }
   }
@@ -617,7 +638,8 @@ static NSData *stripIosRestrictionRules(NSData *data) {
 %hook MTProto
 
     - (id)parseMessage : (NSData *)data {
-  if (LeadIsNotificationExtensionProcess()) {
+  BOOL inExtension = LeadIsNotificationExtensionProcess();
+  if (inExtension && data.length > kLeadExtensionPatchLimit) {
     return %orig;
   }
 
@@ -695,6 +717,9 @@ static NSData *stripIosRestrictionRules(NSData *data) {
     }
 
     if (modified) {
+      if (inExtension) {
+        [TLParser bridgeNotePatched];
+      }
       return %orig(data);
     }
   }
@@ -706,8 +731,38 @@ static NSData *stripIosRestrictionRules(NSData *data) {
 %end // NetworkHooks
 
 
+// Sends a request of Lead's own through the connection Telegram already has, on the
+// account that made the last request. NO when nothing has been sent yet.
+extern "C" BOOL LeadSendRawRequest(NSData *payload, void (^done)(NSData *result, NSString *error)) {
+  MTRequestMessageService *service = sLeadRequestService;
+  if (!service) return NO;
+  MTRequest *request = [[%c(MTRequest) alloc] init];
+  [request setPayload:payload
+             metadata:kLeadReadOnReplyMarker
+        shortMetadata:kLeadReadOnReplyMarker
+       responseParser:^id(NSData *data) {
+         return data ?: [NSData data];
+       }];
+  request.completed = ^(id result, __unused MTRequestResponseInfo *info, MTRpcError *error) {
+    NSData *data = [result isKindOfClass:[NSData class]] ? result : nil;
+    NSString *message = error ? (error.errorDescription ?: @"ERROR") : nil;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      if (done) done(data, message);
+    });
+  };
+  [service addRequest:request];
+  return YES;
+}
+
     %ctor {
-  if (LeadIsNotificationExtensionProcess()) {
+  BOOL inExtension = LeadIsNotificationExtensionProcess();
+  if (inExtension && !LeadIsNotificationServiceProcess()) {
+    return;
+  }
+
+  TLParser.sharedNotesPath = LeadSharedNotesPath();
+  // With nothing to do in the extension, leave it exactly as Telegram built it.
+  if (inExtension && ![TLParser bridgeLoadSettings]) {
     return;
   }
 
@@ -716,6 +771,24 @@ static NSData *stripIosRestrictionRules(NSData *data) {
 
   // Load persisted deleted-message IDs from UserDefaults into memory on launch.
   [TLParser loadPersistedIds];
+
+  if (inExtension) {
+    return;
+  }
+
+  // The extension reads what the app last wrote, and hands back what it saw.
+  void (^sync)(NSNotification *) = ^(__unused NSNotification *note) {
+    [TLParser bridgeWriteSettings];
+    [TLParser bridgeTakeHandoff];
+  };
+  NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+  for (NSString *name in @[ @"LeadSettingsDidChangeNotification", @"UIApplicationDidBecomeActiveNotification",
+                            @"UIApplicationDidEnterBackgroundNotification" ]) {
+    [center addObserverForName:name object:nil queue:[NSOperationQueue mainQueue] usingBlock:sync];
+  }
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    sync(nil);
+  });
 
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(20 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
     if ([TLParser diagEnabled]) {

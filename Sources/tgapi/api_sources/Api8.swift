@@ -234,6 +234,32 @@ extension Api {
                 self.url = url
             }
         }
+        class Cons_inputMediaWidget: TypeConstructorDescription {
+            var flags: Int32
+            var width: Int32
+            var height: Int32
+            var html: String
+            var publicData: String?
+            var chatData: String?
+            init(flags: Int32, width: Int32, height: Int32, html: String, publicData: String?, chatData: String?) {
+                self.flags = flags
+                self.width = width
+                self.height = height
+                self.html = html
+                self.publicData = publicData
+                self.chatData = chatData
+            }
+        }
+        class Cons_inputMediaWidgetId: TypeConstructorDescription {
+            var flags: Int32
+            var widgetId: Int64
+            var chatData: String?
+            init(flags: Int32, widgetId: Int64, chatData: String?) {
+                self.flags = flags
+                self.widgetId = widgetId
+                self.chatData = chatData
+            }
+        }
         case inputMediaContact(Cons_inputMediaContact)
         case inputMediaDice(Cons_inputMediaDice)
         case inputMediaDocument(Cons_inputMediaDocument)
@@ -254,6 +280,8 @@ extension Api {
         case inputMediaUploadedPhoto(Cons_inputMediaUploadedPhoto)
         case inputMediaVenue(Cons_inputMediaVenue)
         case inputMediaWebPage(Cons_inputMediaWebPage)
+        case inputMediaWidget(Cons_inputMediaWidget)
+        case inputMediaWidgetId(Cons_inputMediaWidgetId)
 
         func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
             switch self {
@@ -521,6 +549,31 @@ extension Api {
                 }
                 serializeInt32(_data.flags, buffer: buffer, boxed: false)
                 serializeString(_data.url, buffer: buffer, boxed: false)
+                break
+            case .inputMediaWidget(let _data):
+                if boxed {
+                    buffer.appendInt32(1157021774)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt32(_data.width, buffer: buffer, boxed: false)
+                serializeInt32(_data.height, buffer: buffer, boxed: false)
+                serializeString(_data.html, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    serializeString(_data.publicData!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 3) != 0 {
+                    serializeString(_data.chatData!, buffer: buffer, boxed: false)
+                }
+                break
+            case .inputMediaWidgetId(let _data):
+                if boxed {
+                    buffer.appendInt32(2089114805)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.widgetId, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeString(_data.chatData!, buffer: buffer, boxed: false)
+                }
                 break
             }
         }
@@ -1032,6 +1085,55 @@ extension Api {
             let _c2 = _2 != nil
             if _c1 && _c2 {
                 return Api.InputMedia.inputMediaWebPage(Cons_inputMediaWebPage(flags: _1!, url: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_inputMediaWidget(_ reader: BufferReader) -> InputMedia? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int32?
+            _2 = reader.readInt32()
+            var _3: Int32?
+            _3 = reader.readInt32()
+            var _4: String?
+            _4 = parseString(reader)
+            var _5: String?
+            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
+                _5 = parseString(reader)
+            }
+            var _6: String?
+            if Int(_1 ?? 0) & Int(1 << 3) != 0 {
+                _6 = parseString(reader)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 3) == 0) || _6 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
+                return Api.InputMedia.inputMediaWidget(Cons_inputMediaWidget(flags: _1!, width: _2!, height: _3!, html: _4!, publicData: _5, chatData: _6))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_inputMediaWidgetId(_ reader: BufferReader) -> InputMedia? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: String?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _3 = parseString(reader)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _3 != nil
+            if _c1 && _c2 && _c3 {
+                return Api.InputMedia.inputMediaWidgetId(Cons_inputMediaWidgetId(flags: _1!, widgetId: _2!, chatData: _3))
             }
             else {
                 return nil

@@ -5,7 +5,10 @@
 # Sign the result as usual, WITHOUT adding Lead.dylib again in the signer.
 #
 #   python3 tools/inject_ipa.py Telegram.ipa [-o Telegram-Lead.ipa] [--dylib Lead.dylib]
-#                               [--all-extensions] [--remove sideloadFixer]
+#                               [--all-extensions] [--remove sideloadFixer] [--extra other.dylib]
+#
+# Extra dylibs that link CydiaSubstrate.framework get it copied into Frameworks
+# (--substrate).
 #
 # Only touches load commands (into the existing header padding) and adds the
 # dylib to Payload/<app>/Frameworks. The IPA must be decrypted.
@@ -127,21 +130,41 @@ def remove_dylibs(data, needle):
     return removed
 
 
-def patch_binary(binary, load_path, remove):
+def patch_binary(binary, load_path, remove, skip_if='lead.dylib'):
     data = bytearray(open(binary, 'rb').read())
     check_decrypted(data, binary)
     notes = []
     for needle in remove:
         for removed in remove_dylibs(data, needle):
             notes.append('removed ' + removed)
-    if any(os.path.basename(n).lower() == 'lead.dylib' for n in linked_dylibs(data)):
-        notes.append('Lead already linked, left as is')
+    if any(os.path.basename(n).lower() == skip_if.lower() for n in linked_dylibs(data)):
+        notes.append('%s already linked, left as is' % os.path.basename(load_path))
     else:
         add_dylib(data, load_path)
         notes.append('linked ' + load_path)
     mode = os.stat(binary).st_mode
     open(binary, 'wb').write(data)
     os.chmod(binary, mode)
+    return notes
+
+
+DEFAULT_SUBSTRATE = [os.path.expanduser('~/Documents/Injecy/cyan/extras/CydiaSubstrate.framework')]
+
+
+def add_extra(app, executable, dylib, substrate):
+    """Copies `dylib` into Frameworks and links it from the main executable (weak)."""
+    frameworks = os.path.join(app, 'Frameworks')
+    name = os.path.basename(dylib)
+    shutil.copy2(dylib, os.path.join(frameworks, name))
+    notes = patch_binary(executable, '@executable_path/Frameworks/' + name, [], skip_if=name)
+    needs = [n for n in linked_dylibs(bytearray(open(dylib, 'rb').read())) if 'CydiaSubstrate.framework' in n]
+    target = os.path.join(frameworks, 'CydiaSubstrate.framework')
+    if needs and not os.path.isdir(target):
+        source = next((p for p in ([substrate] if substrate else DEFAULT_SUBSTRATE) if p and os.path.isdir(p)), None)
+        if not source:
+            raise InjectError('%s needs CydiaSubstrate.framework; pass --substrate PATH' % name)
+        shutil.copytree(source, target)
+        notes.append('added CydiaSubstrate.framework (needed by %s)' % name)
     return notes
 
 
@@ -160,6 +183,10 @@ def main():
     parser.add_argument('--all-extensions', action='store_true', help='inject into every extension, not just notifications')
     parser.add_argument('--remove', action='append', default=[], metavar='NAME',
                         help='drop already injected dylibs whose path contains NAME (e.g. sideloadFixer)')
+    parser.add_argument('--extra', action='append', default=[], metavar='DYLIB',
+                        help='also inject this dylib into the app (repeatable)')
+    parser.add_argument('--substrate', metavar='FRAMEWORK',
+                        help='CydiaSubstrate.framework for extra dylibs that need it')
     args = parser.parse_args()
 
     if not os.path.isfile(args.dylib):
@@ -182,6 +209,9 @@ def main():
         print('%s:' % apps[0])
         for note in patch_binary(executable, '@executable_path/Frameworks/Lead.dylib', args.remove):
             print('  ' + note)
+        for extra in args.extra:
+            for note in add_extra(app, executable, extra, args.substrate):
+                print('  ' + note)
 
         plugins = os.path.join(app, 'PlugIns')
         injected_nse = False

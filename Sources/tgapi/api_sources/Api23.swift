@@ -1496,6 +1496,72 @@ extension Api {
     }
 }
 extension Api {
+    enum UserWallet: TypeConstructorDescription {
+        class Cons_userWallet: TypeConstructorDescription {
+            var flags: Int32
+            var address: String
+            var balance: Int64
+            var publicKey: Buffer?
+            var stateInit: Buffer?
+            init(flags: Int32, address: String, balance: Int64, publicKey: Buffer?, stateInit: Buffer?) {
+                self.flags = flags
+                self.address = address
+                self.balance = balance
+                self.publicKey = publicKey
+                self.stateInit = stateInit
+            }
+        }
+        case userWallet(Cons_userWallet)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .userWallet(let _data):
+                if boxed {
+                    buffer.appendInt32(1162684215)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeString(_data.address, buffer: buffer, boxed: false)
+                serializeInt64(_data.balance, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeBytes(_data.publicKey!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeBytes(_data.stateInit!, buffer: buffer, boxed: false)
+                }
+                break
+            }
+        }
+
+        static func parse_userWallet(_ reader: BufferReader) -> UserWallet? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: String?
+            _2 = parseString(reader)
+            var _3: Int64?
+            _3 = reader.readInt64()
+            var _4: Buffer?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _4 = parseBytes(reader)
+            }
+            var _5: Buffer?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _5 = parseBytes(reader)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _5 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 {
+                return Api.UserWallet.userWallet(Cons_userWallet(flags: _1!, address: _2!, balance: _3!, publicKey: _4, stateInit: _5))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
+extension Api {
     enum Username: TypeConstructorDescription {
         class Cons_username: TypeConstructorDescription {
             var flags: Int32
@@ -1676,120 +1742,6 @@ extension Api {
             let _c3 = _3 != nil
             if _c1 && _c2 && _c3 {
                 return Api.VideoSize.videoSizeStickerMarkup(Cons_videoSizeStickerMarkup(stickerset: _1!, stickerId: _2!, backgroundColors: _3!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api {
-    enum WallPaper: TypeConstructorDescription {
-        class Cons_wallPaper: TypeConstructorDescription {
-            var id: Int64
-            var flags: Int32
-            var accessHash: Int64
-            var slug: String
-            var document: Api.Document
-            var settings: Api.WallPaperSettings?
-            init(id: Int64, flags: Int32, accessHash: Int64, slug: String, document: Api.Document, settings: Api.WallPaperSettings?) {
-                self.id = id
-                self.flags = flags
-                self.accessHash = accessHash
-                self.slug = slug
-                self.document = document
-                self.settings = settings
-            }
-        }
-        class Cons_wallPaperNoFile: TypeConstructorDescription {
-            var id: Int64
-            var flags: Int32
-            var settings: Api.WallPaperSettings?
-            init(id: Int64, flags: Int32, settings: Api.WallPaperSettings?) {
-                self.id = id
-                self.flags = flags
-                self.settings = settings
-            }
-        }
-        case wallPaper(Cons_wallPaper)
-        case wallPaperNoFile(Cons_wallPaperNoFile)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .wallPaper(let _data):
-                if boxed {
-                    buffer.appendInt32(-1539849235)
-                }
-                serializeInt64(_data.id, buffer: buffer, boxed: false)
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                serializeInt64(_data.accessHash, buffer: buffer, boxed: false)
-                serializeString(_data.slug, buffer: buffer, boxed: false)
-                _data.document.serialize(buffer, true)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.settings!.serialize(buffer, true)
-                }
-                break
-            case .wallPaperNoFile(let _data):
-                if boxed {
-                    buffer.appendInt32(-528465642)
-                }
-                serializeInt64(_data.id, buffer: buffer, boxed: false)
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                if Int(_data.flags) & Int(1 << 2) != 0 {
-                    _data.settings!.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        static func parse_wallPaper(_ reader: BufferReader) -> WallPaper? {
-            var _1: Int64?
-            _1 = reader.readInt64()
-            var _2: Int32?
-            _2 = reader.readInt32()
-            var _3: Int64?
-            _3 = reader.readInt64()
-            var _4: String?
-            _4 = parseString(reader)
-            var _5: Api.Document?
-            if let signature = reader.readInt32() {
-                _5 = Api.parse(reader, signature: signature) as? Api.Document
-            }
-            var _6: Api.WallPaperSettings?
-            if Int(_2 ?? 0) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _6 = Api.parse(reader, signature: signature) as? Api.WallPaperSettings
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = (Int(_2 ?? 0) & Int(1 << 2) == 0) || _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.WallPaper.wallPaper(Cons_wallPaper(id: _1!, flags: _2!, accessHash: _3!, slug: _4!, document: _5!, settings: _6))
-            }
-            else {
-                return nil
-            }
-        }
-        static func parse_wallPaperNoFile(_ reader: BufferReader) -> WallPaper? {
-            var _1: Int64?
-            _1 = reader.readInt64()
-            var _2: Int32?
-            _2 = reader.readInt32()
-            var _3: Api.WallPaperSettings?
-            if Int(_2 ?? 0) & Int(1 << 2) != 0 {
-                if let signature = reader.readInt32() {
-                    _3 = Api.parse(reader, signature: signature) as? Api.WallPaperSettings
-                }
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = (Int(_2 ?? 0) & Int(1 << 2) == 0) || _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.WallPaper.wallPaperNoFile(Cons_wallPaperNoFile(id: _1!, flags: _2!, settings: _3))
             }
             else {
                 return nil

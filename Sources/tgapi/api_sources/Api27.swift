@@ -1,4 +1,89 @@
 extension Api.messages {
+    enum QuickReplies: TypeConstructorDescription {
+        class Cons_quickReplies: TypeConstructorDescription {
+            var quickReplies: [Api.QuickReply]
+            var messages: [Api.Message]
+            var chats: [Api.Chat]
+            var users: [Api.User]
+            init(quickReplies: [Api.QuickReply], messages: [Api.Message], chats: [Api.Chat], users: [Api.User]) {
+                self.quickReplies = quickReplies
+                self.messages = messages
+                self.chats = chats
+                self.users = users
+            }
+        }
+        case quickReplies(Cons_quickReplies)
+        case quickRepliesNotModified
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .quickReplies(let _data):
+                if boxed {
+                    buffer.appendInt32(-963811691)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.quickReplies.count))
+                for item in _data.quickReplies {
+                    item.serialize(buffer, true)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.messages.count))
+                for item in _data.messages {
+                    item.serialize(buffer, true)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.chats.count))
+                for item in _data.chats {
+                    item.serialize(buffer, true)
+                }
+                buffer.appendInt32(481674261)
+                buffer.appendInt32(Int32(_data.users.count))
+                for item in _data.users {
+                    item.serialize(buffer, true)
+                }
+                break
+            case .quickRepliesNotModified:
+                if boxed {
+                    buffer.appendInt32(1603398491)
+                }
+                break
+            }
+        }
+
+        static func parse_quickReplies(_ reader: BufferReader) -> QuickReplies? {
+            var _1: [Api.QuickReply]?
+            if let _ = reader.readInt32() {
+                _1 = Api.parseVector(reader, elementSignature: 0, elementType: Api.QuickReply.self)
+            }
+            var _2: [Api.Message]?
+            if let _ = reader.readInt32() {
+                _2 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Message.self)
+            }
+            var _3: [Api.Chat]?
+            if let _ = reader.readInt32() {
+                _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
+            }
+            var _4: [Api.User]?
+            if let _ = reader.readInt32() {
+                _4 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            if _c1 && _c2 && _c3 && _c4 {
+                return Api.messages.QuickReplies.quickReplies(Cons_quickReplies(quickReplies: _1!, messages: _2!, chats: _3!, users: _4!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_quickRepliesNotModified(_ reader: BufferReader) -> QuickReplies? {
+            return Api.messages.QuickReplies.quickRepliesNotModified
+        }
+    }
+}
+extension Api.messages {
     enum SavedDialogs: TypeConstructorDescription {
         class Cons_savedDialogs: TypeConstructorDescription {
             var dialogs: [Api.SavedDialog]
@@ -1641,152 +1726,6 @@ extension Api.phone {
             let _c4 = _4 != nil
             if _c1 && _c2 && _c3 && _c4 {
                 return Api.phone.GroupCallStars.groupCallStars(Cons_groupCallStars(totalStars: _1!, topDonors: _2!, chats: _3!, users: _4!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api.phone {
-    enum GroupParticipants: TypeConstructorDescription {
-        class Cons_groupParticipants: TypeConstructorDescription {
-            var count: Int32
-            var participants: [Api.GroupCallParticipant]
-            var nextOffset: String
-            var chats: [Api.Chat]
-            var users: [Api.User]
-            var version: Int32
-            init(count: Int32, participants: [Api.GroupCallParticipant], nextOffset: String, chats: [Api.Chat], users: [Api.User], version: Int32) {
-                self.count = count
-                self.participants = participants
-                self.nextOffset = nextOffset
-                self.chats = chats
-                self.users = users
-                self.version = version
-            }
-        }
-        case groupParticipants(Cons_groupParticipants)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .groupParticipants(let _data):
-                if boxed {
-                    buffer.appendInt32(-193506890)
-                }
-                serializeInt32(_data.count, buffer: buffer, boxed: false)
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.participants.count))
-                for item in _data.participants {
-                    item.serialize(buffer, true)
-                }
-                serializeString(_data.nextOffset, buffer: buffer, boxed: false)
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.chats.count))
-                for item in _data.chats {
-                    item.serialize(buffer, true)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.users.count))
-                for item in _data.users {
-                    item.serialize(buffer, true)
-                }
-                serializeInt32(_data.version, buffer: buffer, boxed: false)
-                break
-            }
-        }
-
-        static func parse_groupParticipants(_ reader: BufferReader) -> GroupParticipants? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: [Api.GroupCallParticipant]?
-            if let _ = reader.readInt32() {
-                _2 = Api.parseVector(reader, elementSignature: 0, elementType: Api.GroupCallParticipant.self)
-            }
-            var _3: String?
-            _3 = parseString(reader)
-            var _4: [Api.Chat]?
-            if let _ = reader.readInt32() {
-                _4 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
-            }
-            var _5: [Api.User]?
-            if let _ = reader.readInt32() {
-                _5 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
-            }
-            var _6: Int32?
-            _6 = reader.readInt32()
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            let _c4 = _4 != nil
-            let _c5 = _5 != nil
-            let _c6 = _6 != nil
-            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
-                return Api.phone.GroupParticipants.groupParticipants(Cons_groupParticipants(count: _1!, participants: _2!, nextOffset: _3!, chats: _4!, users: _5!, version: _6!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api.phone {
-    enum JoinAsPeers: TypeConstructorDescription {
-        class Cons_joinAsPeers: TypeConstructorDescription {
-            var peers: [Api.Peer]
-            var chats: [Api.Chat]
-            var users: [Api.User]
-            init(peers: [Api.Peer], chats: [Api.Chat], users: [Api.User]) {
-                self.peers = peers
-                self.chats = chats
-                self.users = users
-            }
-        }
-        case joinAsPeers(Cons_joinAsPeers)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .joinAsPeers(let _data):
-                if boxed {
-                    buffer.appendInt32(-1343921601)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.peers.count))
-                for item in _data.peers {
-                    item.serialize(buffer, true)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.chats.count))
-                for item in _data.chats {
-                    item.serialize(buffer, true)
-                }
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.users.count))
-                for item in _data.users {
-                    item.serialize(buffer, true)
-                }
-                break
-            }
-        }
-
-        static func parse_joinAsPeers(_ reader: BufferReader) -> JoinAsPeers? {
-            var _1: [Api.Peer]?
-            if let _ = reader.readInt32() {
-                _1 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Peer.self)
-            }
-            var _2: [Api.Chat]?
-            if let _ = reader.readInt32() {
-                _2 = Api.parseVector(reader, elementSignature: 0, elementType: Api.Chat.self)
-            }
-            var _3: [Api.User]?
-            if let _ = reader.readInt32() {
-                _3 = Api.parseVector(reader, elementSignature: 0, elementType: Api.User.self)
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            let _c3 = _3 != nil
-            if _c1 && _c2 && _c3 {
-                return Api.phone.JoinAsPeers.joinAsPeers(Cons_joinAsPeers(peers: _1!, chats: _2!, users: _3!))
             }
             else {
                 return nil

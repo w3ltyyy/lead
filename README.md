@@ -133,9 +133,10 @@ Install the `.deb` from the [channel](https://t.me/leadgramm) with your package 
 
 | | App | Status |
 |:-:|---|---|
-| ✅ | **Telegram 13.1.1** | Everything works |
-| ✅ | **Turrit 1.5.7** | Everything works · notifications may not arrive (fork push limits) |
-| ⚠️ | **Swiftgram 13.0** | Partly — waiting for Swiftgram to move to the newer Telegram base |
+| ✅ | **Telegram 13.2** | Everything works |
+| ✅ | **Turrit 1.5.8** | Everything works |
+| ✅ | **Swiftgram 13.1.2** | Everything works |
+| ⚠️ | **Nagram 13.1.1** | Same API as the others, not fully tested yet |
 
 > [!WARNING]
 > With the **Rust MTProto** engine enabled in Telegram's Debug menu, network features can't work. Lead shows a warning in its menu when that happens.

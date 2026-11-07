@@ -1,4 +1,86 @@
 extension Api {
+    enum NotificationSound: TypeConstructorDescription {
+        class Cons_notificationSoundLocal: TypeConstructorDescription {
+            var title: String
+            var data: String
+            init(title: String, data: String) {
+                self.title = title
+                self.data = data
+            }
+        }
+        class Cons_notificationSoundRingtone: TypeConstructorDescription {
+            var id: Int64
+            init(id: Int64) {
+                self.id = id
+            }
+        }
+        case notificationSoundDefault
+        case notificationSoundLocal(Cons_notificationSoundLocal)
+        case notificationSoundNone
+        case notificationSoundRingtone(Cons_notificationSoundRingtone)
+
+        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
+            switch self {
+            case .notificationSoundDefault:
+                if boxed {
+                    buffer.appendInt32(-1746354498)
+                }
+                break
+            case .notificationSoundLocal(let _data):
+                if boxed {
+                    buffer.appendInt32(-2096391452)
+                }
+                serializeString(_data.title, buffer: buffer, boxed: false)
+                serializeString(_data.data, buffer: buffer, boxed: false)
+                break
+            case .notificationSoundNone:
+                if boxed {
+                    buffer.appendInt32(1863070943)
+                }
+                break
+            case .notificationSoundRingtone(let _data):
+                if boxed {
+                    buffer.appendInt32(-9666487)
+                }
+                serializeInt64(_data.id, buffer: buffer, boxed: false)
+                break
+            }
+        }
+
+        static func parse_notificationSoundDefault(_ reader: BufferReader) -> NotificationSound? {
+            return Api.NotificationSound.notificationSoundDefault
+        }
+        static func parse_notificationSoundLocal(_ reader: BufferReader) -> NotificationSound? {
+            var _1: String?
+            _1 = parseString(reader)
+            var _2: String?
+            _2 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            if _c1 && _c2 {
+                return Api.NotificationSound.notificationSoundLocal(Cons_notificationSoundLocal(title: _1!, data: _2!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_notificationSoundNone(_ reader: BufferReader) -> NotificationSound? {
+            return Api.NotificationSound.notificationSoundNone
+        }
+        static func parse_notificationSoundRingtone(_ reader: BufferReader) -> NotificationSound? {
+            var _1: Int64?
+            _1 = reader.readInt64()
+            let _c1 = _1 != nil
+            if _c1 {
+                return Api.NotificationSound.notificationSoundRingtone(Cons_notificationSoundRingtone(id: _1!))
+            }
+            else {
+                return nil
+            }
+        }
+    }
+}
+extension Api {
     enum NotifyPeer: TypeConstructorDescription {
         class Cons_notifyCommunity: TypeConstructorDescription {
             var communityId: Int64
@@ -1708,84 +1790,6 @@ extension Api {
             let _c2 = _2 != nil
             if _c1 && _c2 {
                 return Api.PageCaption.pageCaption(Cons_pageCaption(text: _1!, credit: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-    }
-}
-extension Api {
-    indirect enum PageListItem: TypeConstructorDescription {
-        class Cons_pageListItemBlocks: TypeConstructorDescription {
-            var flags: Int32
-            var blocks: [Api.PageBlock]
-            init(flags: Int32, blocks: [Api.PageBlock]) {
-                self.flags = flags
-                self.blocks = blocks
-            }
-        }
-        class Cons_pageListItemText: TypeConstructorDescription {
-            var flags: Int32
-            var text: Api.RichText
-            init(flags: Int32, text: Api.RichText) {
-                self.flags = flags
-                self.text = text
-            }
-        }
-        case pageListItemBlocks(Cons_pageListItemBlocks)
-        case pageListItemText(Cons_pageListItemText)
-
-        func serialize(_ buffer: Buffer, _ boxed: Swift.Bool) {
-            switch self {
-            case .pageListItemBlocks(let _data):
-                if boxed {
-                    buffer.appendInt32(1674209194)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                buffer.appendInt32(481674261)
-                buffer.appendInt32(Int32(_data.blocks.count))
-                for item in _data.blocks {
-                    item.serialize(buffer, true)
-                }
-                break
-            case .pageListItemText(let _data):
-                if boxed {
-                    buffer.appendInt32(794323004)
-                }
-                serializeInt32(_data.flags, buffer: buffer, boxed: false)
-                _data.text.serialize(buffer, true)
-                break
-            }
-        }
-
-        static func parse_pageListItemBlocks(_ reader: BufferReader) -> PageListItem? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: [Api.PageBlock]?
-            if let _ = reader.readInt32() {
-                _2 = Api.parseVector(reader, elementSignature: 0, elementType: Api.PageBlock.self)
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.PageListItem.pageListItemBlocks(Cons_pageListItemBlocks(flags: _1!, blocks: _2!))
-            }
-            else {
-                return nil
-            }
-        }
-        static func parse_pageListItemText(_ reader: BufferReader) -> PageListItem? {
-            var _1: Int32?
-            _1 = reader.readInt32()
-            var _2: Api.RichText?
-            if let signature = reader.readInt32() {
-                _2 = Api.parse(reader, signature: signature) as? Api.RichText
-            }
-            let _c1 = _1 != nil
-            let _c2 = _2 != nil
-            if _c1 && _c2 {
-                return Api.PageListItem.pageListItemText(Cons_pageListItemText(flags: _1!, text: _2!))
             }
             else {
                 return nil

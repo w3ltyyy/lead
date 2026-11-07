@@ -278,6 +278,50 @@ extension Api {
                 self.timeout = timeout
             }
         }
+        class Cons_updateBotWidgetCopyQuery: TypeConstructorDescription {
+            var flags: Int32
+            var queryId: Int64
+            var queryType: Api.WidgetQueryType
+            var userId: Int64
+            var data: Buffer
+            var widgetId: Int64
+            var walletCard: Api.wallet.Card?
+            init(flags: Int32, queryId: Int64, queryType: Api.WidgetQueryType, userId: Int64, data: Buffer, widgetId: Int64, walletCard: Api.wallet.Card?) {
+                self.flags = flags
+                self.queryId = queryId
+                self.queryType = queryType
+                self.userId = userId
+                self.data = data
+                self.widgetId = widgetId
+                self.walletCard = walletCard
+            }
+        }
+        class Cons_updateBotWidgetQuery: TypeConstructorDescription {
+            var flags: Int32
+            var queryId: Int64
+            var queryType: Api.WidgetQueryType
+            var userId: Int64
+            var peer: Api.Peer
+            var msgId: Int32
+            var chatInstance: Int64
+            var chatType: String
+            var data: Buffer
+            var widgetId: Int64?
+            var walletCard: Api.wallet.Card?
+            init(flags: Int32, queryId: Int64, queryType: Api.WidgetQueryType, userId: Int64, peer: Api.Peer, msgId: Int32, chatInstance: Int64, chatType: String, data: Buffer, widgetId: Int64?, walletCard: Api.wallet.Card?) {
+                self.flags = flags
+                self.queryId = queryId
+                self.queryType = queryType
+                self.userId = userId
+                self.peer = peer
+                self.msgId = msgId
+                self.chatInstance = chatInstance
+                self.chatType = chatType
+                self.data = data
+                self.widgetId = widgetId
+                self.walletCard = walletCard
+            }
+        }
         class Cons_updateBusinessBotCallbackQuery: TypeConstructorDescription {
             var flags: Int32
             var queryId: Int64
@@ -650,6 +694,24 @@ extension Api {
                 self.message = message
             }
         }
+        class Cons_updateEditForumTopic: TypeConstructorDescription {
+            var flags: Int32
+            var peer: Api.Peer
+            var topicId: Int32
+            var title: String?
+            var iconEmojiId: Int64?
+            var closed: Api.Bool?
+            var hidden: Api.Bool?
+            init(flags: Int32, peer: Api.Peer, topicId: Int32, title: String?, iconEmojiId: Int64?, closed: Api.Bool?, hidden: Api.Bool?) {
+                self.flags = flags
+                self.peer = peer
+                self.topicId = topicId
+                self.title = title
+                self.iconEmojiId = iconEmojiId
+                self.closed = closed
+                self.hidden = hidden
+            }
+        }
         class Cons_updateEditMessage: TypeConstructorDescription {
             var message: Api.Message
             var pts: Int32
@@ -804,6 +866,30 @@ extension Api {
                 self.gameShortName = gameShortName
             }
         }
+        class Cons_updateInlineBotWidgetQuery: TypeConstructorDescription {
+            var flags: Int32
+            var queryId: Int64
+            var queryType: Api.WidgetQueryType
+            var userId: Int64
+            var inlineMessageId: Api.InputBotInlineMessageID
+            var chatInstance: Int64
+            var chatType: String
+            var data: Buffer
+            var widgetId: Int64?
+            var walletCard: Api.wallet.Card?
+            init(flags: Int32, queryId: Int64, queryType: Api.WidgetQueryType, userId: Int64, inlineMessageId: Api.InputBotInlineMessageID, chatInstance: Int64, chatType: String, data: Buffer, widgetId: Int64?, walletCard: Api.wallet.Card?) {
+                self.flags = flags
+                self.queryId = queryId
+                self.queryType = queryType
+                self.userId = userId
+                self.inlineMessageId = inlineMessageId
+                self.chatInstance = chatInstance
+                self.chatType = chatType
+                self.data = data
+                self.widgetId = widgetId
+                self.walletCard = walletCard
+            }
+        }
         class Cons_updateJoinChatWebViewDecision: TypeConstructorDescription {
             var peer: Api.Peer
             var queryId: Int64
@@ -900,6 +986,26 @@ extension Api {
                 self.topMsgId = topMsgId
                 self.savedPeerId = savedPeerId
                 self.reactions = reactions
+            }
+        }
+        class Cons_updateMessageWidgetData: TypeConstructorDescription {
+            var flags: Int32
+            var peer: Api.Peer
+            var msgId: Int32
+            var publicData: String?
+            var publicDataHash: Int64?
+            var chatData: String?
+            var pts: Int32
+            var ptsCount: Int32
+            init(flags: Int32, peer: Api.Peer, msgId: Int32, publicData: String?, publicDataHash: Int64?, chatData: String?, pts: Int32, ptsCount: Int32) {
+                self.flags = flags
+                self.peer = peer
+                self.msgId = msgId
+                self.publicData = publicData
+                self.publicDataHash = publicDataHash
+                self.chatData = chatData
+                self.pts = pts
+                self.ptsCount = ptsCount
             }
         }
         class Cons_updateMonoForumNoPaidException: TypeConstructorDescription {
@@ -1442,6 +1548,16 @@ extension Api {
                 self.text = text
             }
         }
+        class Cons_updateTranscribedAudioFile: TypeConstructorDescription {
+            var flags: Int32
+            var transcriptionId: Int64
+            var text: String
+            init(flags: Int32, transcriptionId: Int64, text: String) {
+                self.flags = flags
+                self.transcriptionId = transcriptionId
+                self.text = text
+            }
+        }
         class Cons_updateUser: TypeConstructorDescription {
             var userId: Int64
             init(userId: Int64) {
@@ -1584,6 +1700,8 @@ extension Api {
         case updateBotStopped(Cons_updateBotStopped)
         case updateBotWebhookJSON(Cons_updateBotWebhookJSON)
         case updateBotWebhookJSONQuery(Cons_updateBotWebhookJSONQuery)
+        case updateBotWidgetCopyQuery(Cons_updateBotWidgetCopyQuery)
+        case updateBotWidgetQuery(Cons_updateBotWidgetQuery)
         case updateBusinessBotCallbackQuery(Cons_updateBusinessBotCallbackQuery)
         case updateChannel(Cons_updateChannel)
         case updateChannelAvailableMessages(Cons_updateChannelAvailableMessages)
@@ -1622,6 +1740,7 @@ extension Api {
         case updateDraftMessage(Cons_updateDraftMessage)
         case updateEditChannelMessage(Cons_updateEditChannelMessage)
         case updateEditEphemeralMessage(Cons_updateEditEphemeralMessage)
+        case updateEditForumTopic(Cons_updateEditForumTopic)
         case updateEditMessage(Cons_updateEditMessage)
         case updateEmojiGameInfo(Cons_updateEmojiGameInfo)
         case updateEncryptedChatTyping(Cons_updateEncryptedChatTyping)
@@ -1638,6 +1757,7 @@ extension Api {
         case updateGroupCallMessage(Cons_updateGroupCallMessage)
         case updateGroupCallParticipants(Cons_updateGroupCallParticipants)
         case updateInlineBotCallbackQuery(Cons_updateInlineBotCallbackQuery)
+        case updateInlineBotWidgetQuery(Cons_updateInlineBotWidgetQuery)
         case updateJoinChatWebViewDecision(Cons_updateJoinChatWebViewDecision)
         case updateLangPack(Cons_updateLangPack)
         case updateLangPackTooLong(Cons_updateLangPackTooLong)
@@ -1648,6 +1768,7 @@ extension Api {
         case updateMessagePoll(Cons_updateMessagePoll)
         case updateMessagePollVote(Cons_updateMessagePollVote)
         case updateMessageReactions(Cons_updateMessageReactions)
+        case updateMessageWidgetData(Cons_updateMessageWidgetData)
         case updateMonoForumNoPaidException(Cons_updateMonoForumNoPaidException)
         case updateMoveStickerSetToTop(Cons_updateMoveStickerSetToTop)
         case updateNewAuthorization(Cons_updateNewAuthorization)
@@ -1716,6 +1837,7 @@ extension Api {
         case updateStoryID(Cons_updateStoryID)
         case updateTheme(Cons_updateTheme)
         case updateTranscribedAudio(Cons_updateTranscribedAudio)
+        case updateTranscribedAudioFile(Cons_updateTranscribedAudioFile)
         case updateUser(Cons_updateUser)
         case updateUserEmojiStatus(Cons_updateUserEmojiStatus)
         case updateUserName(Cons_updateUserName)
@@ -1997,6 +2119,40 @@ extension Api {
                 serializeInt64(_data.queryId, buffer: buffer, boxed: false)
                 _data.data.serialize(buffer, true)
                 serializeInt32(_data.timeout, buffer: buffer, boxed: false)
+                break
+            case .updateBotWidgetCopyQuery(let _data):
+                if boxed {
+                    buffer.appendInt32(-91635977)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.queryId, buffer: buffer, boxed: false)
+                _data.queryType.serialize(buffer, true)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                serializeBytes(_data.data, buffer: buffer, boxed: false)
+                serializeInt64(_data.widgetId, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    _data.walletCard!.serialize(buffer, true)
+                }
+                break
+            case .updateBotWidgetQuery(let _data):
+                if boxed {
+                    buffer.appendInt32(-1284243864)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.queryId, buffer: buffer, boxed: false)
+                _data.queryType.serialize(buffer, true)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                _data.peer.serialize(buffer, true)
+                serializeInt32(_data.msgId, buffer: buffer, boxed: false)
+                serializeInt64(_data.chatInstance, buffer: buffer, boxed: false)
+                serializeString(_data.chatType, buffer: buffer, boxed: false)
+                serializeBytes(_data.data, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeInt64(_data.widgetId!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    _data.walletCard!.serialize(buffer, true)
+                }
                 break
             case .updateBusinessBotCallbackQuery(let _data):
                 if boxed {
@@ -2380,6 +2536,26 @@ extension Api {
                 }
                 _data.message.serialize(buffer, true)
                 break
+            case .updateEditForumTopic(let _data):
+                if boxed {
+                    buffer.appendInt32(593913436)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                _data.peer.serialize(buffer, true)
+                serializeInt32(_data.topicId, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeString(_data.title!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    serializeInt64(_data.iconEmojiId!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 2) != 0 {
+                    _data.closed!.serialize(buffer, true)
+                }
+                if Int(_data.flags) & Int(1 << 3) != 0 {
+                    _data.hidden!.serialize(buffer, true)
+                }
+                break
             case .updateEditMessage(let _data):
                 if boxed {
                     buffer.appendInt32(-469536605)
@@ -2529,6 +2705,25 @@ extension Api {
                     serializeString(_data.gameShortName!, buffer: buffer, boxed: false)
                 }
                 break
+            case .updateInlineBotWidgetQuery(let _data):
+                if boxed {
+                    buffer.appendInt32(-1510965752)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                serializeInt64(_data.queryId, buffer: buffer, boxed: false)
+                _data.queryType.serialize(buffer, true)
+                serializeInt64(_data.userId, buffer: buffer, boxed: false)
+                _data.inlineMessageId.serialize(buffer, true)
+                serializeInt64(_data.chatInstance, buffer: buffer, boxed: false)
+                serializeString(_data.chatType, buffer: buffer, boxed: false)
+                serializeBytes(_data.data, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeInt64(_data.widgetId!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    _data.walletCard!.serialize(buffer, true)
+                }
+                break
             case .updateJoinChatWebViewDecision(let _data):
                 if boxed {
                     buffer.appendInt32(-1112768912)
@@ -2633,6 +2828,25 @@ extension Api {
                     _data.savedPeerId!.serialize(buffer, true)
                 }
                 _data.reactions.serialize(buffer, true)
+                break
+            case .updateMessageWidgetData(let _data):
+                if boxed {
+                    buffer.appendInt32(-1146062627)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
+                _data.peer.serialize(buffer, true)
+                serializeInt32(_data.msgId, buffer: buffer, boxed: false)
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeString(_data.publicData!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 0) != 0 {
+                    serializeInt64(_data.publicDataHash!, buffer: buffer, boxed: false)
+                }
+                if Int(_data.flags) & Int(1 << 1) != 0 {
+                    serializeString(_data.chatData!, buffer: buffer, boxed: false)
+                }
+                serializeInt32(_data.pts, buffer: buffer, boxed: false)
+                serializeInt32(_data.ptsCount, buffer: buffer, boxed: false)
                 break
             case .updateMonoForumNoPaidException(let _data):
                 if boxed {
@@ -3213,6 +3427,14 @@ extension Api {
                 serializeInt32(_data.flags, buffer: buffer, boxed: false)
                 _data.peer.serialize(buffer, true)
                 serializeInt32(_data.msgId, buffer: buffer, boxed: false)
+                serializeInt64(_data.transcriptionId, buffer: buffer, boxed: false)
+                serializeString(_data.text, buffer: buffer, boxed: false)
+                break
+            case .updateTranscribedAudioFile(let _data):
+                if boxed {
+                    buffer.appendInt32(1934372475)
+                }
+                serializeInt32(_data.flags, buffer: buffer, boxed: false)
                 serializeInt64(_data.transcriptionId, buffer: buffer, boxed: false)
                 serializeString(_data.text, buffer: buffer, boxed: false)
                 break
@@ -3883,6 +4105,92 @@ extension Api {
             let _c3 = _3 != nil
             if _c1 && _c2 && _c3 {
                 return Api.Update.updateBotWebhookJSONQuery(Cons_updateBotWebhookJSONQuery(queryId: _1!, data: _2!, timeout: _3!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_updateBotWidgetCopyQuery(_ reader: BufferReader) -> Update? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Api.WidgetQueryType?
+            if let signature = reader.readInt32() {
+                _3 = Api.parse(reader, signature: signature) as? Api.WidgetQueryType
+            }
+            var _4: Int64?
+            _4 = reader.readInt64()
+            var _5: Buffer?
+            _5 = parseBytes(reader)
+            var _6: Int64?
+            _6 = reader.readInt64()
+            var _7: Api.wallet.Card?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                if let signature = reader.readInt32() {
+                    _7 = Api.parse(reader, signature: signature) as? Api.wallet.Card
+                }
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            let _c7 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _7 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 {
+                return Api.Update.updateBotWidgetCopyQuery(Cons_updateBotWidgetCopyQuery(flags: _1!, queryId: _2!, queryType: _3!, userId: _4!, data: _5!, widgetId: _6!, walletCard: _7))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_updateBotWidgetQuery(_ reader: BufferReader) -> Update? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Api.WidgetQueryType?
+            if let signature = reader.readInt32() {
+                _3 = Api.parse(reader, signature: signature) as? Api.WidgetQueryType
+            }
+            var _4: Int64?
+            _4 = reader.readInt64()
+            var _5: Api.Peer?
+            if let signature = reader.readInt32() {
+                _5 = Api.parse(reader, signature: signature) as? Api.Peer
+            }
+            var _6: Int32?
+            _6 = reader.readInt32()
+            var _7: Int64?
+            _7 = reader.readInt64()
+            var _8: String?
+            _8 = parseString(reader)
+            var _9: Buffer?
+            _9 = parseBytes(reader)
+            var _10: Int64?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _10 = reader.readInt64()
+            }
+            var _11: Api.wallet.Card?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                if let signature = reader.readInt32() {
+                    _11 = Api.parse(reader, signature: signature) as? Api.wallet.Card
+                }
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            let _c7 = _7 != nil
+            let _c8 = _8 != nil
+            let _c9 = _9 != nil
+            let _c10 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _10 != nil
+            let _c11 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _11 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 && _c10 && _c11 {
+                return Api.Update.updateBotWidgetQuery(Cons_updateBotWidgetQuery(flags: _1!, queryId: _2!, queryType: _3!, userId: _4!, peer: _5!, msgId: _6!, chatInstance: _7!, chatType: _8!, data: _9!, widgetId: _10, walletCard: _11))
             }
             else {
                 return nil
@@ -4643,6 +4951,49 @@ extension Api {
                 return nil
             }
         }
+        static func parse_updateEditForumTopic(_ reader: BufferReader) -> Update? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Api.Peer?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.Peer
+            }
+            var _3: Int32?
+            _3 = reader.readInt32()
+            var _4: String?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _4 = parseString(reader)
+            }
+            var _5: Int64?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                _5 = reader.readInt64()
+            }
+            var _6: Api.Bool?
+            if Int(_1 ?? 0) & Int(1 << 2) != 0 {
+                if let signature = reader.readInt32() {
+                    _6 = Api.parse(reader, signature: signature) as? Api.Bool
+                }
+            }
+            var _7: Api.Bool?
+            if Int(_1 ?? 0) & Int(1 << 3) != 0 {
+                if let signature = reader.readInt32() {
+                    _7 = Api.parse(reader, signature: signature) as? Api.Bool
+                }
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 2) == 0) || _6 != nil
+            let _c7 = (Int(_1 ?? 0) & Int(1 << 3) == 0) || _7 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 {
+                return Api.Update.updateEditForumTopic(Cons_updateEditForumTopic(flags: _1!, peer: _2!, topicId: _3!, title: _4, iconEmojiId: _5, closed: _6, hidden: _7))
+            }
+            else {
+                return nil
+            }
+        }
         static func parse_updateEditMessage(_ reader: BufferReader) -> Update? {
             var _1: Api.Message?
             if let signature = reader.readInt32() {
@@ -4955,6 +5306,54 @@ extension Api {
                 return nil
             }
         }
+        static func parse_updateInlineBotWidgetQuery(_ reader: BufferReader) -> Update? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: Api.WidgetQueryType?
+            if let signature = reader.readInt32() {
+                _3 = Api.parse(reader, signature: signature) as? Api.WidgetQueryType
+            }
+            var _4: Int64?
+            _4 = reader.readInt64()
+            var _5: Api.InputBotInlineMessageID?
+            if let signature = reader.readInt32() {
+                _5 = Api.parse(reader, signature: signature) as? Api.InputBotInlineMessageID
+            }
+            var _6: Int64?
+            _6 = reader.readInt64()
+            var _7: String?
+            _7 = parseString(reader)
+            var _8: Buffer?
+            _8 = parseBytes(reader)
+            var _9: Int64?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _9 = reader.readInt64()
+            }
+            var _10: Api.wallet.Card?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                if let signature = reader.readInt32() {
+                    _10 = Api.parse(reader, signature: signature) as? Api.wallet.Card
+                }
+            }
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = _4 != nil
+            let _c5 = _5 != nil
+            let _c6 = _6 != nil
+            let _c7 = _7 != nil
+            let _c8 = _8 != nil
+            let _c9 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _9 != nil
+            let _c10 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _10 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 && _c9 && _c10 {
+                return Api.Update.updateInlineBotWidgetQuery(Cons_updateInlineBotWidgetQuery(flags: _1!, queryId: _2!, queryType: _3!, userId: _4!, inlineMessageId: _5!, chatInstance: _6!, chatType: _7!, data: _8!, widgetId: _9, walletCard: _10))
+            }
+            else {
+                return nil
+            }
+        }
         static func parse_updateJoinChatWebViewDecision(_ reader: BufferReader) -> Update? {
             var _1: Api.Peer?
             if let signature = reader.readInt32() {
@@ -5158,6 +5557,46 @@ extension Api {
             let _c6 = _6 != nil
             if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 {
                 return Api.Update.updateMessageReactions(Cons_updateMessageReactions(flags: _1!, peer: _2!, msgId: _3!, topMsgId: _4, savedPeerId: _5, reactions: _6!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_updateMessageWidgetData(_ reader: BufferReader) -> Update? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Api.Peer?
+            if let signature = reader.readInt32() {
+                _2 = Api.parse(reader, signature: signature) as? Api.Peer
+            }
+            var _3: Int32?
+            _3 = reader.readInt32()
+            var _4: String?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _4 = parseString(reader)
+            }
+            var _5: Int64?
+            if Int(_1 ?? 0) & Int(1 << 0) != 0 {
+                _5 = reader.readInt64()
+            }
+            var _6: String?
+            if Int(_1 ?? 0) & Int(1 << 1) != 0 {
+                _6 = parseString(reader)
+            }
+            var _7: Int32?
+            _7 = reader.readInt32()
+            var _8: Int32?
+            _8 = reader.readInt32()
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            let _c4 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _4 != nil
+            let _c5 = (Int(_1 ?? 0) & Int(1 << 0) == 0) || _5 != nil
+            let _c6 = (Int(_1 ?? 0) & Int(1 << 1) == 0) || _6 != nil
+            let _c7 = _7 != nil
+            let _c8 = _8 != nil
+            if _c1 && _c2 && _c3 && _c4 && _c5 && _c6 && _c7 && _c8 {
+                return Api.Update.updateMessageWidgetData(Cons_updateMessageWidgetData(flags: _1!, peer: _2!, msgId: _3!, publicData: _4, publicDataHash: _5, chatData: _6, pts: _7!, ptsCount: _8!))
             }
             else {
                 return nil
@@ -6272,6 +6711,23 @@ extension Api {
             let _c5 = _5 != nil
             if _c1 && _c2 && _c3 && _c4 && _c5 {
                 return Api.Update.updateTranscribedAudio(Cons_updateTranscribedAudio(flags: _1!, peer: _2!, msgId: _3!, transcriptionId: _4!, text: _5!))
+            }
+            else {
+                return nil
+            }
+        }
+        static func parse_updateTranscribedAudioFile(_ reader: BufferReader) -> Update? {
+            var _1: Int32?
+            _1 = reader.readInt32()
+            var _2: Int64?
+            _2 = reader.readInt64()
+            var _3: String?
+            _3 = parseString(reader)
+            let _c1 = _1 != nil
+            let _c2 = _2 != nil
+            let _c3 = _3 != nil
+            if _c1 && _c2 && _c3 {
+                return Api.Update.updateTranscribedAudioFile(Cons_updateTranscribedAudioFile(flags: _1!, transcriptionId: _2!, text: _3!))
             }
             else {
                 return nil
